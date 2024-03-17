@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { Bike, CalendarDays, ChevronLeft, CircleDollarSign, Clock7, FilePlus, Home, Kanban, LandPlot, MessageCircleMore, MousePointerSquare, Trophy, Users2 } from 'lucide-react';
+import { Bike, CalendarDays, ChevronLeft, CircleDollarSign, Clock7, FilePlus, Home, Kanban, LandPlot, Medal, MessageCircleMore, MousePointerSquare, Settings, Trophy, Users2 } from 'lucide-react';
 import React from 'react';
 
 
@@ -9,15 +9,15 @@ export default function Sidebar() {
   const [activeLink, setActiveLink] = useState('');
   
   return (
-    <div className="w-56 min-h-screen bg-slate-800 text-slate-50 fixed ">
+    <div className="w-56 min-h-screen bg-slate-50 text-gray-400 fixed ">
       <div className='flex flex-col'>
-          <div className='flex bg-slate-950 space-x-2 items-center py-4 px-2'>
+          <div className='flex bg-slate-50 space-x-2 items-center py-4 px-2'>
               <Trophy/>
               <span className='font-bold'>TEAM UP</span>
           </div>
           <nav className='flex flex-col gap-3 px-3 py-6 ' >
               <a
-                className={`flex items-center space-x-2 p-2 rounded-md hover:bg-slate-900 ${activeLink === 'home' ? 'bg-blue-600 text-white' : ''}`}
+                className={`flex items-center space-x-2 p-2 rounded-md hover:bg-green-300 rounded-md rounded-md ${activeLink === 'home' ? 'bg-blue-600 text-white' : ''}`}
                 href={'/invdashboard/home/firstpage'}
                 onClick={() => setActiveLink('home')}
               >
@@ -25,7 +25,7 @@ export default function Sidebar() {
                   <span>Home</span>
               </a>
               <a
-                className={`p-2 flex items-center space-x-2 hover:bg-slate-900 ${activeLink === 'calendar' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md rounded-md ${activeLink === 'calendar' ? 'bg-blue-600 text-white' : ''}`}
                 href={'/invdashboard/home/calendar'}
                 onClick={() => setActiveLink('calendar')}
               >
@@ -33,7 +33,7 @@ export default function Sidebar() {
                   <span>Calendar</span>
               </a>
               <a
-                className={`p-2 flex items-center space-x-2 hover:bg-slate-900 ${activeLink === 'team' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md ${activeLink === 'team' ? 'bg-blue-600 text-white' : ''}`}
                 href={'/invdashboard/home/coaches'}
                 onClick={() => setActiveLink('team')}
               >
@@ -41,7 +41,7 @@ export default function Sidebar() {
                   <span>Coaches</span>
               </a>
               <a
-                className={`p-2 flex items-center space-x-2 hover:bg-slate-900 ${activeLink === 'team' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md ${activeLink === 'team' ? 'bg-blue-600 text-white' : ''}`}
                 href={'/invdashboard/home/players'}
                 onClick={() => setActiveLink('team')}
               >
@@ -49,7 +49,7 @@ export default function Sidebar() {
                   <span>Players</span>
               </a>
               <a
-                className={`flex items-center space-x-2 p-2 rounded-md hover:bg-slate-900 ${activeLink === 'home' ? 'bg-blue-600 text-white' : ''}`}
+                className={`flex items-center space-x-2 p-2 rounded-md hover:bg-green-300 rounded-md ${activeLink === 'home' ? 'bg-blue-600 text-white' : ''}`}
                 href={'/invdashboard/home/classes'}
                 onClick={() => setActiveLink('classes')}
               >
@@ -57,7 +57,15 @@ export default function Sidebar() {
                   <span>Classes</span>
               </a>
               <a
-                className={`p-2 flex items-center space-x-2 hover:bg-slate-900 ${activeLink === 'chat' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md ${activeLink === 'matches' ? 'bg-blue-600 text-white' : ''}`}
+                href={'/invdashboard/home/matches'}
+                onClick={() => setActiveLink('matches')}
+              >
+                  <Medal className='w-6 h-6'/>
+                  <span>Matches</span>
+              </a>
+              <a
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md ${activeLink === 'chat' ? 'bg-blue-600 text-white' : ''}`}
                 href={'/invdashboard/home/chat'}
                 onClick={() => setActiveLink('chat')}
               >
@@ -65,31 +73,24 @@ export default function Sidebar() {
                   <span>Chat</span>
               </a>
               <a
-                className={`p-2 flex items-center space-x-2 hover:bg-slate-900 ${activeLink === 'post' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md ${activeLink === 'post' ? 'bg-blue-600 text-white' : ''}`}
                 href={'/invdashboard/home/post'}
                 onClick={() => setActiveLink('post')}
               >
                   <MousePointerSquare className='w-6 h-6'/>
                   <span>Post</span>
               </a>
+             
               <a
-                className={`p-2 flex items-center space-x-2 hover:bg-slate-900 ${activeLink === 'management' ? 'bg-blue-600 text-white' : ''}`}
-                href={'/invdashboard/home/management'}
-                onClick={() => setActiveLink('management')}
-              >
-                  <Kanban className='w-6 h-6'/>
-                  <span>Management</span>
-              </a>
-              <a
-                className={`p-2 flex items-center space-x-2 hover:bg-slate-900 ${activeLink === 'payments' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300  rounded-md ${activeLink === 'payments' ? 'bg-blue-600 text-white' : ''}`}
                 href={'/invdashboard/home/payment'}
                 onClick={() => setActiveLink('payments')}
               >
                   <CircleDollarSign className='w-6 h-6'/>
-                  <span>Payments</span>
+                  <span>Billings</span>
               </a>
               <a
-                className={`p-2 flex items-center space-x-2 hover:bg-slate-900 ${activeLink === 'registration' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md ${activeLink === 'registration' ? 'bg-blue-600 text-white' : ''}`}
                 href={'/invdashboard/home/registration'}
                 onClick={() => setActiveLink('registration')}
               >
@@ -97,16 +98,16 @@ export default function Sidebar() {
                   <span>Registration</span>
               </a>
               <a
-                className={`p-2 flex items-center space-x-2 hover:bg-slate-900 ${activeLink === 'scheduling' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md rounded-md ${activeLink === 'scheduling' ? 'bg-blue-600 text-white' : ''}`}
                 href={'/scheduling'}
                 onClick={() => setActiveLink('scheduling')}
               >
-                  <Clock7 className='w-6 h-6'/>
-                  <span>Scheduling</span>
+                  <Settings className='w-6 h-6'/>
+                  <span>Settings</span>
               </a>
           </nav>
       </div>
-      <div className='flex flex-col h-screen hover:bg-slate-900'>
+      <div className='flex flex-col h-screen hover:bg-green-300 rounded-md rounded-md'>
           <button className='flex bg-slate-950 space-x-2 items-center py-4 px-2 justify-center '>
               <ChevronLeft/>
           </button>

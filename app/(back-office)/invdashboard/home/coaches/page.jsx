@@ -1,181 +1,49 @@
 // pages/index.js
 'use client';
+import { db } from '/app/firebase';
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc, doc,
+  
+} from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { ArrowUpToLine, CoinsIcon, Eye, HandCoins, Pencil, PersonStandingIcon, Search, User2, UserCheck2, Users2, X } from "lucide-react";
 import React ,{useState, useEffect} from "react";
-
-const coaches = [
-  {
-    id: 1,
-    name: "John Doe",
-    sport: "Football",
-    profilePicture: "/john_doe.jpg",
-    email: "john@example.com",
-    phoneNumber: "+1234567890",
-    status: "present"
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    sport: "Basketball",
-    profilePicture: "/jane_smith.jpg",
-    email: "jane@example.com",
-    phoneNumber: "+1987654321",
-    status: "present"
-  },
-  {
-    id: 3,
-    name: "Alice Johnson",
-    sport: "Tennis",
-    profilePicture: "/alice_johnson.jpg",
-    email: "alice@example.com",
-    phoneNumber: "+1122334455",
-    status: "on vacation"
-  },
-  {
-    id: 4,
-    name: "Bob Brown",
-    sport: "Swimming",
-    profilePicture: "/bob_brown.jpg",
-    email: "bob@example.com",
-    phoneNumber: "+1555666777",
-    status: "present"
-  },
-  {
-    id: 5,
-    name: "Emma Wilson",
-    sport: "Soccer",
-    profilePicture: "/emma_wilson.jpg",
-    email: "emma@example.com",
-    phoneNumber: "+1443322111",
-    status: "absent"
-  },
-  {
-    id: 6,
-    name: "Michael Lee",
-    sport: "Soccer",
-    profilePicture: "/michael_lee.jpg",
-    email: "michael@example.com",
-    phoneNumber: "+1789456123",
-    status: "absent"
-  },
-  {
-    id: 7,
-    name: "Sarah Garcia",
-    sport: "Volleyball",
-    profilePicture: "/sarah_garcia.jpg",
-    email: "sarah@example.com",
-    phoneNumber: "+1654321890",
-    status: "present"
-  },
-  {
-    id: 8,
-    name: "David Martinez",
-    sport: "Soccer",
-    profilePicture: "/david_martinez.jpg",
-    email: "david@example.com",
-    phoneNumber: "+1888777666",
-    status: "present"
-  },
-  {
-    id: 9,
-    name: "Laura Rodriguez",
-    sport: "Badminton",
-    profilePicture: "/laura_rodriguez.jpg",
-    email: "laura@example.com",
-    phoneNumber: "+1999444555",
-    status: "present"
-  },
-  {
-    id: 9,
-    name: "Laura Rodriguez",
-    sport: "Badminton",
-    profilePicture: "/laura_rodriguez.jpg",
-    email: "laura@example.com",
-    phoneNumber: "+1999444555",
-    status: "present"
-  },
-  {
-    id: 9,
-    name: "Laura Rodriguez",
-    sport: "Badminton",
-    profilePicture: "/laura_rodriguez.jpg",
-    email: "laura@example.com",
-    phoneNumber: "+1999444555",
-    status: "present"
-  },
-  {
-    id: 9,
-    name: "Laura Rodriguez",
-    sport: "Badminton",
-    profilePicture: "/laura_rodriguez.jpg",
-    email: "laura@example.com",
-    phoneNumber: "+1999444555",
-    status: "present"
-  },
-  {
-    id: 9,
-    name: "Laura Rodriguez",
-    sport: "Badminton",
-    profilePicture: "/laura_rodriguez.jpg",
-    email: "laura@example.com",
-    phoneNumber: "+1999444555",
-    status: "present"
-  },
-  {
-    id: 9,
-    name: "Laura Rodriguez",
-    sport: "Badminton",
-    profilePicture: "/laura_rodriguez.jpg",
-    email: "laura@example.com",
-    phoneNumber: "+1999444555",
-    status: "present"
-  },
-  {
-    id: 9,
-    name: "Laura Rodriguez",
-    sport: "Badminton",
-    profilePicture: "/laura_rodriguez.jpg",
-    email: "laura@example.com",
-    phoneNumber: "+1999444555",
-    status: "present"
-  },
-  {
-    id: 9,
-    name: "Laura Rodriguez",
-    sport: "Badminton",
-    profilePicture: "/laura_rodriguez.jpg",
-    email: "laura@example.com",
-    phoneNumber: "+1999444555",
-    status: "present"
-  },
-  {
-    id: 9,
-    name: "Laura Rodriguez",
-    sport: "Badminton",
-    profilePicture: "/laura_rodriguez.jpg",
-    email: "laura@example.com",
-    phoneNumber: "+1999444555",
-    status: "present"
-  },
-
-  {
-    id: 10,
-    name: "Chris Thomas",
-    sport: "Rugby",
-    profilePicture: "/chris_thomas.jpg",
-    email: "chris@example.com",
-    phoneNumber: "+1666999888",
-    status: "present"
-  }
-];
-
+import CoashScreen from '../CoashScreen/page';
+import PhoneInput from 'react-phone-number-input';
 
 
 const IndexPage = () => {
- 
-  
+  const [coaches, setCoaches] = useState([]);
   const [filteredSport, setFilteredSport] = useState(null);
+  
 
+  // State to hold new coach data
+  
+
+  useEffect(() => {
+    const fetchCoaches = async () => {
+      const coachesCollectionRef = collection(db, 'Trainers');
+      try {
+        const querySnapshot = await getDocs(coachesCollectionRef);
+        const coachesData = querySnapshot.docs.map(doc => doc.data());
+        setCoaches(coachesData);
+      } catch (error) {
+        console.error('Error fetching coaches:', error);
+      }
+    };
+
+    fetchCoaches();
+  }, []);
+
+
+  useEffect(() =>{
+console.log('zakamo',coaches);
+  },[])
+  
+  
   const CoachItem = ({ coach }) => {
     const [showDetails, setShowDetails] = useState(false);
     const [showDetailsedit, setShowDetailsedit] = useState(false);
@@ -192,11 +60,11 @@ const IndexPage = () => {
     return (
       <div className={`flex bg-white p-1 mb-1 rounded-lg items-center border-b border-gray-400`}>
         <div className="w-1/4 pr-4">
-          <img src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt={coach.name} className="w-12 h-12 rounded-full" />
+          <img src={coach.image} alt={coach.id} className="w-12 h-12 rounded-full" />
         </div>
-        <div className="w-3/4">{coach.name}</div>
+        <div className="w-3/4">{coach.nameandsurname}</div>
         <div className="w-1/4 pl-6 font-semibold">{getSportEmoji(coach.sport)}</div>
-        <div className="w-3/4">{coach.email}</div>
+        <div className="w-3/4">{coach.contact}</div>
         <div className="w-1/4 pr-4 font-semibold">
           <div className={`rounded px-1 py-1 ${getStatusColorClass(coach.status)} flex justify-center items-center`} style={{ whiteSpace: 'nowrap' }}>
             {getStatusText(coach.status)}
@@ -212,14 +80,15 @@ const IndexPage = () => {
   <div className="pl-96 w-screen h-screen fixed inset-0 flex bg-indigo-600 bg-opacity-50 justify-center items-center rounded">
   <div className="w-full max-w-screen h-full max-h-screen bg-white border border-gray-400 rounded-lg">
   <div className="w-80 h-full max-h-screen bg-blue-900 border border-gray-400 rounded-lg text-white flex flex-col items-center  ">
-      <div className='mt-20'>Coash name: {coach.name}</div>
+      <div className='mt-20'>Coash name: {coach.nameandsurname}</div>
       <div>Sport: {coach.sport}</div>
-      <div>ID: {coach.id}</div>
-      <div>Joining Date: {coach.phoneNumber}</div>
+      <div>ID: {coach.uid}</div>
+      <div>Joining Date: {coach.startDate && new Date(coach.startDate.seconds * 1000).toLocaleDateString()}</div>
+
       <div>Status: {getStatusText(coach.status)}</div>
       <div className="mb-10"></div>
       <div className="w-72 h-72 flex justify-center ">
-          <img src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt={coach.name} className="w-48 h-48 rounded " />
+          <img src={coach.image} alt={coach.nameandsurname} className="w-48 h-48 rounded " />
         </div>
        
       <div className="fixed top-0 right-0 bg-white-200 p-4 text-black w-7/12 h-full overflow-auto">
@@ -229,7 +98,7 @@ const IndexPage = () => {
     <div className="flex flex-wrap mb-6">
         <div className="w-full md:w-1/3 mb-4 md:mb-0">
             <strong className="block mb-1">Name:</strong>
-            <input type="text" value={`${coach.name} ${coach.middleName} ${coach.lastName}`} readOnly className="block w-60 border-b border-gray-300 focus:outline-none  rounded" />
+            <input type="text" value={`${coach.nameandsurname} ${coach.nameandsurname} ${coach.nameandsurname}`} readOnly className="block w-60 border-b border-gray-300 focus:outline-none  rounded" />
         </div>
         <div className="w-full md:w-1/3 mb-4 md:mb-0">
             <strong className="block mb-1">Sport:</strong>
@@ -237,17 +106,22 @@ const IndexPage = () => {
         </div>
         <div className="w-full md:w-1/3">
             <strong className="block mb-1">Email:</strong>
-            <input type="email" value={coach.email} readOnly className="block w-60 border-b border-gray-300 focus:outline-none  rounded" />
+            <input type="email" value={coach.contact} readOnly className="block w-60 border-b border-gray-300 focus:outline-none  rounded" />
         </div>
+        
     </div>
     <div className="flex flex-wrap mb-6">
         <div className="w-full md:w-1/3 mb-4 md:mb-0">
             <strong className="block mb-1">Blood Type:</strong>
-            <input type="text" value={coach.bloodType} readOnly className="block w-60 border-b border-gray-300 focus:outline-none  rounded" />
+            <input type="text" value={coach.BloodType} readOnly className="block w-60 border-b border-gray-300 focus:outline-none  rounded" />
+        </div>
+        <div className="w-full md:w-1/3 mb-4 md:mb-0">
+            <strong className="block mb-1">Years of experience:</strong>
+            <input type="text" value={coach.experience} readOnly className="block w-60 border-b border-gray-300 focus:outline-none  rounded" />
         </div>
         <div className="w-full md:w-1/3 mb-4 md:mb-0">
             <strong className="block mb-1">Date of Birth:</strong>
-            <input type="text" value={coach.dateOfBirth} readOnly className="block w-60 border-b border-gray-300 focus:outline-none  rounded" />
+            <input type="text" value={coach.birthDay && new Date(coach.startDate.seconds * 1000).toLocaleDateString()} readOnly className="block w-60 border-b border-gray-300 focus:outline-none  rounded" />
         </div>
         <div className="w-full md:w-1/3">
             <strong className="block mb-1">Salary:</strong>
@@ -295,14 +169,15 @@ const IndexPage = () => {
   <div className="pl-96 w-screen h-screen fixed inset-0 flex bg-indigo-600 bg-opacity-50 justify-center items-center rounded">
     <div className="w-full max-w-screen h-full max-h-screen bg-white border border-gray-400 rounded-lg">
       <div className="w-80 h-full max-h-screen bg-blue-900 border border-gray-400 rounded-lg text-white flex flex-col items-center">
-        <div className='mt-20'>Coach name: {coach.name}</div>
+        <div className='mt-20'>Coach name: {coach.contact}</div>
         <div>Sport: {coach.sport}</div>
-        <div>ID: {coach.id}</div>
-        <div>Joining Date: {coach.phoneNumber}</div>
+        <div>ID: {coach.uid}</div>
+        <div>Joining Date: {coach.startDate && new Date(coach.startDate.seconds * 1000).toLocaleDateString()}</div>
+
         <div>Status: {getStatusText(coach.status)}</div>
         <div className="mb-10"></div>
         <div className="w-72 h-72 flex justify-center">
-          <img src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt={coach.name} className="w-48 h-48 rounded " />
+          <img src={coach.image} alt={coach.nameandsurname} className="w-48 h-48 rounded " />
         </div>
 
         <div className="fixed top-0 right-0 bg-white-200 p-4 text-black w-7/12 h-full overflow-auto">
@@ -312,7 +187,7 @@ const IndexPage = () => {
               <div className="flex flex-wrap mb-6">
                 <div className="w-full md:w-1/3 mb-4 md:mb-0">
                   <strong className="block mb-1">Name:</strong>
-                  <input type="text" value={coach.name} onChange={(e) => setCoachName(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
+                  <input type="text" value={coach.nameandsurname} onChange={(e) => setCoachName(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
                 </div>
                 <div className="w-full md:w-1/3 mb-4 md:mb-0">
                   <strong className="block mb-1">Sport:</strong>
@@ -320,28 +195,33 @@ const IndexPage = () => {
                 </div>
                 <div className="w-full md:w-1/3">
                   <strong className="block mb-1">Email:</strong>
-                  <input type="email" value={coach.email} onChange={(e) => setCoachEmail(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
+                  <input type="email" value={coach.contact} onChange={(e) => setCoachEmail(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
                 </div>
               </div>
               <div className="flex flex-wrap mb-6">
                 <div className="w-full md:w-1/3 mb-4 md:mb-0">
                   <strong className="block mb-1">Blood Type:</strong>
-                  <input type="text" value={coach.bloodType} onChange={(e) => setBloodType(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
+                  <input type="text" value={coach.BloodType} onChange={(e) => setBloodType(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
                 </div>
                 <div className="w-full md:w-1/3 mb-4 md:mb-0">
                   <strong className="block mb-1">Date of Birth:</strong>
-                  <input type="text" value={coach.dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
+                  <input type="text" value={coach.birthDay && new Date(coach.startDate.seconds * 1000).toLocaleDateString()} onChange={(e) => setDateOfBirth(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
                 </div>
                 <div className="w-full md:w-1/3">
+                  <strong className="block mb-1">Experience:</strong>
+                  <input type="text" value={coach.experience} onChange={(e) => setSalary(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
+                </div>
+                <div className="w-full md:w-1/3 mt-2">
                   <strong className="block mb-1">Salary:</strong>
                   <input type="text" value={coach.salary} onChange={(e) => setSalary(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
                 </div>
-              </div>
-              <div className="flex flex-wrap mb-6">
-                <div className="w-full md:w-1/2 mb-4 md:mb-0">
+                <div className="w-full md:w-1/2 mb-4 md:mb-0 mt-2">
                   <strong className="block mb-1">Phone Number:</strong>
                   <input type="tel" value={coach.phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
                 </div>
+              </div>
+              <div className="flex flex-wrap mb-6">
+                
                 <div className="w-full md:w-1/2">
                   <strong className="block mb-1">Classes:</strong>
                   <ul className="ml-4">
@@ -404,6 +284,19 @@ const IndexPage = () => {
         return "";
     }
   }
+  const sports = [
+    "Football",
+    "Basketball",
+    "Tennis",
+    "Baseball",
+    "Volleyball",
+    "Golf",
+    "Rugby",
+    "Cricket",
+    "Hockey",
+    "Table Tennis"
+    // Add more sports as needed
+  ];
 
   function getStatusText(status) {
     switch (status) {
@@ -445,6 +338,75 @@ const IndexPage = () => {
     return "";
   }
 }
+const handleInputChange = (e) => {
+  const { name, value } = e.target;
+  setNewCoachData({ ...newCoachData, [name]: value });
+};
+
+// Toggle this state to show/hide the coach details
+const [coachName, setCoachName] = useState('');
+const [coachSport, setCoachSport] = useState('');
+const [coachEmail, setCoachEmail] = useState('');
+const [coachPhoneNumber, setCoachPhoneNumber] = useState('');
+const [coachBloodType, setCoachBloodType] = useState('');
+const [coachDateOfBirth, setCoachDateOfBirth] = useState('');
+const [coachSalary, setCoachSalary] = useState(0);
+const [coachJoiningDate, setCoachJoiningDate] = useState(new Date().toISOString());
+const [coachDescription, setCoachDescription] = useState('');
+const [coachImage, setCoachImage] = useState('');
+const [CoachExperience ,setCoachexperience] = useState('')
+
+const handleAddCoach = async () => {
+  // Construct the new coach object with input data
+  try {
+    if (profilePicture) {
+      // Upload profile picture to Firebase Storage
+      const storage = getStorage();
+      const storageRef = ref(storage, `profilePictures/${profilePicture.name}`);
+      await uploadBytes(storageRef, profilePicture);
+      console.log("Profile picture uploaded successfully.");
+      const downloadURL = await getDownloadURL(storageRef);
+
+    }
+    // Construct the new coach object with input data
+    const newCoach = {
+      
+      nameandsurname: coachName,
+      sport: coachSport,
+      contact: coachEmail,
+      phoneNumber: coachPhoneNumber,
+      BloodType: coachBloodType,
+      birthDay: coachDateOfBirth,
+      salary: coachSalary,
+      startDate: coachJoiningDate,
+      description: coachDescription,
+      image: profilePicture ? profilePicture.name : '',
+      coachJoiningDate:coachJoiningDate,
+      status: 'present',
+      experience: CoachExperience+' Years'
+      
+      // Add other attributes as needed
+    };
+
+    // Add new coach data to Firestore
+    const docRef = await addDoc(collection(db, 'Trainers'), newCoach)
+    const uid = docRef.id;
+
+    // Update the new coach object with the Firestore-generated UID
+    await updateDoc(doc(db, 'Trainers', docRef.id), { uid: docRef.id });
+    
+    
+    console.log('Coach added with auto-generated UID: ', uid);
+    console.log('New coach data:', updatedCoach);
+    console.log('Coach added with ID: ', docRef.id);
+    
+  }
+  catch (error) {
+      console.error('Error adding coach: ', error);
+    }
+};
+
+
 
   const filteredCoaches = filteredSport ? coaches.filter(coach => coach.sport.toLowerCase() === filteredSport.toLowerCase()) : coaches;
 
@@ -457,13 +419,34 @@ const clearSearch = () => {
 
 // Filtering the coaches based on the search term
 const filteredCoaches2 = coaches.filter(coach =>
-  coach.name.toLowerCase().includes(searchTerm.toLowerCase())
+  coach.nameandsurname.toLowerCase().includes(searchTerm.toLowerCase())
 );
 
 const [makeCoash, setmakeCoash] = useState(false);
     const toggleDetailsmake = () => {
       setmakeCoash(!makeCoash);
     };
+
+const [selectedSport, setSelectedSport] = useState("");
+const handleSportChange = (e) => {
+  setSelectedSport(e.target.value);
+};
+
+const handleSalaryChange = (e) => {
+  // Convert the input value to a number
+  const salary = parseFloat(e.target.value);
+  setCoachSalary(salary);
+};
+
+const [profilePicture, setProfilePicture] = useState(null);
+
+
+const handleFileChange = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    setProfilePicture(file);
+  }
+};
   return (
     <div className="container mx-auto px-3 bg-white  ">
        <div className="h-6"></div>
@@ -543,83 +526,119 @@ const [makeCoash, setmakeCoash] = useState(false);
 
 
       {makeCoash && (
-  <div className="pl-96 w-screen h-screen fixed inset-0 flex bg-indigo-600 bg-opacity-50 justify-center items-center rounded">
-    <div className="w-full max-w-screen h-full max-h-screen bg-white border border-gray-400 rounded-lg">
-      <div className="w-80 h-full max-h-screen bg-blue-900 border border-gray-400 rounded-lg text-white flex flex-col items-center">
-        <div className='mt-20'>Coach name: </div>
-        <div>Sport: </div>
-        <div>ID: </div>
-        <div>Joining Date: </div>
-        <div>Status: </div>
-        <div className="mb-10"></div>
-        <div className="w-72 h-72 flex justify-center">
-          <img className="w-48 h-48 rounded " />
-        </div>
+        <div className="pl-96 w-screen h-screen fixed inset-0 flex bg-indigo-600 bg-opacity-50 justify-center items-center rounded">
+          <div className="w-full max-w-screen h-full max-h-screen bg-white border border-gray-400 rounded-lg">
+            <div className="w-80 h-full max-h-screen bg-blue-900 border border-gray-400 rounded-lg text-white flex flex-col items-center">
+              <div className='mt-20'>Coach name: {coachName}</div>
+              <div>Sport: {coachSport}</div>
+              {/* Add other coach details here */}
+              <div className="mb-10"></div>
+              <div className="w-72 h-72 flex justify-center">
+                <img className="w-48 h-48 rounded " />
+              </div>
 
-        <div className="fixed top-0 right-0 bg-white-200 p-4 text-black w-7/12 h-full overflow-auto">
-          <div className="max-w-full">
-            <h2 className="text-2xl font-bold mb-4">Add new Coash</h2>
-            <div className="text-lg">
-              <div className="flex flex-wrap mb-6">
-                <div className="w-full md:w-1/3 mb-4 md:mb-0">
-                  <strong className="block mb-1">Name:</strong>
-                  <input type="text"  onChange={(e) => setCoachName(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
-                </div>
-                <div className="w-full md:w-1/3 mb-4 md:mb-0">
-                  <strong className="block mb-1">Sport:</strong>
-                  <input type="text"  onChange={(e) => setCoachSport(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
-                </div>
-                <div className="w-full md:w-1/3">
-                  <strong className="block mb-1">Email:</strong>
-                  <input type="email"  onChange={(e) => setCoachEmail(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
+              <div className="fixed top-0 right-0 bg-white-200 p-4 text-black w-7/12 h-full overflow-auto">
+                <div className="max-w-full">
+                  <h2 className="text-2xl font-bold mb-4">Add new Coach</h2>
+                  <div className="text-lg">
+                    <div className="flex flex-wrap mb-6">
+                      <div className="w-full md:w-1/3 mb-4 md:mb-0">
+                        <strong className="block mb-1">Name:</strong>
+                        <input type="text" onChange={(e) => setCoachName(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
+                      </div>
+                      <div className="w-full md:w-1/3 mb-4 md:mb-0">
+                        <strong className="block mb-1">Sport:</strong>
+                        <select onChange={(e) => setCoachSport(e.target.value)} value={selectedSport} className="block w-60 border-b border-gray-300 focus:outline-none rounded">
+                          <option value="">Select</option>
+                          {sports.map((sport, index) => (
+                            <option key={index} value={sport}>{sport}</option>
+                          ))}
+                        </select>
+                      </div>
+                    <div className="w-full md:w-1/3">
+                        <strong className="block mb-1">Email:</strong>
+                        <input type="email" onChange={(e) => setCoachEmail(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
+                      </div>
+                    </div>
+                    {/* Add other input fields for coach attributes */}
+                    {/* Similar input fields for other coach attributes */}
+                    <div className="flex flex-wrap mb-6">
+                      
+                      
+                      
+                    </div>
+                    <div className="flex flex-wrap mb-6">
+                    <div className="w-full md:w-1/3 mb-4 md:mb-0">
+                        <strong className="block mb-1">Salary:</strong>
+                        <input 
+                          type="number" // Use type="number" to ensure the input accepts only numbers
+                          value={coachSalary} 
+                          onChange={handleSalaryChange} 
+                          className="block w-60 border-b border-gray-300 focus:outline-none rounded" 
+                        />
+                    </div>
+                      <div className="w-full md:w-1/3 mb-4 md:mb-0">
+                            <strong className="block mb-1">Blood Type:</strong>
+                              <select onChange={(e) => setCoachBloodType(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded">
+                                <option value="">Select</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                              </select>
+                      </div>
+                      <div className="w-full md:w-1/3 mb-4 md:mb-0">
+                        <strong className="block mb-1">Phone Number:</strong>
+                        <input type="text" onChange={(e) =>  setCoachPhoneNumber(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
+                      </div>
+
+
+                      <div className="w-full md:w-1/3 mb-4 md:mb-0 mt-4">
+                          <strong className="block mb-1">Experience :</strong>
+                            <select onChange={(e) => setCoachexperience(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded">
+                              {[...Array(20).keys()].map(year => (
+                                <option key={year + 1} value={year + 1}>{year + 1} year{year !== 0 ? 's' : ''}</option>
+                              ))}
+                            </select>
+                      </div>
+
+                      <div className="w-full md:w-1/3 mb-4 md:mb-0 mt-4">
+                        <strong className="block mb-1">Day of birth:</strong>
+                        <input type="text" onChange={(e) => setCoachDateOfBirth(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
+                      </div>
+                      <div className="w-full md:w-1/3 mb-4 md:mb-0">
+                        <strong className="block mb-1">Description:</strong>
+                        <textarea onChange={(e) => setCoachDescription(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
+                      </div>
+                      {/* Add other input fields as needed */}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-wrap mb-6">
-                <div className="w-full md:w-1/3 mb-4 md:mb-0">
-                  <strong className="block mb-1">Blood Type:</strong>
-                  <input type="text"  onChange={(e) => setCoachBloodType(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
-                </div>
-                <div className="w-full md:w-1/3 mb-4 md:mb-0">
-                  <strong className="block mb-1">Date of Birth:</strong>
-                  <input type="text"  onChange={(e) => setCoachDateOfBirth(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
-                </div>
-                <div className="w-full md:w-1/3">
-                  <strong className="block mb-1">Salary:</strong>
-                  <input type="text"  onChange={(e) => setCoachSalary(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
-                </div>
-              </div>
-              <div className="flex flex-wrap mb-6">
-                <div className="w-full md:w-1/2 mb-4 md:mb-0">
-                  <strong className="block mb-1">Phone Number:</strong>
-                  <input type="tel" onChange={(e) => setCoachPhoneNumber(e.target.value)} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
-                </div>
-                <div className="w-full md:w-1/2">
-                  <strong className="block mb-1">Classes:</strong>
-                  <ul className="ml-4">
-                    <li>Monday, 9:00 AM - 11:00 AM</li>
-                    <li>Wednesday, 3:00 PM - 5:00 PM</li>
-                    {/* Add more classes here as needed */}
-                  </ul>
-                </div>
-              </div>
-              <div className="mb-6">
-                <strong className="block mb-2">Upload Documents:</strong>
-                <input type="file" multiple className="block mt-1" />
-                <p className="text-sm text-gray-500 mt-1">You can upload documents related to the coach here.</p>
-              </div>
+              {/* Button to submit coach data */}
+              <div className="w-full md:w-1/3 mb-4 md:mb-0">
+    <strong className="block mb-1">Profile Picture:</strong>
+    <input type="file" onChange={handleFileChange} className="block w-60 border-b border-gray-300 focus:outline-none rounded" />
+    {/* Display preview of selected image if needed */}
+</div>
+              <button
+                className="bg-blue-500 text-white py-2 px-3 rounded hover:bg-blue-600"
+                onClick={handleAddCoach}
+              >
+                Add Coach
+              </button>
+            </div>
+            <div className='absolute top-1/2 left-1/ transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex justify-center items-center"'>
+              <button onClick={toggleDetailsmake}><X /></button>
             </div>
           </div>
         </div>
-
-        
-      </div>
-      <div className='absolute top-1/2 left-1/ transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex justify-center items-center"'>
-          <button onClick={toggleDetailsmake}><X /></button>
-        </div>
-
-    </div>
-  </div>
-)}
+      )}
+ 
       {/* Coach list */}
       <div className="flex mb-2 bg-gray-300 h-10 items-center rounded-lg">
         <div className="w-1/4 pr-4 font-semibold"></div>
@@ -632,9 +651,11 @@ const [makeCoash, setmakeCoash] = useState(false);
       </div>
        {/* Coach list */}
        {/* Iterate over coaches and render each */}
-{filteredCoaches.map((coach, index) => (
-  <CoachItem key={coach.id} coach={coach} style={index === 0 ? { backgroundColor: '#f0f8ff' } : {}} />
+       {filteredCoaches2.map(coach => (
+  <CoachItem key={coach.uid} coach={coach} /> // Pass coach data to CoachItem
 ))}
+      
+      
     </div>
     </div>
   );
