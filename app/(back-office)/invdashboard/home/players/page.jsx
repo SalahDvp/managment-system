@@ -349,7 +349,7 @@ const [playerSport, setplayerSport] = useState('');
 const [playermail, setplayermail] = useState('');
 const [playerPhoneNumber, setplayerPhoneNumber] = useState('');
 const [playerBloodType, setplayerBloodType] = useState('');
-const [playerDateOfBirth, setplayerDateOfBirth] = useState('');
+const [playerDateOfBirthtest, setplayerDateOfBirth] = useState('');
 const [playerSalary, setplayerSalary] = useState(0);
 const [playerJoiningDate, setplayerJoiningDate] = useState(new Date().toISOString());
 const [playerDescription, setplayerDescription] = useState('');
@@ -376,9 +376,9 @@ const handleAddplayer = async () => {
       contact: playermail,
       phoneNumber: playerPhoneNumber,
       BloodType: playerBloodType,
-      birthDay: playerDateOfBirth,
+      birthDay: playerDateOfBirthtest,
       salary: playerSalary,
-      startDate: playerJoiningDate,
+      startDatetest: playerJoiningDate,
       description: playerDescription,
       image: profilePicture ? profilePicture.name : '',
       playerJoiningDate:playerJoiningDate,

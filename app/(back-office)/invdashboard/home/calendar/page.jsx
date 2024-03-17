@@ -158,6 +158,20 @@ const DemoApp = () => {
     }
   };
 
+  const [notes, setNotes] = useState('');
+  const [noteList, setNoteList] = useState([]);
+  const handleNoteChange = (event) => {
+    setNotes(event.target.value);
+  };
+
+  const handleSaveNotes = () => {
+    if (notes.trim() !== '') {
+      // Append note to the list
+      setNoteList([...noteList, notes]);
+      // Clear the notes field
+      setNotes('');
+    }
+  };
   return (
     <div className='flex bg-white'>
       <div style={{ width: '80%', height: '80%', marginRight: '50px' }}>
@@ -199,6 +213,24 @@ const DemoApp = () => {
           <option value="booking">Booking</option>
           
         </select>
+        <div style={{ marginBottom: '20px' }}>
+          <h2>Notes</h2>
+          <textarea
+            value={notes}
+            onChange={handleNoteChange}
+            style={{ width: '100%', minHeight: '100px', padding: '8px', fontSize: '16px', marginBottom: '10px' }}
+            placeholder="Write your notes here..."
+          ></textarea>
+         <button onClick={handleSaveNotes} style={{ backgroundColor: 'blue', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Save Notes</button>
+
+        </div>
+        <div>
+          <ul style={{ listStyleType: 'none', padding: '0' }}>
+            {noteList.map((note, index) => (
+              <li key={index} style={{ marginBottom: '5px', borderBottom: '1px solid #ccc', paddingBottom: '5px' }}>{note}</li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

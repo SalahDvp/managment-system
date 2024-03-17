@@ -376,12 +376,12 @@ const handleAddCoach = async () => {
       contact: coachEmail,
       phoneNumber: coachPhoneNumber,
       BloodType: coachBloodType,
-      birthDay: coachDateOfBirth,
+      birthDaytest: coachDateOfBirth,
       salary: coachSalary,
-      startDate: coachJoiningDate,
+      startDatetest: coachJoiningDate,
       description: coachDescription,
       image: profilePicture ? profilePicture.name : '',
-      coachJoiningDate:coachJoiningDate,
+      coachJoiningDatetest:coachJoiningDate,
       status: 'present',
       experience: CoachExperience+' Years'
       

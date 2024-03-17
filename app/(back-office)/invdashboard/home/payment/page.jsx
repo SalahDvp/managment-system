@@ -2,30 +2,31 @@
 'use client'
 import { Eye } from 'lucide-react';
 import React, { useState } from 'react';
-
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 const ManageSalaryPage = () => {
   // Dummy data, replace with actual data fetched from API or database
   const initialEmployees = [
-    { id: 1, name: 'John Doe', payrollType: 'Monthly', salary: '$5000', netSalary: '$4000' },
-    { id: 2, name: 'Jane Smith', payrollType: 'Monthly', salary: '$5500', netSalary: '$4400' },
-    { id: 3, name: 'Alice Johnson', payrollType: 'Bi-weekly', salary: '$4000', netSalary: '$3200' },
-    { id: 4, name: 'Michael Brown', payrollType: 'Monthly', salary: '$6000', netSalary: '$4800' },
-    { id: 5, name: 'Emily Davis', payrollType: 'Weekly', salary: '$4500', netSalary: '$3600' },
-    { id: 6, name: 'Robert Wilson', payrollType: 'Monthly', salary: '$7000', netSalary: '$5600' },
-    { id: 7, name: 'Olivia Taylor', payrollType: 'Monthly', salary: '$4800', netSalary: '$3840' },
-    { id: 8, name: 'Daniel Martinez', payrollType: 'Bi-weekly', salary: '$5200', netSalary: '$4160' },
-    { id: 9, name: 'Sophia Garcia', payrollType: 'Monthly', salary: '$5800', netSalary: '$4640' },
-    { id: 10, name: 'Matthew Lopez', payrollType: 'Weekly', salary: '$4200', netSalary: '$3360' },
-    { id: 11, name: 'Isabella Rodriguez', payrollType: 'Monthly', salary: '$6500', netSalary: '$5200' },
-    { id: 12, name: 'James Wilson', payrollType: 'Bi-weekly', salary: '$4800', netSalary: '$3840' },
-    { id: 13, name: 'Benjamin Lee', payrollType: 'Monthly', salary: '$7200', netSalary: '$5760' },
-    { id: 14, name: 'Charlotte Young', payrollType: 'Monthly', salary: '$4900', netSalary: '$3920' },
-    { id: 15, name: 'William Clark', payrollType: 'Weekly', salary: '$4300', netSalary: '$3440' },
-    { id: 16, name: 'Ava Hernandez', payrollType: 'Monthly', salary: '$6700', netSalary: '$5360' },
-    { id: 17, name: 'Alexander King', payrollType: 'Bi-weekly', salary: '$5000', netSalary: '$4000' },
-    { id: 18, name: 'Mia Adams', payrollType: 'Monthly', salary: '$5300', netSalary: '$4240' },
-    { id: 19, name: 'Ethan White', payrollType: 'Monthly', salary: '$7100', netSalary: '$5680' },
-    { id: 20, name: 'Emma Martinez', payrollType: 'Bi-weekly', salary: '$4900', netSalary: '$3920' },
+    { id: 1, name: 'John Doe', payrollType: 'Monthly', salary: '₺5000', netSalary: '₺4000' },
+    { id: 2, name: 'Jane Smith', payrollType: 'Monthly', salary: '₺5500', netSalary: '₺4400' },
+    { id: 3, name: 'Alice Johnson', payrollType: 'Bi-weekly', salary: '₺4000', netSalary: '₺3200' },
+    { id: 4, name: 'Michael Brown', payrollType: 'Monthly', salary: '₺6000', netSalary: '₺4800' },
+    { id: 5, name: 'Emily Davis', payrollType: 'Weekly', salary: '₺4500', netSalary: '₺3600' },
+    { id: 6, name: 'Robert Wilson', payrollType: 'Monthly', salary: '₺7000', netSalary: '₺5600' },
+    { id: 7, name: 'Olivia Taylor', payrollType: 'Monthly', salary: '₺4800', netSalary: '₺3840' },
+    { id: 8, name: 'Daniel Martinez', payrollType: 'Bi-weekly', salary: '₺5200', netSalary: '₺4160' },
+    { id: 9, name: 'Sophia Garcia', payrollType: 'Monthly', salary: '₺5800', netSalary: '₺4640' },
+    { id: 10, name: 'Matthew Lopez', payrollType: 'Weekly', salary: '₺4200', netSalary: '₺3360' },
+    { id: 11, name: 'Isabella Rodriguez', payrollType: 'Monthly', salary: '₺6500', netSalary: '₺5200' },
+    { id: 12, name: 'James Wilson', payrollType: 'Bi-weekly', salary: '₺4800', netSalary: '₺3840' },
+    { id: 13, name: 'Benjamin Lee', payrollType: 'Monthly', salary: '₺7200', netSalary: '₺5760' },
+    { id: 14, name: 'Charlotte Young', payrollType: 'Monthly', salary: '₺4900', netSalary: '₺3920' },
+    { id: 15, name: 'William Clark', payrollType: 'Weekly', salary: '₺4300', netSalary: '₺3440' },
+    { id: 16, name: 'Ava Hernandez', payrollType: 'Monthly', salary: '₺6700', netSalary: '₺5360' },
+    { id: 17, name: 'Alexander King', payrollType: 'Bi-weekly', salary: '₺5000', netSalary: '₺4000' },
+    { id: 18, name: 'Mia Adams', payrollType: 'Monthly', salary: '₺5300', netSalary: '₺4240' },
+    { id: 19, name: 'Ethan White', payrollType: 'Monthly', salary: '₺7100', netSalary: '₺5680' },
+    { id: 20, name: 'Emma Martinez', payrollType: 'Bi-weekly', salary: '₺4900', netSalary: '₺3920' },
     // Add more dummy data as needed
   ];
    
@@ -42,10 +43,103 @@ const ManageSalaryPage = () => {
     setShowDetails(true);
   };
 
+  const handlePayClick = () => {
+    // Perform payment logic here
+    alert(`Payment for ${selectedEmployee.name} has been processed successfully!`);
+    // You can implement your payment logic here, such as sending a request to a payment gateway or updating the database
+  };
+
+
+  const handleDownloadCoachesTable = () => {
+    const doc = new jsPDF();
+  
+    // Table data for coaches (replace with actual data)
+    const coachesData = initialEmployees
+     
+  
+    // Add coaches table to the PDF
+    doc.autoTable({
+      head: [coachesData[0]], // Table header
+      body: coachesData.slice(1), // Table rows
+      startY: 20 // Y position to start the table
+    });
+  
+    doc.save('coaches_table.pdf');
+  };
+
+
+
+
+
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+  
+    // Employee Details Table
+    doc.text('Employee Details:', 10, 10);
+    const employeeDetails = [
+      ['Field', 'Value'],
+      ['Name', selectedEmployee.name],
+      ['Employee ID', selectedEmployee.id],
+      ['Employee Salary', selectedEmployee.salary],
+      ['Payslip Type', 'Monthly Payslip'],
+      ['Account Type', 'Regular']
+      // Add more employee details if available
+    ];
+    doc.autoTable({
+      startY: 20,
+      head: [employeeDetails[0]],
+      body: employeeDetails.slice(1),
+      theme: 'grid'
+    });
+  
+    // Commission Details Table
+    let startY = doc.previousAutoTable.finalY + 10;
+    doc.text('Commission Details:', 10, startY);
+    const commissionData = [
+      ['Title', 'Type', 'Amount'],
+      ['Performance-based', 'Percentage', '10% (₺5.00)'],
+      ['Recruitment', 'Fixed', '₺7.00']
+      // Add more commission data if available
+    ];
+    startY += 10;
+    doc.autoTable({
+      startY,
+      head: [commissionData[0]],
+      body: commissionData.slice(1),
+      theme: 'grid'
+    });
+  
+    // Overtime Details Table
+    startY = doc.previousAutoTable.finalY + 10;
+    doc.text('Overtime Details:', 10, startY);
+    const overtimeData = [
+      ['Overtime Title', 'Number of days', 'Hours', 'Rate'],
+      ['Last week', '10', '10', '₺6.00'],
+      ['This month', '70', '78', '₺11.00']
+      // Add more overtime data if available
+    ];
+    startY += 10;
+    doc.autoTable({
+      startY,
+      head: [overtimeData[0]],
+      body: overtimeData.slice(1),
+      theme: 'grid'
+    });
+  
+    doc.save(`${selectedEmployee.name}_data.pdf`);
+  };
+  
   return (
     <div className="flex flex-col items-start w-full h-screen overflow-y-scroll p-5 bg-white" >
       <h1 className="text-3xl font-bold mb-5">Manage Coaches Salary</h1>
+      <button
+        onClick={handleDownloadCoachesTable}
+        className="absolute right-0 m-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded "
+      >
+        Download Table
+      </button>
       <div className="overflow-x-auto w-full border">
+      
         <table className="w-full min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -99,7 +193,11 @@ const ManageSalaryPage = () => {
               </div>
             </div>
                       <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
-            <div className="ml-4 grid grid-cols-2 gap-4">
+            <div className="ml-4 grid grid-cols-4 gap-4">
+            <div>
+                <strong>Name</strong> <br />
+                <input className="rounded-lg" type="text" readOnly value={selectedEmployee.name}/>
+              </div>
               <div>
                 <strong>Employee Salary</strong> <br />
                 <input className="rounded-lg" type="text" readOnly value={selectedEmployee.salary} />
@@ -108,13 +206,10 @@ const ManageSalaryPage = () => {
                 <strong>Payslip Type</strong> <br />
                 <input className="rounded-lg" type="text" readOnly value="Monthly Payslip" />
               </div>
-              <div>
-                <strong>Salary</strong> <br />
-                <input className="rounded-lg" type="text" readOnly value="50" />
-              </div>
+              
               <div>
                 <strong>Account Type</strong> <br />
-                <input className="rounded-lg" type="text" readOnly value="Benjamin Adams" />
+                <input className="rounded-lg" type="text" readOnly value="Regular" />
               </div>
             </div>
           </div>
@@ -124,9 +219,7 @@ const ManageSalaryPage = () => {
     <table className="w-full min-w-full divide-y divide-gray-200">
       <thead className="bg-gray-50">
         <tr>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Employee Name
-          </th>
+          
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
             Title
           </th>
@@ -143,19 +236,19 @@ const ManageSalaryPage = () => {
       </thead>
       <tbody className="bg-white divide-y divide-gray-200">
         <tr>
-          <td className="px-6 py-4 whitespace-nowrap">{selectedEmployee.name}</td>
-          <td className="px-6 py-4 whitespace-nowrap">Beatae voluptatibus</td>
+          
+          <td className="px-6 py-4 whitespace-nowrap">Performance-based</td>
           <td className="px-6 py-4 whitespace-nowrap">Percentage</td>
-          <td className="px-6 py-4 whitespace-nowrap">10% ($5.00)</td>
+          <td className="px-6 py-4 whitespace-nowrap">10% (₺5.00)</td>
           <td className="px-6 py-4 whitespace-nowrap">
             {/* Action button */}
           </td>
         </tr>
         <tr>
-          <td className="px-6 py-4 whitespace-nowrap">{selectedEmployee.name}</td>
-          <td className="px-6 py-4 whitespace-nowrap">Excepteur consectetu</td>
+         
+          <td className="px-6 py-4 whitespace-nowrap">Recruitment</td>
           <td className="px-6 py-4 whitespace-nowrap">Fixed</td>
-          <td className="px-6 py-4 whitespace-nowrap">$7.00</td>
+          <td className="px-6 py-4 whitespace-nowrap">₺7.00</td>
           <td className="px-6 py-4 whitespace-nowrap">
             {/* Action button */}
           </td>
@@ -171,9 +264,7 @@ const ManageSalaryPage = () => {
     <table className="w-full min-w-full divide-y divide-gray-200">
       <thead className="bg-gray-50">
         <tr>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Employee Name
-          </th>
+          
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
             Overtime Title
           </th>
@@ -193,21 +284,21 @@ const ManageSalaryPage = () => {
       </thead>
       <tbody className="bg-white divide-y divide-gray-200">
         <tr>
-          <td className="px-6 py-4 whitespace-nowrap">{selectedEmployee.name}</td>
-          <td className="px-6 py-4 whitespace-nowrap">test</td>
+        
+          <td className="px-6 py-4 whitespace-nowrap">Last week</td>
           <td className="px-6 py-4 whitespace-nowrap">10</td>
           <td className="px-6 py-4 whitespace-nowrap">10</td>
-          <td className="px-6 py-4 whitespace-nowrap">$6.00</td>
+          <td className="px-6 py-4 whitespace-nowrap">₺6.00</td>
           <td className="px-6 py-4 whitespace-nowrap">
             {/* Action button */}
           </td>
         </tr>
         <tr>
-          <td className="px-6 py-4 whitespace-nowrap">{selectedEmployee.name}</td>
-          <td className="px-6 py-4 whitespace-nowrap">Dolorem dolor rem no</td>
+         
+          <td className="px-6 py-4 whitespace-nowrap">This month</td>
           <td className="px-6 py-4 whitespace-nowrap">70</td>
           <td className="px-6 py-4 whitespace-nowrap">78</td>
-          <td className="px-6 py-4 whitespace-nowrap">$11.00</td>
+          <td className="px-6 py-4 whitespace-nowrap">₺11.00</td>
           <td className="px-6 py-4 whitespace-nowrap">
             {/* Action button */}
           </td>
@@ -224,9 +315,7 @@ const ManageSalaryPage = () => {
     <table className="w-full min-w-full divide-y divide-gray-200">
       <thead className="bg-gray-50">
         <tr>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Employee
-          </th>
+          
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
             Title
           </th>
@@ -243,19 +332,19 @@ const ManageSalaryPage = () => {
       </thead>
       <tbody className="bg-white divide-y divide-gray-200">
         <tr>
-          <td className="px-6 py-4 whitespace-nowrap">{selectedEmployee.name}</td>
-          <td className="px-6 py-4 whitespace-nowrap">Quia occaecat laboru</td>
+         
+          <td className="px-6 py-4 whitespace-nowrap">Equipment and Gear Allowance</td>
           <td className="px-6 py-4 whitespace-nowrap">Fixed</td>
-          <td className="px-6 py-4 whitespace-nowrap">$1,000.00</td>
+          <td className="px-6 py-4 whitespace-nowrap">₺1,000.00</td>
           <td className="px-6 py-4 whitespace-nowrap">
             {/* Action button */}
           </td>
         </tr>
         <tr>
-          <td className="px-6 py-4 whitespace-nowrap">{selectedEmployee.name}</td>
-          <td className="px-6 py-4 whitespace-nowrap">Deleniti exercitatio</td>
+         
+          <td className="px-6 py-4 whitespace-nowrap">Performance Reviews and Raises</td>
           <td className="px-6 py-4 whitespace-nowrap">Fixed</td>
-          <td className="px-6 py-4 whitespace-nowrap">$46.00</td>
+          <td className="px-6 py-4 whitespace-nowrap">₺46.00</td>
           <td className="px-6 py-4 whitespace-nowrap">
             {/* Action button */}
           </td>
@@ -268,11 +357,13 @@ const ManageSalaryPage = () => {
 
 </div>
 <div className='bg-white w-full'>
-           <strong className="text-lg font-bold ml-4 mt-8">Note</strong>
+          
             <div className='bg-white w-full'>
-              <input className="p-2 mt-4 border shadow-lg rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }} type="text" readOnly value={selectedEmployee.description} />
+            
               <button className="ml-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded mb-10">Edit</button>
               <button className="ml-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded mb-10">Submit</button>
+              <button onClick={handlePayClick} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded mr-4 ml-4">Pay</button>
+              <button onClick={handleDownloadPDF} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Download PDF</button>
             </div>
           </div>
           <button onClick={toggleDetails} className="absolute top-0 right-0 m-3 text-gray-500 hover:text-gray-700 focus:outline-none">
@@ -280,6 +371,7 @@ const ManageSalaryPage = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+          
         </div>
         </div>
       )}

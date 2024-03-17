@@ -8,6 +8,10 @@ import Head from 'next/head';
 import { Bar } from 'react-chartjs-2';
 import Chart from 'chart.js/auto';
 
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
+
 const Dashboard = () => {
   const [filter, setFilter] = useState('pastWeek'); // Default filter
 
@@ -46,6 +50,7 @@ const Dashboard = () => {
     const { matchesPlayed, revenues, transactedOnline, users, newUsers } = matches[filter];
     const { leaguesPlayed, classesAttended, tournamentsParticipated } = filter === 'pastWeek' ? leagues[filter] : {};
 
+
     return (
       <div className="bg-white justify-center p-4 w-full">
         <div className="p-4 rounded shadow-md w-full flex justify-around">
@@ -79,18 +84,59 @@ const Dashboard = () => {
     );
   };
 
-  const coachesStatus = [
-    { name: 'Lunea Todd', status: 'Absent' },
-    { name: 'Ida F. Mullen', status: 'Absent' },
-    { name: 'Teresa R McRae', status: 'Absent' },
-    { name: 'Joel O Dolan', status: 'Absent' },
-    { name: 'Anjolie Mayer', status: 'Absent' },
-    { name: 'Nyssa Sloan', status: 'Absent' },
-    { name: 'Jillian Sykes', status: 'Absent' },
-    { name: 'Aida Bugg', status: 'Absent' },
-    { name: 'Kyle Willis', status: 'Absent' },
-    { name: 'Abra Stevens', status: 'Absent' },
-  ];
+ 
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [todaysDate, setTodaysDate] = useState("2024-03-14");
+  const [coachesStatus, setCoachesStatus] = useState([
+    { name: "John", timeIn: null, timeOut: null },
+    { name: "Alice", timeIn: null, timeOut: null },
+    { name: "Bob", timeIn: null, timeOut: null }
+  ]);
+
+  const handleEmployeeChange = (event) => {
+    setSelectedEmployee(event.target.value);
+    // Fetch and update coachesStatus based on selected employee
+  };
+
+  const handleTimeIn = () => {
+    const newTimeIn = new Date().toLocaleTimeString();
+    setCoachesStatus(prevStatus => prevStatus.map(coach => 
+      coach.name === selectedEmployee ? { ...coach, timeIn: newTimeIn } : coach
+    ));
+  };
+
+  const handleTimeOut = () => {
+    const newTimeOut = new Date().toLocaleTimeString();
+    setCoachesStatus(prevStatus => prevStatus.map(coach => 
+      coach.name === selectedEmployee ? { ...coach, timeOut: newTimeOut } : coach
+    ));
+  };
+
+  const handleAbsent = () => {
+    setCoachesStatus(prevStatus => prevStatus.map(coach => 
+      coach.name === selectedEmployee ? { ...coach, timeIn: null, timeOut: null } : coach
+    ));
+  };
+
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.text("Attendance Report", 10, 10);
+  
+    const tableRows = [];
+    tableRows.push(['Name', 'Time In', 'Time Out']);
+    coachesStatus.forEach(coach => {
+      tableRows.push([coach.name, coach.timeIn || 'Absent', coach.timeOut || 'Absent']);
+    });
+  
+    doc.autoTable({
+      startY: 20,
+      head: tableRows.slice(0, 1),
+      body: tableRows.slice(1)
+    });
+  
+    doc.save('attendance_report.pdf');
+  };
 
   const renderMatchData = () => {
     // Dummy data for demonstration
@@ -197,28 +243,63 @@ const Dashboard = () => {
           <div className="flex mb-4 ml-4 mt-3">
             {/* Render the new section */}
             {renderMatchData()}
-            <div className="ml-4 overflow-x-auto border rounded-lg w-1/2 p-2">
-              <strong className="block mb-2 text-l font-semibold">Today's Not Clock:</strong>
-              <div style={{ height: '300px', overflowY: 'auto' }}>
-            <table className="table-auto w-full">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 bg-gray-200 text-blue-600 w-40">Name</th>
-                  <th className="px-4 py-2 bg-gray-200 text-blue-600 w-40">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {coachesStatus.map(coach => (
-                  <tr key={coach.name}>
-                    <td className="border px-4 py-2">{coach.name}</td>
-                    <td className="border px-4 py-2">{coach.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
 
-            </div>
+
+
+
+
+
+            <div className="ml-4 overflow-x-auto border rounded-lg w-1/2 p-2">
+      <strong className="block mb-2 text-l font-semibold">Attendance:</strong>
+      <div className="flex mb-2">
+        <select className="mr-2 px-2 py-1 border rounded" onChange={handleEmployeeChange}>
+          <option value="">Select Employee</option>
+          {coachesStatus.map(coach => (
+            <option key={coach.name} value={coach.name}>{coach.name}</option>
+          ))}
+        </select>
+        <input type="text" className="px-2 py-1 border rounded flex-grow" value={todaysDate} readOnly />
+      </div>
+      <div style={{ height: '300px', overflowY: 'auto' }}>
+        <table className="table-auto w-full">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 bg-gray-200 text-blue-600 w-40">Name</th>
+              <th className="px-4 py-2 bg-gray-200 text-blue-600 w-40">Time In</th>
+              <th className="px-4 py-2 bg-gray-200 text-blue-600 w-40">Time Out</th>
+            </tr>
+          </thead>
+          <tbody>
+            {coachesStatus.map(coach => (
+              <tr key={coach.name}>
+                <td className="border px-4 py-2">{coach.name}</td>
+                <td className="border px-4 py-2">{coach.timeIn || 'Absent'}</td>
+                <td className="border px-4 py-2">{coach.timeOut || 'Absent'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-2">
+        <button className="mr-2 px-4 py-2 bg-green-500 text-white rounded" onClick={handleTimeIn}>Time In</button>
+        <button className="mr-2 px-4 py-2 bg-yellow-500 text-white rounded" onClick={handleTimeOut}>Time Out</button>
+        <button className="px-4 py-2 bg-red-500 text-white rounded" onClick={handleAbsent}>Absent</button>
+        <button className="px-4 py-2 bg-blue-500 text-white rounded ml-2" onClick={handleDownloadPDF}>Download PDF</button>
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+           
+            
 
           </div>
       </div>
@@ -234,7 +315,7 @@ const Dashboard = () => {
         </thead>
         <tbody>
           {events.map((event, index) => (
-            <tr key={index} className={index % 2 === 0 ? "bg-gray-100" : ""}>
+            <tr key={index} className={index % 2 === 0 ? "bg-white" : ""}>
               <td className="border border-white px-4 py-2">{event.title}</td>
               <td className="border border-white px-4 py-2">{event.startDate}</td>
               <td className="border border-white px-4 py-2">{event.endDate}</td>
@@ -245,9 +326,9 @@ const Dashboard = () => {
       </table>
     </div>
     </div>
-    
     </div>
+   
   );
 };
 
-export default Dashboard;
+export default Dashboard
