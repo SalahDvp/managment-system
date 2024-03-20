@@ -19,7 +19,7 @@ export default function Sidebar() {
           <nav className='flex flex-col gap-3 px-3 py-6 ' >
               <a
                 style={{color: '#737373'}}
-                className={`flex items-center space-x-2 p-2 rounded-md hover:bg-green-300 rounded-md rounded-md ${activeLink === 'home' ? 'bg-blue-600 text-white' : ''}`}
+                className={`flex items-center space-x-2 p-2 rounded-md hover:bg-green-300 rounded-md rounded-md `}
                 href={'/invdashboard/home/firstpage'}
                 onClick={() => setActiveLink('home')}
               >
@@ -28,7 +28,7 @@ export default function Sidebar() {
               </a>
               <a
               style={{color: '#737373'}}
-                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md rounded-md ${activeLink === 'calendar' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md rounded-md `}
                 href={'/invdashboard/home/calendar'}
                 onClick={() => setActiveLink('calendar')}
               >
@@ -37,7 +37,7 @@ export default function Sidebar() {
               </a>
               <a
               style={{color: '#737373'}}
-                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md ${activeLink === 'team' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md `}
                 href={'/invdashboard/home/coaches'}
                 onClick={() => setActiveLink('team')}
               >
@@ -46,7 +46,7 @@ export default function Sidebar() {
               </a>
               <a
               style={{color: '#737373'}}
-                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md ${activeLink === 'team' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md `}
                 href={'/invdashboard/home/players'}
                 onClick={() => setActiveLink('team')}
               >
@@ -55,7 +55,7 @@ export default function Sidebar() {
               </a>
               <a
               style={{color: '#737373'}}
-                className={`flex items-center space-x-2 p-2 rounded-md hover:bg-green-300 rounded-md ${activeLink === 'home' ? 'bg-blue-600 text-white' : ''}`}
+                className={`flex items-center space-x-2 p-2 rounded-md hover:bg-green-300 rounded-md `}
                 href={'/invdashboard/home/classes'}
                 onClick={() => setActiveLink('classes')}
               >
@@ -64,7 +64,7 @@ export default function Sidebar() {
               </a>
               <a
               style={{color: '#737373'}}
-                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md ${activeLink === 'matches' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md `}
                 href={'/invdashboard/home/matches'}
                 onClick={() => setActiveLink('matches')}
               >
@@ -73,7 +73,25 @@ export default function Sidebar() {
               </a>
               <a
               style={{color: '#737373'}}
-                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md ${activeLink === 'chat' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md `}
+                href={'/invdashboard/home/leagues'}
+                onClick={() => setActiveLink('leagues')}
+              >
+                  <FilePlus className='w-6 h-6'/>
+                  <span>Leagues</span>
+              </a>
+              <a
+              style={{color: '#737373'}}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md `}
+                href={'/invdashboard/home/tournaments'}
+                onClick={() => setActiveLink('tournaments')}
+              >
+                  <FilePlus className='w-6 h-6'/>
+                  <span>Tournaments</span>
+              </a>
+              <a
+              style={{color: '#737373'}}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md `}
                 href={'/invdashboard/home/chat'}
                 onClick={() => setActiveLink('chat')}
               >
@@ -82,7 +100,7 @@ export default function Sidebar() {
               </a>
               <a
               style={{color: '#737373'}}
-                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md ${activeLink === 'post' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md `}
                 href={'/invdashboard/home/post'}
                 onClick={() => setActiveLink('post')}
               >
@@ -92,26 +110,18 @@ export default function Sidebar() {
              
               <a
               style={{color: '#737373'}}
-                className={`p-2 flex items-center space-x-2 hover:bg-green-300  rounded-md ${activeLink === 'payments' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300  rounded-md `}
                 href={'/invdashboard/home/payment'}
                 onClick={() => setActiveLink('payments')}
               >
                   <CircleDollarSign className='w-6 h-6'/>
                   <span>Billings</span>
               </a>
-              <a
-              style={{color: '#737373'}}
-                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md ${activeLink === 'registration' ? 'bg-blue-600 text-white' : ''}`}
-                href={'/invdashboard/home/registration'}
-                onClick={() => setActiveLink('registration')}
-              >
-                  <FilePlus className='w-6 h-6'/>
-                  <span>Registration</span>
-              </a>
+              
               <a
               style={{color: '#737373'}}
 
-                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md rounded-md ${activeLink === 'scheduling' ? 'bg-blue-600 text-white' : ''}`}
+                className={`p-2 flex items-center space-x-2 hover:bg-green-300 rounded-md rounded-md `}
                 href={'/scheduling'}
                 onClick={() => setActiveLink('scheduling')}
               >
