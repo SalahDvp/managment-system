@@ -3,16 +3,113 @@
 // pages/index.js
 // pages/index.js
 // pages/index.js
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import Head from 'next/head';
 import { Bar } from 'react-chartjs-2';
 import Chart from 'chart.js/auto';
 
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { db } from '/app/firebase';
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc, doc,
+  Timestamp 
+  
+} from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 
 const Dashboard = () => {
+  const [trainers, setTrainers] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10)); // Initialize with today's date
+  const [coachesStatus, setCoachesStatus] = useState([
+    { name: 'Employee 1', timeIn: { hours: '', minutes: '' }, timeOut: { hours: '', minutes: '' } },
+    { name: 'Employee 2', timeIn: { hours: '', minutes: '' }, timeOut: { hours: '', minutes: '' } },
+    // Add more employees as needed
+  ]);
+
+  const hours = Array.from({ length: 24 }, (_, i) => ('0' + i).slice(-2)); // Array of 24 hours
+  const minutes = Array.from({ length: 60 }, (_, i) => ('0' + i).slice(-2)); // Array of 60 minutes
+
+  const handleDateChange = (event) => {
+    setSelectedDate(event.target.value);
+  };
+
+  const handleTimeInHourChange = (event, index) => {
+    const updatedTrainers = [...trainers];
+    updatedTrainers[index].timeIn.hours = event.target.value;
+    setTrainers(updatedTrainers);
+  };
+  
+  const handleTimeInMinuteChange = (event, index) => {
+    const updatedTrainers = [...trainers];
+    updatedTrainers[index].timeIn.minutes = event.target.value;
+    setTrainers(updatedTrainers);
+  };
+  
+  const handleTimeOutHourChange = (event, index) => {
+    const updatedTrainers = [...trainers];
+    updatedTrainers[index].timeOut.hours = event.target.value;
+    setTrainers(updatedTrainers);
+  };
+  
+  const handleTimeOutMinuteChange = (event, index) => {
+    const updatedTrainers = [...trainers];
+    updatedTrainers[index].timeOut.minutes = event.target.value;
+    setTrainers(updatedTrainers);
+  };
+  
+  const handleAbsent = (index) => {
+    const updatedTrainers = [...trainers];
+    updatedTrainers[index].timeIn = { hours: '00', minutes: '00' };
+    updatedTrainers[index].timeOut = { hours: '00', minutes: '00' };
+    setTrainers(updatedTrainers);
+  };
+
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+  });
+    doc.text("Attendance Report", 10, 10);
+    doc.text(`Date: ${formattedDate}`, 10, 20);
+    const tableYPosition = 30;
+    doc.autoTable({
+      head: [['Name', 'Time In', 'Time Out']],
+      body: trainers.map(coach => [coach.nameandsurname, `${coach.timeIn.hours}:${coach.timeIn.minutes}`, `${coach.timeOut.hours}:${coach.timeOut.minutes}`]),
+      startY: tableYPosition
+    });
+    doc.save("attendance_report.pdf");
+  };
+
+  const handleSubmitToDatabase = async () => {
+    // Call the function to push time in and time out data to the database
+    await fetchTrainersAndAddCourses();
+};
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  //filtre 
   const [filter, setFilter] = useState('pastWeek'); // Default filter
 
   // Dummy data, replace with actual data from your backend
@@ -85,14 +182,7 @@ const Dashboard = () => {
   };
 
  
-  const [selectedEmployee, setSelectedEmployee] = useState("");
-  const [todaysDate, setTodaysDate] = useState("2024-03-14");
-  const [coachesStatus, setCoachesStatus] = useState([
-    { name: "John", timeIn: null, timeOut: null },
-    { name: "Alice", timeIn: null, timeOut: null },
-    { name: "Bob", timeIn: null, timeOut: null }
-  ]);
-
+  
   const handleEmployeeChange = (event) => {
     setSelectedEmployee(event.target.value);
     // Fetch and update coachesStatus based on selected employee
@@ -112,13 +202,13 @@ const Dashboard = () => {
     ));
   };
 
-  const handleAbsent = () => {
+  const handleAbsent0 = () => {
     setCoachesStatus(prevStatus => prevStatus.map(coach => 
       coach.name === selectedEmployee ? { ...coach, timeIn: null, timeOut: null } : coach
     ));
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF0 = () => {
     const doc = new jsPDF();
     
     doc.text("Attendance Report", 10, 10);
@@ -217,6 +307,76 @@ const Dashboard = () => {
     },
   ];
 
+  useEffect(() => {
+    const fetchTrainers = async () => {
+        try {
+            const trainersCollectionRef = collection(db, 'Trainers');
+            const querySnapshot = await getDocs(trainersCollectionRef);
+            const trainersData = [];
+            querySnapshot.forEach((doc) => {
+                const trainerData = doc.data();
+                // Ensure timeIn and timeOut properties exist for each trainer
+                if (!trainerData.timeIn) {
+                    trainerData.timeIn = { hours: '', minutes: '' };
+                }
+                if (!trainerData.timeOut) {
+                    trainerData.timeOut = { hours: '', minutes: '' };
+                }
+                trainersData.push(trainerData);
+            });
+            setTrainers(trainersData);
+        } catch (error) {
+            console.error('Error fetching trainers:', error);
+        }
+    };
+
+    fetchTrainers();
+}, []);
+
+const fetchTrainersAndAddCourses = async () => {
+  try {
+      const trainersCollectionRef = collection(db, 'Trainers');
+      const querySnapshot = await getDocs(trainersCollectionRef);
+
+      querySnapshot.forEach(async (doc) => {
+          const trainerUid = doc.id;
+          const trainerRef = doc.ref;
+
+          try {
+              // Get the trainer object from the trainers state
+              const trainer = trainers.find(trainer => trainer.uid === trainerUid);
+              if (trainer) {
+                  const { timeIn, timeOut } = trainer;
+                  const attendanceData = {
+                      [selectedDate]: { timeIn, timeOut }
+                  };
+
+                  // Submit attendance
+                  const attendanceCollectionRef = collection(trainerRef, 'attendance');
+                  await addDoc(attendanceCollectionRef, attendanceData);
+                  console.log('Attendance added for trainer:', trainerUid);
+              }
+          } catch (error) {
+              console.error('Error adding attendance:', error);
+          }
+      });
+  } catch (error) {
+      console.error('Error fetching trainers:', error);
+  }
+};
+
+
+const fetchData = () => {
+    // Check if data has already been fetched
+    if (!localStorage.getItem('dataFetched')) {
+        fetchTrainersAndAddCourses();
+        // Set flag in local storage to indicate data has been fetched
+        localStorage.setItem('dataFetched', true);
+    }
+};
+
+
+
   return (
     <div className="container mx-auto bg-white h-full">
       <div className="h-full flex flex-col relative">
@@ -248,46 +408,91 @@ const Dashboard = () => {
 
 
 
-
-            <div className="ml-4 overflow-x-auto border rounded-lg w-1/2 p-2">
-      <strong className="block mb-2 text-l font-semibold">Attendance:</strong>
-      <div className="flex mb-2">
-        <select className="mr-2 px-2 py-1 border rounded" onChange={handleEmployeeChange}>
-          <option value="">Select Employee</option>
-          {coachesStatus.map(coach => (
-            <option key={coach.name} value={coach.name}>{coach.name}</option>
-          ))}
-        </select>
-        <input type="text" className="px-2 py-1 border rounded flex-grow" value={todaysDate} readOnly />
+        <div className="ml-4 overflow-x-auto border rounded-lg w-3/4 p-4">
+      <strong className="block mb-4 text-lg font-semibold">Attendance:</strong>
+      <div className="flex mb-4">
+        <input type="date" className="mr-4 px-3 py-2 border rounded" value={selectedDate} onChange={handleDateChange} />
       </div>
       <div style={{ height: '300px', overflowY: 'auto' }}>
         <table className="table-auto w-full">
           <thead>
             <tr>
-              <th className="px-4 py-2 bg-gray-200 text-blue-600 w-40">Name</th>
-              <th className="px-4 py-2 bg-gray-200 text-blue-600 w-40">Time In</th>
-              <th className="px-4 py-2 bg-gray-200 text-blue-600 w-40">Time Out</th>
+              <th className="px-4 py-2 bg-gray-200 text-blue-600">Name</th>
+              <th className="px-4 py-2 bg-gray-200 text-blue-600">Time In</th>
+              <th className="px-4 py-2 bg-gray-200 text-blue-600">Time Out</th>
+              <th className="px-4 py-2 bg-gray-200 text-blue-600">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {coachesStatus.map(coach => (
-              <tr key={coach.name}>
-                <td className="border px-4 py-2">{coach.name}</td>
-                <td className="border px-4 py-2">{coach.timeIn || 'Absent'}</td>
-                <td className="border px-4 py-2">{coach.timeOut || 'Absent'}</td>
-              </tr>
-            ))}
-          </tbody>
+          {trainers.map((trainer, index) => (
+    <tr key={index}>
+        <td className="border px-4 py-2">{trainer.nameandsurname}</td>
+        <td className="border px-6 py-2 ">
+        <div className="flex">
+    <select
+        value={trainer.timeIn.hours}
+        onChange={(e) => handleTimeInHourChange(e, index)}
+        className="flex-1 px-3 py-2 border rounded-md bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+        <option value="">HH</option>
+        {hours.map((hour) => (
+            <option key={hour} value={hour}>{hour}</option>
+        ))}
+    </select>
+    <select
+        value={trainer.timeIn.minutes}
+        onChange={(e) => handleTimeInMinuteChange(e, index)}
+        className="flex-1 px-3 py-2 border rounded-md ml-2 bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+        <option value="">MM</option>
+        {minutes.map((minute) => (
+            <option key={minute} value={minute}>{minute}</option>
+        ))}
+    </select>
+</div>
+
+        </td>
+        <td className="border px-4 py-2">
+        <div className="flex">
+    <select
+        value={trainer.timeOut.hours}
+        onChange={(e) => handleTimeOutHourChange(e, index)}
+        className="flex-1 px-3 py-2 border rounded-md bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
+    >
+        <option value="">HH</option>
+        {hours.map((hour) => (
+            <option key={hour} value={hour}>{hour}</option>
+        ))}
+    </select>
+    <select
+        value={trainer.timeOut.minutes}
+        onChange={(e) => handleTimeOutMinuteChange(e, index)}
+        className="flex-1 px-3 py-2 border rounded-md bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+        <option value="">MM</option>
+        {minutes.map((minute) => (
+            <option key={minute} value={minute}>{minute}</option>
+        ))}
+    </select>
+</div>
+
+        </td>
+        <td className="border px-4 py-2">
+            {/* Render actions */}
+            <button className="px-3 py-1 bg-red-500 text-white rounded mr-2" onClick={() => handleAbsent(index)}>Absent</button>
+        </td>
+    </tr>
+))}
+
+</tbody>
+
         </table>
       </div>
-      <div className="mt-2">
-        <button className="mr-2 px-4 py-2 bg-green-500 text-white rounded" onClick={handleTimeIn}>Time In</button>
-        <button className="mr-2 px-4 py-2 bg-yellow-500 text-white rounded" onClick={handleTimeOut}>Time Out</button>
-        <button className="px-4 py-2 bg-red-500 text-white rounded" onClick={handleAbsent}>Absent</button>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded ml-2" onClick={handleDownloadPDF}>Download PDF</button>
+      <div className="mt-4">
+      <button className="px-4 py-2 bg-blue-500 text-white rounded mr-2" onClick={handleSubmitToDatabase}>Submit</button>
+        <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={handleDownloadPDF}>Download</button>
       </div>
     </div>
-
 
 
 

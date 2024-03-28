@@ -502,7 +502,6 @@ onChange={handleInputChange}
               step="2" // Set step to 2 to ensure only even numbers are allowed
               className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
             />
-                 <button onClick={nextPhase} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Next</button>
 
           </div>
         </div>
@@ -525,7 +524,7 @@ onChange={handleInputChange}
           <div key={index} className="mb-4 border rounded-lg mb-8 p-4">
             
             <div className="flex  p-4 items-center justify-between ">
-            <button onClick={() => handleDeleteTeam(index)} className="flex absolute top-40  m-3 text-gray-500 hover:text-gray-700 focus:outline-none" style={{ marginLeft: '43.5%' , top:'15.5%' }}>
+            <button onClick={() => handleDeleteTeam(index)} className="flex absolute top-40  m-3 text-gray-500 hover:text-gray-700 focus:outline-none" style={{ marginLeft: '43%' , top:'22.5%' }}>
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -581,7 +580,7 @@ onChange={handleInputChange}
         </DndProvider>
       </div>
     </div>
-    <div className="mt-4">
+    <div className="mt-4 bg-white">
       <input
         id="teamname"
         type="text"
@@ -596,9 +595,8 @@ onChange={handleInputChange}
      
     </div>
     {/* Generate Matches */}
-    <div className="mt-4">
+    <div className="mt-4 bg-white">
       
-      <button onClick={previousPhase} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-2">Previous</button>
      
   
     </div>
@@ -962,13 +960,13 @@ onChange={handleInputChange}
 
 
 {showEditModal && (
-  <div className="fixed inset-0 h-full flex bg-indigo-600 bg-opacity-50 justify-end items-center overflow-scroll mb-10" style={{ height: '100%' }}>
+  <div className="fixed inset-0 h-full flex bg-indigo-600 bg-white justify-end items-center overflow-scroll mb-10" style={{ height: '100%' }}>
     <button onClick={handleCloseEditModal} className="absolute top-0 right-0 m-3 text-gray-500 hover:text-gray-700 focus:outline-none">
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
-    <div className="w-full h-full  h-auto bg-white border rounded-lg p-6 flex flex-col justify-start items-start shadow-lg">
+    <div className="w-full h-full  h-auto bg-white  p-6 flex flex-col justify-start items-start shadow-lg">
     <h2 className="text-xl font-bold">Tournament Details</h2>
       <div className='flex justify-between items-center w-full mb-6'>
         
