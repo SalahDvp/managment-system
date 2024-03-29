@@ -17,14 +17,9 @@ export default function Header() {
        </div>
        <div className='flex items-center gap-3'>
        <div className='pr-2 border-r border-gray-300'>
-  <button
-   className='p-1 rounded-lg bg-blue-600'
-  >
-    <PlusIcon className='text-slate-50 w-4 h-4' />
-  </button>
-
+  
   </div>
-<div className='flex pr-2 border-r border-gray-300 space-x-2'>
+
 <button
    className='p-1 rounded-lg hover:bg-slate-200'
   >
@@ -40,11 +35,11 @@ export default function Header() {
   >
     <Settings className='text-slate-900 w-4 h-4' />
   </button>
-</div>
+
 <div className='flex gap-3'
 >
     <button className='flex items-center'>
-        <span> Company name</span>
+        <span> AcaSync</span>
             <ChevronDownIcon className='w-4 h-4'/>
         
     </button>

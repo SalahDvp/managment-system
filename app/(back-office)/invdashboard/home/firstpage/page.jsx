@@ -7,7 +7,8 @@ import React, { useState,useEffect } from 'react';
 import Head from 'next/head';
 import { Bar } from 'react-chartjs-2';
 import Chart from 'chart.js/auto';
-
+import { writeFile } from 'xlsx';
+import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { db } from '/app/firebase';
@@ -69,23 +70,30 @@ const Dashboard = () => {
     setTrainers(updatedTrainers);
   };
 
-  const handleDownloadPDF = () => {
-    const doc = new jsPDF();
+  const handleDownloadExcel = () => {
     const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
-  });
-    doc.text("Attendance Report", 10, 10);
-    doc.text(`Date: ${formattedDate}`, 10, 20);
-    const tableYPosition = 30;
-    doc.autoTable({
-      head: [['Name', 'Time In', 'Time Out']],
-      body: trainers.map(coach => [coach.nameandsurname, `${coach.timeIn.hours}:${coach.timeIn.minutes}`, `${coach.timeOut.hours}:${coach.timeOut.minutes}`]),
-      startY: tableYPosition
     });
-    doc.save("attendance_report.pdf");
+  
+    // Prepare data for Excel
+    const data = trainers.map(trainer => ({
+      Name: trainer.nameandsurname,
+      'Time In': `${trainer.timeIn.hours}:${trainer.timeIn.minutes}`,
+      'Time Out': `${trainer.timeOut.hours}:${trainer.timeOut.minutes}`
+    }));
+  
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data); // Convert data to worksheet
+    XLSX.utils.book_append_sheet(wb, ws, 'Attendance Report');
+  
+    // Save the Excel file
+    XLSX.writeFile(wb, `attendance_report_${formattedDate}.xlsx`);
   };
+  
+  
+  
 
   const handleSubmitToDatabase = async () => {
     // Call the function to push time in and time out data to the database
@@ -490,7 +498,7 @@ const fetchData = () => {
       </div>
       <div className="mt-4">
       <button className="px-4 py-2 bg-blue-500 text-white rounded mr-2" onClick={handleSubmitToDatabase}>Submit</button>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={handleDownloadPDF}>Download</button>
+        <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={handleDownloadExcel}>Download</button>
       </div>
     </div>
 
