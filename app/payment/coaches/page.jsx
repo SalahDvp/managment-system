@@ -35,7 +35,7 @@ const AttendanceChart = ({ trainersData }) => {
     </div>
   );
 };
-const Card = ({ title, data, subtitle, icon }) => {
+export const Card = ({ title, data, subtitle, icon }) => {
   return (
     <div className="bg-white shadow-md rounded-xl p-6 w-72">
       
