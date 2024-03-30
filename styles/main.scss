@@ -1,3 +1,14 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+/* third-party libraries CSS */
+.button-white {
+    background-color: #ffffff;
+    border: 1px solid #335fff;
+    color: #335fff;
+  }
+  
+  .button-white:hover {
+    background-color: #335fff;
+    color: #ffffff;
+  }
