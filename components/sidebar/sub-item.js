@@ -17,8 +17,8 @@ const SubMenuItem = ({ item }) => {
 
   return (
     <div
-      className={`text-sm hover:text-green-300 hover:font-semibold cursor-pointer ${
-        isActive ? "text-green-300 font-semibold" : ""
+      className={`text-sm hover:sidebar-subtitle hover:font-semibold cursor-pointer ${
+        isActive ? "sidebar-subtitle font-semibold" : ""
       }`}
       onClick={onClick}
     >

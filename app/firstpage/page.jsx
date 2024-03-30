@@ -13,6 +13,8 @@ import 'jspdf-autotable';
 import { addDoc, collection, collectionGroup, deleteDoc, doc, getDoc, getDocs, orderBy, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { db } from '@/app/firebase';
 import { addDays } from '@fullcalendar/core/internal';
+import { Card } from '../payment/coaches/page';
+import { BadgeDollarSign, Gauge, Hourglass, UserPlus, UserRound } from 'lucide-react';
 const formatDate = (date) => {
   const options = { day: 'numeric', month: 'short' };
   return new Intl.DateTimeFormat('en-US', options).format(date);
@@ -425,44 +427,18 @@ const handleAddRow = () => {
   return (
     <div className="container mx-auto  h-full mt-10">
            <h2 className="text-3xl font-bold mb-10 ml-2">Dashboard</h2>
-      <div className="h-full flex flex-col relative bg-white border rounded-lg">
+      <div className="h-full flex flex-col relative ">
       
-   
-        <div className="mb-4 ml-4 mt-3 flex flex-col justify-center">
-          <div className="flex-grow   p-2">
-  
-            <div className="justify-center p-4 w-full">
-        <div className="p-4 rounded  w-full flex justify-around">
-          <div className="flex flex-col items-center w-1/5 rounded-lg border p-4 mr-4 shadow-md">
-            <span role="img" aria-label="Tennis Ball" className="text-3xl mb-2">🎾</span>
-            <p className="text-lg font-bold">Played Matches</p>
-            <p>{status.totalMatches}</p>
-          </div>
-          <div className="flex flex-col items-center w-1/5 rounded-lg border p-4 mr-4 shadow-md">
-            <span role="img" aria-label="Money Bag" className="text-3xl mb-2">💰</span>
-            <p className="text-lg font-bold">Revenues</p>
-            <p>${status.revenue}</p>
-          </div>
-          <div className="flex flex-col items-center w-1/5 rounded-lg border p-4 mr-4 shadow-md">
-            <span role="img" aria-label="Computer" className="text-3xl mb-2">⏱️</span>
-            <p className="text-lg font-bold">Hours of court occupation</p>
-            <p>{convertMinutesToHours(status.totalReservation)}</p>
-          </div>
-          <div className="flex flex-col items-center w-1/5 rounded-lg border p-4 mr-4 shadow-md">
-            <span role="img" aria-label="Users" className="text-3xl mb-2">🤾🏻‍♂️</span>
-            <p className="text-lg font-bold">Total Clients</p>
-            <p>{status.users}</p>
-          </div>
-          <div className="flex flex-col items-center w-1/5 rounded-lg border p-4 mr-4 shadow-md">
-            <span role="img" aria-label="New Users" className="text-3xl mb-2">🙋🏻‍♀️</span>
-            <p className="text-lg font-bold">Total Coaches</p>
-            <p>{status.coaches}</p>
-          </div>
-        </div>
-      </div>
-          </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5 mb-5 self-center">
+      <Card title={'Played Matches'} data={status.totalMatches} subtitle={`${status.totalMatches} from last month`} icon={<Gauge size={32} color="#0E2433" className="text-gray-600" /> }/>
+        <Card title={'Revenues'} data={`$ ${status.revenue}`} subtitle={` `} icon={    <BadgeDollarSign  size={32}  color="#0E2433" className="text-gray-600" />}/>
+        <Card title={'Hours of court occupation'} data={`${convertMinutesToHours(status.totalReservation)} hours`} subtitle={` `} icon={   <Hourglass  size={32}  color="#0E2433" className="text-gray-600" /> }/>
+        <Card title={'Total Clients'} data={status.users} subtitle={`${status.users} new ones`} icon={   <UserPlus size={32}  color="#0E2433" className="text-gray-600" /> }/>
+        <Card title={'Total Coaches'} data={status.coaches} subtitle={` `} icon={   <UserRound size={32}  color="#0E2433" className="text-gray-600" /> }/>
+</div>
+       
  
-
+          <div className="mb-4 ml-4 mt-3 flex flex-col justify-center bg-white border rounded-lg p-4">
           <div className='flex-grow'>
 
           
@@ -560,9 +536,11 @@ const handleAddRow = () => {
 
         </td>
         <td className="px-6 py-4 whitespace-nowrap">
-            {/* Render actions */}
+        <div className="flex justify-center">
             <button className="px-3 py-1 bg-red-500 text-white rounded mr-2" onClick={() => handleAbsent(index)}>Absent</button>
             <button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}}onClick={() => handleRemove(trainer)}>Remove</button>
+     
+            </div>
         </td>
     </tr>
 ))}

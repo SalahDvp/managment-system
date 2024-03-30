@@ -1167,13 +1167,13 @@ const [makeCoash, setmakeCoash] = useState(false);
           <input
             type="text"
             placeholder="Type Coach Name"
-            className="border border-gray-300 rounded-l p-2 h-8"
+            className="px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             onChange={e => setSearchTerm(e.target.value)}
             style={{ fontSize: "0.8rem" }} // Adjust font size if needed
          />
         </div>
         <button
-          className="flex items-center bg-blue-500 text-white py-2 px-3 rounded hover:bg-blue-600"
+          className="flex items-center button-white py-2 px-3 rounded"
           onClick={toggleDetailsmake}
         >
           <span className="mr-2">+</span>

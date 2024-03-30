@@ -59,11 +59,11 @@ const items= [
     icon: CircleDollarSign,
     items: [
       {
-        name: "Clients",
+        name: "Receipts",
         path: "/payment",
       },
       {
-        name: "Coaches",
+        name: "Payouts",
         path: "/payment/coaches",
       },
     ],

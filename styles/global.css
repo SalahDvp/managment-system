@@ -44,5 +44,15 @@
   font-weight: bold;
   border-radius: 0.375rem;
 }
+.sidebar-Button-blue {
+  background-color: #0E2433;
+  border: 1px solid #0E2433;
+  border-radius: 0.375rem;
+}
+.sidebar-subtitle{
+  color: #335fff;
+}
+
+
 
 

@@ -34,7 +34,7 @@ const SidebarItem = ({ item }) => {
   return (
     <>  
       <div
-className={`flex items-center space-x-2 p-2 rounded-md hover:bg-green-300 rounded-md rounded-md      ${isActive && 'bg-blue-600 text-white'}`}
+className={`flex items-center space-x-2 p-2 rounded-md  rounded-md rounded-md      ${isActive && 'sidebar-Button-blue text-white'}`}
         onClick={onClick}
       >
         <div className="flex items-center space-x-2">

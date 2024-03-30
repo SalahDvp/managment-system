@@ -2,7 +2,7 @@
 import { Inter } from "next/font/google";
 import "../styles/global.css";
 import Sidebar from "@/components/sidebar"
-
+import NextTopLoader from 'nextjs-toploader';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -16,9 +16,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+
         <div className="flex min-h-screen w-full bg-slate-100">
+ 
           <Sidebar />
+
           <div className="flex flex-col w-full h-full ml-64 p-4 ">
+          <NextTopLoader height={200}/>
             {children}
           </div>
         </div>

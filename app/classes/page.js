@@ -493,13 +493,16 @@ const UpcomingClasses =({ classes,setI,i,canceled,classId }) => {
     setSelectedClass(selectedClass === classId ? null : classId);
   };
 
-  const handleConfirmChange = async (id,newData) => {
+  const handleConfirmChange = async (cls,newData) => {
     // Logic to handle confirmation and update class time in the database
    // Placeholder for handling the new date and time
-   const classRef = doc(db, "Classes",classId,'attendance',id);
+   const classRef = doc(db, "Classes",classId,'attendance',cls.id);
 
     try {
       await updateDoc(classRef, {date:newData});
+      const match=(await getDoc(doc(db, 'Courts', cls.court, 'Reservations', cls.id))).data()
+      const newEndTime = new Date(newData.getTime() + match.duration * 60000); // Assuming duration is in minutes
+      await updateDoc(doc(db, 'Courts', cls.court, 'Reservations', cls.id),{startTime:newData,date:newData,endTime:newEndTime})
       console.log("Document successfully updated!");
       setI(!i)
     } catch (error) {
@@ -511,19 +514,28 @@ const UpcomingClasses =({ classes,setI,i,canceled,classId }) => {
   const handleCancelClass =  async (cls) => {
     // Logic to handle confirmation and update class time in the database
    // Placeholder for handling the new date and time
-   const classRef = collection(db, "Classes",'iWpp8XoveacegYotUXvF','CanceledClasses');
+   const classRef = collection(db, "Classes",classId,'CanceledClasses');
    const matchingCanceledClass = canceled.find((canceledClass) =>
    isSameDay(canceledClass.start.toDate(), cls.date.toDate())
  );
  if (matchingCanceledClass) {
   const canceledClassDocRef = doc(db, `Classes/${classId}/CanceledClasses/${matchingCanceledClass.id}`);
+  const durationMs = new Date(cls.end.toDate()).getTime() - new Date(cls.date.toDate()).getTime();
+  await setDoc(doc(db,'Courts',cls.court,'Reservations',cls.id),{
+    startTime: cls.date,
+    endTime: cls.end,
+  date:cls.date,
+duration: Math.floor(durationMs / (1000 * 60)),
+  type:'class'
+})
   await deleteDoc(canceledClassDocRef).finally(  setI(!i));
 
 } else {
-  // Add a new canceled class document
+  await deleteDoc(doc(db,'Courts',cls.court,'Reservations',cls.id))
   await addDoc(classRef, {
     start: cls.date,
-  }).finally(  setI(!i));
+  })
+
   setI(!i)
 }
 
@@ -602,7 +614,7 @@ const UpcomingClasses =({ classes,setI,i,canceled,classId }) => {
   <div className="flex justify-between mt-4">
     <button
       className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
-      onClick={() => handleConfirmChange(cls.id, newDateTime)}
+      onClick={() => handleConfirmChange(cls, newDateTime)}
     >
       Confirm Change
     </button>
@@ -1205,7 +1217,7 @@ const Item =  ({ item, onNavigate,i,setI,trainers,trainees}) => {
   </div>
   </div>)}
   {activeTab==='attendance'&&(
- <UpcomingClasses classes={item.attendance} setI={setI} i={i} canceled={item.canceled} classId={classDetails.id}/>
+ <UpcomingClasses classes={item.attendance} clss={classDetails}setI={setI} i={i} canceled={item.canceled} classId={classDetails.id}/>
   )}
     {activeTab==='classHistory'&&(
  <ClassHistory classes={classDetails.history} />
@@ -1353,15 +1365,16 @@ async function createAttendanceForClass(docRef) {
           Participants: classDetails.participantsuid,
           date: startDate,
           end: endDate,
+          court:classTime.Court
    
         };
         const durationMs = endDate.getTime() - startDate.getTime();
         // Write to Firestore
-         await addDoc(collection(db,'Classes',docRef,'attendance'),docData)
+         const attendanceref=await addDoc(collection(db,'Classes',docRef,'attendance'),docData)
   
-        await addDoc(collection(db,'Courts',classTime.Court,'Reservations'),{
+        await setDoc(doc(db,'Courts',classTime.Court,'Reservations',attendanceref.id),{
           startTime: startDate,
-          end: endDate,
+          endTime: endDate,
         date:startDate,
       duration: Math.floor(durationMs / (1000 * 60)),
         type:'class'

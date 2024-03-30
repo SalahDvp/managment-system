@@ -1265,10 +1265,15 @@ const [Original,setOriginal]=useState([])
     setShowEditModal(true);
   };
   return (
-    <>
-      <div className="flex flex-col items-start w-full h-screen overflow-y-scroll p-5 bg-white">
-        <h1 className="text-3xl font-bold mb-5">Manage Tournaments</h1>
-        <div className="mb-5">
+    <div className="container mx-auto  h-full mt-10 ">
+  <div className='flex flex-row justify-between w-full'>
+  <h1 className="text-3xl font-bold mb-5">Tournaments</h1>
+  <button onClick={addNewTournament} className="mb-3 px-4 py-2 button-white ml-auto " >Add New Tournament</button>
+        </div>
+
+        <div className="flex flex-col items-start w-full h-screen border rounded-lg p-5 bg-white">
+
+          <div className="my-5">
           <input
             type="text"
             placeholder="Search by tournament name"
@@ -1277,7 +1282,9 @@ const [Original,setOriginal]=useState([])
             className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <button onClick={addNewTournament} className="mb-3 px-4 py-2 bg-blue-500 text-white rounded-md ml-auto " >Add New Tournament</button>
+      
+    
+
         <div className="overflow-x-auto w-full border">
           <table className="w-full min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -1336,7 +1343,7 @@ const [Original,setOriginal]=useState([])
 
 {showEditModal &&(<EditItem setI={setI} i={i} setShowModal={setShowEditModal} courts={courts} selectedTournament={selectedTournament}/>)}
    
-</>
+</div>
 );
 };
 

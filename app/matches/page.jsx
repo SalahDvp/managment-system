@@ -491,7 +491,7 @@ const handleSetReservation = (match) => {
             className="px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <button onClick={addNewMatch} className=" px-4 bg-blue-500 text-white rounded-md">Add New Match</button>
+        <button onClick={addNewMatch} className=" px-4 button-white rounded-md">Add New Match</button>
         </div>
         <div className="overflow-x-auto w-full border">
           <table className="w-full min-w-full divide-y divide-gray-200">

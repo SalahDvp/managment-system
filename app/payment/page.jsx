@@ -8,7 +8,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '@/app/firebase';
 import { addDoc, collection,doc, getDocs, increment,  setDoc, updateDoc, } from 'firebase/firestore';
-import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer,BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ReferenceLine, Label,Text } from 'recharts';
 const Card = ({ title, data, subtitle, icon }) => {
   return (
     <div className="bg-white shadow-md rounded-xl p-6 w-72">
@@ -105,7 +105,7 @@ const MatchDetails=({setShowModal})=>{
   
         <div className="w-2/6 h-full bg-white border rounded-lg flex flex-col justify-start items-start">
           <div className='flex'>
-            <h2 className="text-xl font-bold ml-4 mt-4 mb-6">Invocie Billing</h2>
+            <h2 className="text-xl font-bold ml-4 mt-4 mb-6">Receipt Billing</h2>
             <div className='ml-72'/>
             <div className="mt-4">
           
@@ -230,29 +230,27 @@ const MatchDetails=({setShowModal})=>{
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const StraightAnglePieChart = ({data}) => (
-  <div className="bg-white shadow-md rounded-xl p-6 w-72">
-        <h2 className="text-xl font-bold mb-4" style={{ color: '#0E2433' }}>Income Types</h2>
-        <PieChart width={200} height={120} >
-        <Pie
-          data={data}
-          cx={100}
-          cy={80}
-          startAngle={180}
-          endAngle={0}
-          innerRadius={60}
-          outerRadius={80}
-          fill="#8884d8"
-          paddingAngle={5}
-          dataKey="value"
-          
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-      <Tooltip />
-      <Legend />
-    </PieChart>
+
+
+
+    <div className='flex flex-col w-full self-center justify-center'>
+    <h2 className="text-3xl font-bold mb-10 ml-2">Receipts Types</h2>
+    <ResponsiveContainer width="40%" height={400} className='flex flex-col w-full self-center justify-center'>
+    <BarChart data={data} >
+ 
+ <XAxis dataKey="name" tick={{  fill: '#0e2433' }}/>
+ <YAxis hide="true" />
+ <Tooltip />
+
+ <Bar dataKey="value" fill="#0e2433"  radius={[10, 10, 0, 0]} >
+   
+ <LabelList dataKey="value" name='price' position="top" fill="#0e2433"/>
+ </Bar>
+
+</BarChart>
+      
+
+    </ResponsiveContainer>
     </div>
 );
 const ManageSalaryPage = () => {
@@ -376,24 +374,26 @@ return formattedDate
     <div className="container mx-auto h-full mt-10">
 <div className="flex items-center justify-between">
   <div>
-    <h2 className="text-3xl font-bold mb-10 ml-2">Billing</h2>
+    <h2 className="text-3xl font-bold mb-10 ml-2">Receipts</h2>
   </div>
   <div>
-    <button className="text-blue-500 text-2xl" onClick={addNewMatch}>Add Transaction</button>
+    <button className="text-blue-500 text-2xl" onClick={addNewMatch}>Add Receipt</button>
   </div>
 </div>
 
-    <div className="flex  border p-3 bg-white rounded-lg mt-5 shadow-3xl flex-col border-opacity-50 shadow-3xl overflow-x-auto w-full border">
+    <div className="flex    rounded-lg mt-5 shadow-3xl flex-col  shadow-3xl overflow-x-auto w-full ">
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5 mb-5 self-center">
         <Card title={'Overall Balance'} data={`$ ${status.overallBalance.toFixed(2)}`} subtitle={`${status.performanceChange.toFixed(2)}% from last month`} icon={<Wallet size={32} color="#0E2433" className="text-gray-600" /> }/>
         <Card title={'Highest Paying Day'} data={status.highestPaymentDay &&(`${status?.highestPaymentDay?.toLocaleDateString()}`)} subtitle={`with amout of $ ${status.highestPayment.toFixed(2)}`} icon={    <BadgeDollarSign  size={32}  color="#0E2433" className="text-gray-600" />}/>
         <Card title={'Refund'} data={`$ ${status.totalRefund.toFixed(2)}`} subtitle={`Total Refunds`} icon={   <RefreshCcw  size={32}  color="#0E2433" className="text-gray-600" /> }/>
         <Card title={'Expenses'} data={`$ ${status.totalRefund.toFixed(2)}`} subtitle={`TotalExpenses`} icon={   <Banknote size={32}  color="#0E2433" className="text-gray-600" /> }/>
 
-      {/* <StraightAnglePieChart data={status.data}/> */}
+      {/*  */}
 
       </div>
-      <div className="flex overflow-x-auto">
+    
+      <div className="flex overflow-x-auto border bg-white flex-col p-4 rounded-lg">
+      <StraightAnglePieChart data={status.data}/>
         <table className="w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -401,7 +401,7 @@ return formattedDate
                 #
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
-              Payment Date
+              Receipt Date
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
                 Amout
