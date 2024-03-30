@@ -1,0 +1,55 @@
+.container {
+    display: flex;
+    flex: 1;
+  }
+  
+  .inputContainer {
+    display: flex;
+    flex-direction: row;
+    padding: 10px;
+    gap: 10px;
+    background-color: #fff;
+    padding-bottom: 50px;
+  }
+  
+  .messageInput {
+    flex: 1;
+    border-color: #ddd;
+    border-width: 1px;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  
+  .messageContainer {
+    padding: 10px;
+    margin-top: 10px;
+    margin-right: 10px;
+    border-radius: 10px;
+    max-width: 80%;
+  }
+  
+  .userMessageContainer {
+    background-color: #dcf8c6;
+    align-self: flex-end;
+  }
+  
+  .otherMessageContainer {
+    background-color: #fff;
+  }
+  
+  .messageText {
+    font-size: 16px;
+  }
+  
+  .messageSentBy {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 5px;
+  }
+  
+  .time {
+    font-size: 12px;
+    color: #777;
+    align-self: flex-end;
+  }
+  
