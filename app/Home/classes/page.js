@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useReducer, useRef } from 'react';
-import { db } from '/app/firebase';
+import { db } from '@/app/firebase';
 import {
   collection,
   getDocs,

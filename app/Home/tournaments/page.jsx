@@ -2,7 +2,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import React, { useState,useEffect, useRef } from 'react';
-import { db } from '../firebase';
+import { db } from '@/app/firebase';
 import { Timestamp, addDoc, collection, doc, getDocs, onSnapshot, orderBy, query, setDoc, updateDoc } from 'firebase/firestore';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -544,7 +544,7 @@ const NewItem=({setI,i,setShowModal,courts})=>{
     )
 
 }
-function getStatusColorClass(status) {
+export function getStatusColorClass(status) {
     switch (status) {
       case "paid":
         return "bg-green-200 text-green-800";

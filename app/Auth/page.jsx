@@ -1,58 +1,68 @@
 'use client'
-import Link from "next/link";
-import React, {useEffect,useState} from "react";
-export default function Login() {
+import { useState } from 'react';
+import { useEffect } from 'react';
+import { auth } from '../firebase';
+import { useRouter } from 'next/navigation';
+import { getAuth, setPersistence, signInWithEmailAndPassword, browserSessionPersistence, browserLocalPersistence, onAuthStateChanged } from "firebase/auth";
 
- 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+const SignIn = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const router = useRouter()
+  const [user,setUser]=useState({})
+  const auth = getAuth();
+  useEffect(() => {
+
+    onAuthStateChanged(auth,  (user) => {
+        if (user) {
+setUser(user)
+        } else {
   
-    const handleSubmit = (event) => {
-      event.preventDefault();
-      // Perform authentication logic here, for demonstration purposes, let's assume authentication is successful
-      // Replace this with actual authentication logic
-      if (email && password) {
-        // Navigate to dashboard after successful login
-        window.location.href = "/invdashboard/home/dashboard";
-      } else {
-        // Handle invalid credentials
-        alert("Please enter valid email and password");
-      }
-    };
+    
+        }
+    });
+}, []);
+  const handleSignIn = async () => {
 
-    return (
-      <div className="flex items-center justify-center min-h-screen flex-col">
-        <h2 className="text-3xl mb-4">Inventory Management</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col items-center">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mb-4 p-2 border border-gray-300 rounded"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mb-4 p-2 border border-gray-300 rounded"
-          />
-          <button
-            type="submit"
-            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
-          >
-            Login
-          </button>
-        </form>
-        <div>
-          {/* Alternatively, you can use Link component if you prefer */}
-          {/* <Link href="/invdashboard/home/dashboard">View Dashboard</Link> */}
-          {/* But for programmatic navigation, using window.location is preferred */}
-          <p>
-            <a href="/invdashboard/home/dashboard">View Dashboard</a>
-          </p>
+   await signInWithEmailAndPassword(auth, email, password).then((a)=>    setUser(a.user))
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center  w-full" style={{backgroundColor:'#0E2433'}}>
+      <div className="bg-gray-800 p-10 rounded-lg flex-col shadow-xl w-96 flex items-center justify-center">
+      <img
+      src="/logo-expanded.png"
+      alt="Your Image"
+      style={{ height:'100px',marginBottom:"15px" }}
+    />
+      
+        <input 
+          type="email" 
+          placeholder="Email" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500"
+        />
+        <input 
+          type="password" 
+          placeholder="Password" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500"
+        />
+        <button 
+          onClick={handleSignIn}
+          className="w-full p-3 bg-indigo-600 rounded text-white hover:bg-indigo-500"
+        >
+          Sign In
+        </button>
+        <div className='text-white'>
+          {user && JSON.stringify(user)}
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+};
+
+export default SignIn;

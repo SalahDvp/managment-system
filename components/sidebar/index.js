@@ -20,51 +20,51 @@ import SidebarItem from "./item";
 const items= [
   {
     name: "Dashboard",
-    path: "/firstpage",
+    path: "/Home/firstpage",
     icon: LayoutDashboard,
   },
   {
     name: "Calendar",
-    path: "/calendar",
+    path: "/Home/calendar",
     icon: CalendarDays
   },
   {
     name: "Classes",
-    path: "/classes",
+    path: "/Home/classes",
     icon: LandPlot,
   },
   {
     name: "Coaches",
-    path: "/coaches",
+    path: "/Home/coaches",
     icon: Users2,
   },
   {
     name: "Clients",
-    path: "/players",
+    path: "/Home/players",
     icon: CircleUserRound,
   },
   {
     name: "Booking",
-    path: "/matches",
+    path: "/Home/matches",
     icon: Medal,
   },
   {
     name: "Tournaments",
-    path: "/tournaments",
+    path: "/Home/tournaments",
     icon: Trophy,
   },
   {
     name: "Billing",
-    path: "/payment",
+    path: "/Home/payment",
     icon: CircleDollarSign,
     items: [
       {
         name: "Receipts",
-        path: "/payment",
+        path: "/Home/payment",
       },
       {
         name: "Payouts",
-        path: "/payment/coaches",
+        path: "/Home/payment/coaches",
       },
     ],
   },

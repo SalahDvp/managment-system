@@ -15,6 +15,9 @@ import { db } from '@/app/firebase';
 import { addDays } from '@fullcalendar/core/internal';
 import { Card } from '../payment/coaches/page';
 import { BadgeDollarSign, Gauge, Hourglass, UserPlus, UserRound } from 'lucide-react';
+import { auth } from '@/app/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+
 const formatDate = (date) => {
   const options = { day: 'numeric', month: 'short' };
   return new Intl.DateTimeFormat('en-US', options).format(date);
@@ -84,6 +87,7 @@ const [trainers, setTrainers] = useState([]);
 const [selectedDate, setSelectedDate] = useState(new Date()); // Initialize with today's date
 const hours = Array.from({ length: 24 }, (_, i) => ('0' + i).slice(-2)); // Array of 24 hours
 const minutes = Array.from({ length: 60 }, (_, i) => ('0' + i).slice(-2)); // Array of 60 minutes
+
 useEffect(()=>{
 
   const getData = async () => {
@@ -422,19 +426,30 @@ const handleAddRow = () => {
       name:'',
     });
   };
+const aa=()=>{
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
 
+
+        console.log(user);
+    } else {
+console.log("qweqweqeqweqwe");
+    }
+});
+}
 
   return (
     <div className="container mx-auto  h-full mt-10">
            <h2 className="text-3xl font-bold mb-10 ml-2">Dashboard</h2>
       <div className="h-full flex flex-col relative ">
-      
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5 mb-5 self-center">
-      <Card title={'Played Matches'} data={status.totalMatches} subtitle={`${status.totalMatches} from last month`} icon={<Gauge size={32} color="#0E2433" className="text-gray-600" /> }/>
-        <Card title={'Revenues'} data={`$ ${status.revenue}`} subtitle={` `} icon={    <BadgeDollarSign  size={32}  color="#0E2433" className="text-gray-600" />}/>
-        <Card title={'Hours of court occupation'} data={`${convertMinutesToHours(status.totalReservation)} hours`} subtitle={` `} icon={   <Hourglass  size={32}  color="#0E2433" className="text-gray-600" /> }/>
-        <Card title={'Total Clients'} data={status.users} subtitle={`${status.users} new ones`} icon={   <UserPlus size={32}  color="#0E2433" className="text-gray-600" /> }/>
-        <Card title={'Total Coaches'} data={status.coaches} subtitle={` `} icon={   <UserRound size={32}  color="#0E2433" className="text-gray-600" /> }/>
+      <button className="px-3 py-1 bg-red-500 text-white rounded mr-2" onClick={() => aa()}>Absent</button>
+
+      <div className="flex flex-wrap justify-center gap-10">
+  <Card title={'Played Matches'} data={status.totalMatches} subtitle={`${status.totalMatches} from last month`} icon={<Gauge size={32} color="#0E2433" className="text-gray-600" />} />
+  <Card title={'Revenues'} data={`$ ${status.revenue}`} subtitle={` `} icon={<BadgeDollarSign size={32} color="#0E2433" className="text-gray-600" />} />
+  <Card title={'Hours of court occupation'} data={`${convertMinutesToHours(status.totalReservation)} hours`} subtitle={` `} icon={<Hourglass size={32} color="#0E2433" className="text-gray-600" />} />
+  <Card title={'Total Clients'} data={status.users} subtitle={`${status.users} new ones`} icon={<UserPlus size={32} color="#0E2433" className="text-gray-600" />} />
+  {/* <Card title={'Total Coaches'} data={status.coaches} subtitle={` `} icon={<UserRound size={32} color="#0E2433" className="text-gray-600" />} /> */}
 </div>
        
  
@@ -565,7 +580,7 @@ const handleAddRow = () => {
   className="rounded-lg w-full py-2 border-none"
 >
         <option value="">Select a user</option>
-        { trainers.filter((trainer) => !(selectedAttendance?.listData?.map((user) => user.name))?.includes(trainer.nameandsurname))?.map((user) => (
+        { trainers.map((user) => (
           <option key={user.id} value={user.nameandsurname}>
             {user.nameandsurname}
           </option>
