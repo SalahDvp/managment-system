@@ -81,7 +81,7 @@ timeOut:{hours:'',minutes:''},
 uid:'dadawww',
 name:'',
 });
-const [selectedAttendance,setSelectedAttendance]=useState({date:new Date(),listData:[]})
+const [selectedAttendance, setSelectedAttendance] = useState({ date: new Date(), listData: [] });
 const [trainers, setTrainers] = useState([]);
 const [selectedDate, setSelectedDate] = useState(new Date()); // Initialize with today's date
 const hours = Array.from({ length: 24 }, (_, i) => ('0' + i).slice(-2)); // Array of 24 hours
@@ -409,11 +409,11 @@ const handleAddRow = () => {
     });
   };
   const handleAddPlayer = (player) => {
-
+    console.log(selectedAttendance);
     setSelectedAttendance((prev) => ({
       ...prev,
       listData: [...prev.listData, player],
-    }));
+  }));
   };
   const handleSavePlayer = () => {
     handleAddPlayer(newPlayerDetails);
