@@ -8,39 +8,30 @@ import { redirect } from 'next/navigation'
 import { useEffect,useState} from "react";
 import Router, { useRouter } from "next/navigation"
 import { usePathname } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
+import { createUserWithEmailAndPassword, deleteUser, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
 
 
 
 
    
 const DashboardPage = () => {
-  const animationURL = "https://assets3.lottiefiles.com/packages/lf20_JExdDIS87T.json";
-  const pathname = usePathname()
+
   const router=useRouter()
-//   useEffect(() => {
-
-//       onAuthStateChanged(auth, async (user) => {
-//           if (user) {
-
-//               router.replace('/Home/firstpage')
-//               console.log(user);
-//           } else {
+  useEffect(() => {
     
-//               router.push("/Auth")
-//           }
-//       });
-// }, []);
-const aa=()=>{
-  onAuthStateChanged(auth, async (user) => {
-console.log(user);
-});
-} 
+      onAuthStateChanged(auth, async (user) => {
+          if (user) {
+  
+              router.replace('/Home/firstpage')
+       
+          } else {
+              router.push("/Auth")
+          }
+      });
+}, []);
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor:'#0E2433', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <button className="px-3 py-1 bg-red-500 text-white rounded mr-2" onClick={() => aa()}>Absent</button>
-
     <Player
       autoplay
       loop

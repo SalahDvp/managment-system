@@ -1,6 +1,6 @@
 // pages/index.js
 'use client'
-import { BadgeDollarSign, Banknote, Clock11, Clock9, Download, ReceiptText, RefreshCcw, Wallet } from 'lucide-react';
+import { BadgeDollarSign, Banknote, Clock11, Clock9, Download, ReceiptText, RefreshCcw, Wallet ,} from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 import DatePicker from 'react-datepicker';
@@ -1850,12 +1850,12 @@ const handleEyeClick = (employee) => {
              Coach
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
-                total payouts
+                Salary type
               </th>
               <th scope="col" className="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
-                Download Bill
+                Download Payout
               </th>
-              <th scope="col" className="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
                 Action
               </th>
             </tr>
@@ -1867,11 +1867,16 @@ const handleEyeClick = (employee) => {
                 <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{transaction.nameandsurname}</td>
                 <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>
    {/* {isAnyTimestampToday(transaction.attendance)} */}
-   <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{transaction.totalPayment}</td>
+   <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{transaction.salaryType}</td>
     </td>
     <td className="px-6 py-4 whitespace-nowrap align-center justify-center flex">
            <button onClick={() => handleEyeClick(transaction)}>
            <ReceiptText  color='#737373'/>              
+              </button>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap ">
+           <button onClick={() => handleEyeClick(transaction)}>
+           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#737373" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>          
               </button>
                   </td>
               </tr>

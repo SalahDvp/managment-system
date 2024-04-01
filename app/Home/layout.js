@@ -22,7 +22,7 @@ export default function RootLayout({
           <Sidebar />
 
           <div className="flex flex-col w-full h-full ml-64 p-4 ">
-          <NextTopLoader height={200}/>
+
             {children}
           </div>
         </div>

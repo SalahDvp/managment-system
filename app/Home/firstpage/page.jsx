@@ -15,8 +15,7 @@ import { db } from '@/app/firebase';
 import { addDays } from '@fullcalendar/core/internal';
 import { Card } from '../payment/coaches/page';
 import { BadgeDollarSign, Gauge, Hourglass, UserPlus, UserRound } from 'lucide-react';
-import { auth } from '@/app/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+
 
 const formatDate = (date) => {
   const options = { day: 'numeric', month: 'short' };
@@ -426,23 +425,12 @@ const handleAddRow = () => {
       name:'',
     });
   };
-const aa=()=>{
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
 
-
-        console.log(user);
-    } else {
-console.log("qweqweqeqweqwe");
-    }
-});
-}
 
   return (
     <div className="container mx-auto  h-full mt-10">
            <h2 className="text-3xl font-bold mb-10 ml-2">Dashboard</h2>
       <div className="h-full flex flex-col relative ">
-      <button className="px-3 py-1 bg-red-500 text-white rounded mr-2" onClick={() => aa()}>Absent</button>
 
       <div className="flex flex-wrap justify-center gap-10">
   <Card title={'Played Matches'} data={status.totalMatches} subtitle={`${status.totalMatches} from last month`} icon={<Gauge size={32} color="#0E2433" className="text-gray-600" />} />
