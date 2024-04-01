@@ -116,13 +116,13 @@ const AttendanceRateChart = ({ coachDetails }) => {
   <YAxis />
   <Tooltip />
   <Legend />
-  {/* Render lines for each class */}
-  {Object.keys(chartData[0]).map((key, index) => {
+{chartData.length > 0 &&(  Object.keys(chartData[0])?.map((key, index) => {
     if (key !== 'name') {
       return <Line key={index} type="monotone" dataKey={key} stroke={`#${Math.floor(Math.random() * 16777215).toString(16)}`} />;
     }
     return null;
-  })}
+  }))}
+
 </LineChart>
 </ResponsiveContainer>
 <ResponsiveContainer width="100%" height={400}  className='mt-20 mb-5'>

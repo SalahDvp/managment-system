@@ -460,10 +460,16 @@ const handleAddRow = () => {
 <div className="ml-4  border rounded-lg w-3/4 p-4 relative mb-4 ml-4 mt-3 self-center">
              
 
-      <div className="flex ">
+    <div className="flex ">
       <DatePicker
         id="date"
-        selected={selectedAttendance.date.seconds? new Date(selectedAttendance.date.toDate()):selectedAttendance.date}
+        selected={
+          selectedAttendance && selectedAttendance.date
+              ? selectedAttendance.date.seconds
+                  ? new Date(selectedAttendance.date.toDate())
+                  : selectedAttendance.date
+              : new Date()
+      }
         onChange={(date) =>   {setSelectedDate(date);setSelectedAttendance((prev) => ({
           ...prev,
    date:date
@@ -485,7 +491,7 @@ const handleAddRow = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200 overflow-y-auto">
-          {selectedAttendance.listData?.map((trainer, index) => (
+          {selectedAttendance?.listData?.map((trainer, index) => (
     <tr key={index}>
         <td className="px-6 py-4 whitespace-nowrap">{trainer.name}</td>
         <td className="px-6 py-4 whitespace-nowrap">

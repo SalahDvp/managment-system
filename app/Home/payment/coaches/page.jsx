@@ -2,7 +2,7 @@
 'use client'
 import { BadgeDollarSign, Banknote, Clock11, Clock9, Download, ReceiptText, RefreshCcw, Wallet ,} from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-
+import jsPDF from 'jspdf';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { v4 as uuidv4 } from 'uuid';
@@ -593,6 +593,33 @@ let u=updatedCommissionss;
          salary:u
         }))
       }
+      const generatePDF = () => {
+        // Create a new jsPDF instance
+        const doc = new jsPDF();
+    
+        // Add image at the top of the PDF
+        const img = new Image();
+        img.src = '/logo-expanded.png'; // Replace 'path_to_your_image' with the actual path to your image
+        doc.addImage(img, 'JPEG', 10, 10, 180, 60);
+    
+        // Add tennis academy details and title
+        doc.setFontSize(16);
+        doc.text('Tennis Academy Details', 10, 80); // Adjust the position as needed
+        doc.setFontSize(12);
+        doc.text('Title: Salary Slip', 10, 90); // Adjust the position as needed
+        const commissionData = selectedEmployee.commissions.map(({description,amount,rate,status,date }) => [description,amount,rate,(amount*rate)/100,status,date.toDate ? date.toDate().toLocaleDateString(): date.toLocaleDateString()]);
+
+    doc.table({
+      startY: 110, // Adjust the starting Y position as needed
+      head: [['description', 'Total Amount', 'Commission Rate', 'Commission in Tl','Payment Type' ,'date']], // Headers for the table
+      body: commissionData,
+      headStyles: { 0: { columnWidth: 50 } },
+  });
+    
+    
+        // Save the PDF
+        doc.save('salary_slip.pdf');
+    };
   return(
     <div className="fixed inset-0 flex bg-gray-600 bg-opacity-50 justify-end items-center   " style={{ height: '100%' }}>
      
@@ -1408,7 +1435,7 @@ onChange={(e) => {
               </button></>
                       )}
             </div>
-
+            <button      className="button-blue  ml-5 " onClick={generatePDF}>Generate PDF</button>
             </div>
     </div>
   )
