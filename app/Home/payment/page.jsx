@@ -2,13 +2,15 @@
 'use client'
 import { BadgeDollarSign, Banknote, Download, RefreshCcw, Wallet } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-
+import styles from '@/styles/global.css'; // Import CSS styles
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '@/app/firebase';
-import { addDoc, collection,doc, getDocs, increment,  setDoc, updateDoc, } from 'firebase/firestore';
+import { addDoc, collection,doc, getDocs, increment,  orderBy,  query,  setDoc, updateDoc, where, } from 'firebase/firestore';
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer,BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ReferenceLine, Label,Text } from 'recharts';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable'
 const Card = ({ title, data, subtitle, icon }) => {
   return (
     <div className="bg-white shadow-md rounded-xl p-6 w-72">
@@ -257,7 +259,12 @@ const ManageSalaryPage = () => {
 
    
   const [transactions, setTransactions] = useState([]);
+  const today = new Date();
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(today.getDate() - 30);
 
+  const [startDate, setStartDate] = useState(thirtyDaysAgo);
+  const [endDate, setEndDate] = useState(today);
   const [status, setStatus] = useState({
     overallBalance: 0,
     performanceChange: 0,
@@ -283,14 +290,22 @@ useEffect(()=>{
     let matchRefPayment=0;
     let totalRefund=0;
 
-    const transactionsRef = await getDocs(collection(db, 'Club', 'GeneralInformation', 'PaymentReceived'));
+    const q1 = query(
+      collection(db, 'Club', 'GeneralInformation', 'PaymentReceived'),
+      where("date", ">=", startDate),
+      where("date", "<", endDate),
+      orderBy("date", "desc")
+  );
+    const transactionsRef = await getDocs( q1)
+
     const transactionsData = transactionsRef.docs.map((doc) => ({
       id: doc.id,
       type: 'payment',
-      ...doc.data(),
+      ...doc.data(), 
     }));
-console.log(transactionsData);
-    const refundRef = await getDocs(collection(db, 'Club', 'GeneralInformation', 'PaymentRefund'));
+   
+    const q2=query(collection(db, 'Club', 'GeneralInformation', 'PaymentRefund'),where("date",">",startDate), where("date", "<", endDate),orderBy("date","desc"))
+    const refundRef = await getDocs(q2);
     const refundData = refundRef.docs.map((doc) => ({
       id: doc.id,
       type: 'refund',
@@ -299,8 +314,8 @@ console.log(transactionsData);
     }));
 
     // Combine transactions and refund data into one array
-    const combinedData = [...transactionsData, ...refundData];
-
+    const combinedData = [transactionsData, refundData].flatMap(array => array);
+    console.log(combinedData);
     // Sort the combined data array from newest to oldest based on the date field (assuming there's a 'date' field in the data)
     combinedData.sort((a, b) => new Date(b.date.toDate()) - new Date(a.date.toDate()));
 
@@ -330,9 +345,11 @@ console.log(transactionsData);
         totalRefund+=transaction.price
       }
     });
-
+    let performanceChange=0
     // Calculate performance change compared to the previous month
-    const performanceChange = ((totalRevenue - combinedData[combinedData.length-1].price) /combinedData[combinedData.length-1].price) * 100;
+   if (combinedData.length>1) {
+  performanceChange = ((totalRevenue - combinedData[combinedData.length-1].price) /combinedData[combinedData.length-1].price) * 100;
+   }
 setTransactions(combinedData)
     setStatus({
       overallBalance: totalRevenue,
@@ -349,7 +366,7 @@ setTransactions(combinedData)
   };
 
   getTransactions();
-}, []);
+}, [startDate,endDate]);
 
 
   const handleEyeClick = (employee) => {
@@ -370,13 +387,140 @@ return formattedDate
   const addNewMatch = () => {
     setShowModal(true);
   };
+  const invoiceData = {
+    invoiceNumber: '12345',
+    date: 'April 1, 2024',
+    customerName: 'John Doe',
+    address: '123 Main St, City',
+    items: [
+        { description: 'Product 1', quantity: 2, unitPrice: 50, totalPrice: 100 },
+        // Add more items as needed
+    ],
+    subtotal: 100,
+    taxRate: 10,
+    taxAmount: 10,
+    total: 110,
+    paymentMethod: 'Cash',
+    paymentDue: 'April 30, 2024',
+};
+const generatePDF = (transaction) => {
+  console.log(transaction);
+  const doc = new jsPDF();
+
+  // Set font size and style
+  doc.setFontSize(12);
+
+  // Add logo image
+  const logoImg = new Image();
+  logoImg.src = '/logo-expanded.png'; // Path to your logo image
+  const logoHeight = (logoImg.height * 50) / logoImg.width; 
+      const logoWidth = 50; // Adjust logo width as needed
+// Maintain aspect ratio
+doc.addImage(logoImg, 'PNG', 80, 20, 25, 25); // Adjust position and size as needed
+
+
+  // Company Name
+  const companyName = 'Optimum Tennis';
+  doc.text(companyName, 75,50); // Position below the logo
+
+  // Page numbering
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.getWidth() - 50, 10);
+  }
+
+  // Client Information
+
+  doc.text(`Name and Surname: ${"transaction.name"}`, 10, 70); // Adjust position and content as needed
+  doc.text(`date: ${new Date(transaction.date.toDate()).toLocaleDateString()}`, 10, 80); // Adjust position and content as needed
+
+  // Company Information
+  const companyInfoX = doc.internal.pageSize.getWidth() - 120;
+  doc.text(`Company Name: ${companyName}`, companyInfoX+100, 70,{ align: 'right' }); // Adjust position and content as needed
+  doc.text('Company Address:Istanbul Turkey', companyInfoX+100, 80,{ align: 'right' }); // Adjust position and content as needed
+
+
+  const itemizedListHeader = ['Description', 'Date', 'Type', 'Total Price'];
+  const itemizedListData = [
+      ["Match", new Date(transaction.date.toDate()).toLocaleDateString(), transaction.payment, `$${transaction.price}`]
+  ];
+  
+  doc.autoTable({
+      startY: 100,
+      head: [itemizedListHeader],
+      body: itemizedListData,
+      theme: 'grid', // Add borders and grid theme
+      margin: { top: 10 },
+  });
+  // Subtotal, Tax, Total
+  const subtotalText = `Subtotal: $${transaction.price}`;
+  const taxText = `Tax (18%): $${transaction.price*0.18}`;
+  const totalText = `Total: $${transaction.price+(transaction.price*0.18)}`;
+// Calculate the x-coordinate for right alignment
+const textWidth = doc.getStringUnitWidth(subtotalText) * doc.internal.getFontSize(); // Assuming font size of 12
+const rightAlignX = doc.internal.pageSize.getWidth() +25 - textWidth;
+// Subtotal, Tax, Total
+doc.text(subtotalText, rightAlignX, doc.autoTable.previous.finalY + 10, { align: 'left' }); // Align text to the right
+doc.text(taxText, rightAlignX, doc.autoTable.previous.finalY + 20, { align: 'left' }); // Align text to the right
+doc.text(totalText, rightAlignX, doc.autoTable.previous.finalY + 30, { align: 'left' }); // Align text to the right
+
+// Payment Information
+doc.text(`Payment Method: ${transaction.payment}`, rightAlignX+35, doc.autoTable.previous.finalY + 50, { align: 'right' }); // Align text to the right
+doc.text(`Payment Date: ${new Date(transaction.date.toDate()).toLocaleDateString()}`, rightAlignX+35, doc.autoTable.previous.finalY + 60, { align: 'right' }); // Align text to the right
+  
+// Footer
+const footerTextHeight = 10; // Assuming font size of 10
+const footerTextY = doc.internal.pageSize.getHeight() - 20 - footerTextHeight; // Adjust spacing as needed
+
+// Add footer text centered horizontally
+const textWidth1 = doc.getStringUnitWidth('Thank you for your business!') * doc.internal.getFontSize();
+const textWidth2 = doc.getStringUnitWidth('Contact us at support@example.com for any inquiries.') * doc.internal.getFontSize();
+const footerTextX1 = (doc.internal.pageSize.getWidth() - textWidth1);
+const footerTextX2 = (doc.internal.pageSize.getWidth() - textWidth2) ;
+console.log(footerTextX1);
+doc.text('Thank you for your business!', footerTextX1+15, footerTextY);
+doc.text('Contact us at support@example.com for any inquiries.', footerTextX1, footerTextY + 10);
+  doc.save('invoice_receipt.pdf');
+};
+
   return (
     <div className="container mx-auto h-full mt-10">
 <div className="flex items-center justify-between">
   <div>
     <h2 className="text-3xl font-bold mb-10 ml-2">Receipts</h2>
   </div>
-  <div>
+  <div className='flex flex-row'>
+  <div className='flex flex-row self-end px-4'>
+            <div>
+             <strong className='mr-2 mt-4 mb-6'>from : </strong>
+                  <DatePicker
+        selected={startDate}
+        onChange={(date) => setStartDate(date)}
+        selectsStart
+        startDate={startDate}
+        endDate={endDate}
+        maxDate={endDate}
+        className="rounded-lg" 
+        dateFormat="dd/MM/yyyy"
+      />
+            </div>
+      
+            <div>
+             <strong className='ml-2 mt-4 mb-6'>to :</strong>
+      <DatePicker
+        selected={endDate}
+        onChange={(date) => setEndDate(date)}
+        selectsEnd
+        startDate={startDate}
+        endDate={endDate}
+        minDate={startDate}
+        maxDate={today}
+        className="rounded-lg ml-5" 
+        dateFormat="dd/MM/yyyy"
+      />
+      </div>
+    </div>
     <button className="text-blue-500 text-2xl" onClick={addNewMatch}>Add Receipt</button>
   </div>
 </div>
@@ -397,17 +541,17 @@ return formattedDate
         <table className="w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider"  style={{ color: '#0E2433' }}>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
                 #
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
               Receipt Date
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
                 Amout
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
-                Download Invoice
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                Download Receipt
               </th>
             </tr>
           </thead>
@@ -421,7 +565,7 @@ return formattedDate
       {Math.abs(transaction.price)}
     </td>
     <td className="px-6 py-4 whitespace-nowrap">
-           <button onClick={() => handleEyeClick(transaction)}>
+           <button onClick={()=>generatePDF(transaction)}>
                  <Download color='#737373'/>
                   </button>
                   </td>
@@ -431,6 +575,7 @@ return formattedDate
         </table>
       </div>
       {showModal && (<MatchDetails setShowModal={setShowModal} />     )}
+
     </div>
     </div>
   );

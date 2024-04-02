@@ -3,6 +3,8 @@
 import { BadgeDollarSign, Banknote, Clock11, Clock9, Download, ReceiptText, RefreshCcw, Wallet ,} from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import jsPDF from 'jspdf';
+import 'jspdf-autotable'
+import * as XLSX from 'xlsx';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,7 +12,7 @@ import { db } from '@/app/firebase';
 import { Timestamp, addDoc, collection,doc, getDoc, getDocs, increment,  orderBy,  query,  setDoc, updateDoc, where, } from 'firebase/firestore';
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer,BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ReferenceLine, Label,Text } from 'recharts';
 import { getStatusColorClass } from '@/app/Home/tournaments/page';
-
+import autoTable from 'jspdf-autotable'
 const AttendanceChart = ({ trainersData }) => {
  
 
@@ -285,10 +287,10 @@ const getOthers=async ()=>{
   const commissionData = data.docs.map((doc) => {
 
     const id = doc.id;
-    const status=doc.data().payoutType
+  
 
   
-    return {status, id, ...doc.data() };
+    return {id, ...doc.data() };
   });
   setSelectedEmployee((prev) => ({ ...prev, others: commissionData }));
   setOrginal((prev)=>({...prev,others:commissionData}))
@@ -311,7 +313,7 @@ const getCommissions=async ()=>{
 }
 getCommissions()
   },[startDate,endDate])
-  console.log(selectedEmployee.others);
+  
   useEffect(() => {
     const getClassesAttendance = async () => {
 
@@ -469,7 +471,7 @@ let u=updatedCommissionss;
                 const commissionRef=await addDoc(collection(db,'Club','GeneralInformation','Payouts'),{
                   amount:parseInt(updatedItem.amount,10),
                   date:updatedItem.date,
-                  payment:updatedItem.status,
+                  payment:updatedItem.payment,
                   traineruid:selectedCoach.id,
                   payoutType:'other',
                   type:updatedItem.description
@@ -478,7 +480,7 @@ let u=updatedCommissionss;
                   Ref:commissionRef,
                   amount:parseInt(updatedItem.amount,10),
                   date:updatedItem.date,
-                  payment:updatedItem.status,
+                  payment:updatedItem.payment,
       
                  description:updatedItem.description,
                  type:updatedItem.description,
@@ -593,33 +595,118 @@ let u=updatedCommissionss;
          salary:u
         }))
       }
-      const generatePDF = () => {
-        // Create a new jsPDF instance
-        const doc = new jsPDF();
+      const exportToExcelSalary = (trainerName,from,to,tableName) => {
+        const tableElement = document.getElementById(tableName);
+        if (!tableElement) {
+            console.error('Table element not found');
+            return;
+        }
     
-        // Add image at the top of the PDF
-        const img = new Image();
-        img.src = '/logo-expanded.png'; // Replace 'path_to_your_image' with the actual path to your image
-        doc.addImage(img, 'JPEG', 10, 10, 180, 60);
+        // Preprocess data before exporting
+        const rows = tableElement.querySelectorAll('tr');
+        const data = [];
     
-        // Add tennis academy details and title
-        doc.setFontSize(16);
-        doc.text('Tennis Academy Details', 10, 80); // Adjust the position as needed
-        doc.setFontSize(12);
-        doc.text('Title: Salary Slip', 10, 90); // Adjust the position as needed
-        const commissionData = selectedEmployee.commissions.map(({description,amount,rate,status,date }) => [description,amount,rate,(amount*rate)/100,status,date.toDate ? date.toDate().toLocaleDateString(): date.toLocaleDateString()]);
+        // Add styled title row with trainer name and date
+        const trainerRow = [`Trainer Name: ${trainerName}`];
+        data.push(trainerRow);
+    
+        // Add the table titles row as the second row
+        const titlesRow = [];
+        rows[0].querySelectorAll('th, td').forEach((cell) => {
+            titlesRow.push(cell.textContent.trim());
+        });
+        data.push(titlesRow);
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          const rowData = [];
+          const cells = row.querySelectorAll('th, td');
+      
+          // Extract start and end data from the first cell
+          if (cells.length > 0) {
+              const startDatePicker = cells[0].querySelector('.react-datepicker-wrapper:first-child input');
+              const endDatePicker = cells[0].querySelector('.react-datepicker-wrapper:last-child input');
+              const start = startDatePicker ? startDatePicker.value : '';
+              const end = endDatePicker ? endDatePicker.value : '';
+              rowData.push(start.trim());
+              rowData.push(end.trim());
+          }
+      
+          // Add other cells' data to rowData as needed
+          cells.forEach((cell, index) => {
+              if (index > 0 && index < cells.length - 1) { // Exclude the last column
+                  if (cell.classList.contains('multi-select')) {
+                      const selectedOptions = [];
+                      cell.querySelectorAll('option:checked').forEach((option) => {
+                          selectedOptions.push(option.textContent);
+                      });
+                      rowData.push(selectedOptions.join(', ')); // Separate options by commas
+                  } else {
+                      rowData.push(cell.textContent.trim());
+                  }
+              }
+          });
+      
+          data.push(rowData);
+      }
 
-    doc.table({
-      startY: 110, // Adjust the starting Y position as needed
-      head: [['description', 'Total Amount', 'Commission Rate', 'Commission in Tl','Payment Type' ,'date']], // Headers for the table
-      body: commissionData,
-      headStyles: { 0: { columnWidth: 50 } },
-  });
+  
+        const ws = XLSX.utils.aoa_to_sheet(data)
     
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
     
-        // Save the PDF
-        doc.save('salary_slip.pdf');
+        // Save the Excel file
+        const fileName = `${trainerName} ${tableName} ${from} - ${to}.xlsx`;
+        XLSX.writeFile(wb, fileName);
     };
+    
+      const exportToExcel = (trainerName,from,to,tableName) => {
+        const tableElement = document.getElementById(tableName);
+        if (!tableElement) {
+            console.error('Table element not found');
+            return;
+        }
+    
+        // Preprocess data before exporting
+        const rows = tableElement.querySelectorAll('tr');
+        const data = [];
+    
+        // Add styled title row with trainer name and date
+        const titleRow = [`Trainer Name: ${trainerName}`, `Date: ${from} - ${to}`];
+        data.push(titleRow); // Add title row as an array without style
+    
+        rows.forEach((row) => {
+            const rowData = [];
+            row.querySelectorAll('th, td').forEach((cell, index) => {
+
+                if (index < row.querySelectorAll('th, td').length - 1) {
+             
+                    if (cell.classList.contains('select')) {
+                        const selectedOptions = [];
+                      
+                        cell.querySelectorAll('option:checked').forEach((option) => {
+                            selectedOptions.push(option.textContent);
+                        });
+                        rowData.push(selectedOptions.join(', ')); // Separate options by commas
+                    } else {
+                        rowData.push(cell.textContent);
+                    }
+                }
+            });
+            data.push(rowData);
+        });
+    
+        const ws = XLSX.utils.aoa_to_sheet(data)
+    
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    
+        // Save the Excel file
+        const fileName = `${trainerName} ${tableName} ${from} - ${to}.xlsx`;
+       XLSX.writeFile(wb, fileName);
+    };
+    
+
   return(
     <div className="fixed inset-0 flex bg-gray-600 bg-opacity-50 justify-end items-center   " style={{ height: '100%' }}>
      
@@ -721,10 +808,529 @@ onChange={(e) => {
           Total Payout: ${salary+(selectedEmployee.others.reduce((acc, employee) => acc +  parseInt(employee.amount,10), 0)) + (selectedEmployee.commissions.reduce((acc, employee) => acc +  parseInt((employee.amount*employee.rate)/100,10), 0))}
 
         </div>
-    <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
+ 
+            
+            <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
+              <h3 className="text-lg font-bold mb-4">Classes</h3>
+              <div className="table-container " style={{ overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
+                <table className="w-full min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        class
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        date
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       start
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       end
+                      </th>
+                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       duration
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody className="bg-white divide-y divide-gray-200">
+                  {selectedEmployee.classesAttendance.map((attendance,index) => (
+
+            <tr key={attendance.id} >
+                        <td className="px-6 py-4 whitespace-nowrap ">{attendance.className}</td>
+          
+         <td className="px-6 py-4 whitespace-nowrap ">{formatDateToDDMMYYYY(new Date(attendance.date.toDate()))}</td>
+
+         <td className="px-6 py-4 whitespace-nowrap ">{formatTimeFromFirestoreTimestamp(attendance.date)}</td>
+    
+         <td className="px-6 py-4 whitespace-nowrap ">{formatTimeFromFirestoreTimestamp(attendance.end)}</td>
+         <td className="px-6 py-4 whitespace-nowrap ">{calculateDurationInMinutes(new Date(attendance.date.toDate()),new Date(attendance.end.toDate()))} Minutes</td>
+            </tr>
+          ))}     
+                  </tbody>
+  
+      </table>
+     
+              </div>
+    
+        <div colSpan="2" className="px-6 py-3 text-right pr-10 font-medium text-gray-500 uppercase tracking-wider" style={{ borderTopWidth: '2px', width: '100%', display: 'block' }}>
+          Salary: ${salary}
+        </div>
+           
+            </div>
+            <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 bg-white" style={{ width: 'calc(100% - 24px)' }}>
+              <h3 className="text-lg font-bold mb-4">Attendance</h3>
+              <div className="table-container " style={{overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
+                <table className="w-full min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      date
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Time In
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       Time Out
+                      </th>
+                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       duration
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody className="bg-white divide-y divide-gray-200">
+                  {selectedEmployee.attendances.map((attendance,index) => (
+
+            <tr key={attendance.id} >
+          
+          
+         <td className="px-6 py-4 whitespace-nowrap ">{formatDateToDDMMYYYY(new Date(attendance.startTime.toDate()))}</td>
+
+         <td className="px-6 py-4 whitespace-nowrap">
+  <input
+    value={attendance.timeIn.hours}
+    readOnly
+    className="px-2 py-1 border rounded-md bg-gray-100 text-gray-800 w-auto mr-1"
+    style={{ width: `${attendance.timeIn.hours.length * 30}px` }} // Adjust the multiplier as needed
+  />
+  <input
+    value={attendance.timeIn.minutes}
+    readOnly
+    className="px-2 py-1 border rounded-md bg-gray-100 text-gray-800 w-auto"
+    style={{ width: `${attendance.timeIn.hours.length * 30}px` }} // Adjust the multiplier as needed
+  />
+</td>
+    
+         <td className="px-6 py-4 whitespace-nowrap ">
+         <div className="flex">
+    <input
+        value={attendance.timeOut.hours}
+      readOnly
+      className="px-2 py-1 border rounded-md bg-gray-100 text-gray-800 w-auto  mr-1"
+      style={{ width: `${attendance.timeIn.hours.length * 30}px` }} 
+    />
+      <input
+        value={attendance.timeOut.minutes}
+      readOnly
+      className="px-2 py-1 border rounded-md bg-gray-100 text-gray-800 w-auto"
+      style={{ width: `${attendance.timeIn.hours.length * 30}px` }} 
+    />
+</div>
+         </td>
+         <td className="px-6 py-4 whitespace-nowrap ">{(Math.floor(new Date(attendance.endTime.toDate()).getTime()-new Date(attendance.startTime.toDate()).getTime())/(1000*60)).toFixed(2)} Minutes</td>
+            </tr>
+          ))}     
+                  </tbody>
+ 
+      </table>
+                    
+              </div>
+            </div>
+            <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 relative" style={{ width: 'calc(100% - 24px)' }}>
+              <h3 className="text-lg font-bold mb-4">Salaries</h3>
+              <div className="table-container " style={{ overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
+                <table className="w-full min-w-full divide-y divide-gray-200" id='salary'>
+                  <thead className="bg-gray-50">
+                    <tr>
+                       <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       date
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       amount
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       payout type
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       Description
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                  {selectedEmployee.salary.map((salary,index) => (
+
+            <tr key={salary.id} >
+               
+               <td className="px-6 py-4 overflow-wrap ">
+<div className='flex flex-row '>
+<DatePicker
+    selected={salary.from.toDate ? salary.from.toDate().toLocaleDateString() : salary.from.toLocaleDateString()}
+    onChange={(date) => setNewSalaryDetails((prev) => ({ ...prev, from: date }))}
+    selectsStart
+    startDate={startDate}
+    endDate={endDate}
+    maxDate={endDate}
+
+    className="rounded-lg w-40 " // Add other classes if needed
+  />
+
+
+      <DatePicker
+        selected={salary.to.toDate ? salary.to.toDate().toLocaleDateString(): salary.to.toLocaleDateString()}
+        onChange={(date) => setNewSalaryDetails((prev)=>({
+          ...prev,to:date
+        }))}
+        selectsEnd
+        startDate={startDate}
+        endDate={endDate}
+ 
+        className="rounded-lg ml-5 w-40" 
+      />
+</div>
+ 
+ 
+  </td>
+
+
+         <td className="px-6 py-4 whitespace-nowrap text-center">{salary.amount}</td>
+            
+
+
+         <td className="px-6 py-4 whitespace-nowrap text-center ">  
+         <select
+    name="status"
+    value={salary.status}
+    onChange={(e) => {
+      const { name, value } = e.target;
+      setSelectedEmployee((prev) => ({
+        ...prev,
+       salary: prev.salary.map((other, idx) =>
+          idx === index ? { ...other, [name]: value } : other
+        ),
+      }));
+    }}
+    id='cssassas'
+    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(salary.status)}`}
+  >
+    <option value="">payout type</option>
+    <option value="bank">Bank</option>
+    <option value="cash">Cash</option>
+
+  </select></td>
+<td className="px-6 py-4 max-w-20 overflow-wrap break-word overflow-hidden ">{salary.description}</td>
+<td className="px-6 py-4 whitespace-nowrap align-center justify-center">
+<div className="flex  justify-center">
+{!salary.removed ?(               <button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} onClick={()=>handleRemove(salary,selectedEmployee.salary,`salary`)}>Remove</button>
+):
+         (<button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} disabled={true}>Removed</button>)   }
+     
+            </div>
+
+</td>
+  
+       
+            </tr>
+          ))}
+                  </tbody>
+                {/* Add Player row */}
+         {showAddRowSalary && (
+       
+     <tr >
+          <td className="px-3 py-4 whitespace-nowrap">
+          <div className='flex flex-row self-end px-4'>
+          <div>
+           <strong className='mr-2 mt-4 mb-6'>from: </strong>
+                <DatePicker
+      selected={newSalaryDetails.from.toDate ? salary.from.toDate().toLocaleDateString(): newSalaryDetails.from.toLocaleDateString()}
+      onChange={(date) => setNewSalaryDetails((prev)=>({
+        ...prev,from:date
+      }))}
+      selectsStart
+      startDate={startDate}
+      endDate={endDate}
+      maxDate={endDate}
+      className="rounded-lg" 
+    />
+          </div>
+          <div>
+           <strong className='ml-2 mt-4 mb-6'>to :</strong>
+    <DatePicker
+      selected={newSalaryDetails.to.toDate ? newSalaryDetails.to.toDate().toLocaleDateString(): newSalaryDetails.to.toLocaleDateString()}
+      onChange={(date) => setNewSalaryDetails((prev)=>({
+        ...prev,to:date
+      }))}
+      selectsEnd
+      startDate={startDate}
+      endDate={endDate}
+
+      className="rounded-lg ml-5" 
+    />
+    </div>
+  </div>
+  </td>
+  <td className="px-3 py-4 whitespace-nowrap"><input
+                type="number"
+                name="amount"
+                value={newSalaryDetails.amount}
+                onChange={(e)=>setNewSalaryDetails((prev)=>({...prev,amount:e.target.value}))}
+                placeholder="Enter total amount"
+                className="rounded-lg w-full px-3 py-2 border-none "
+              />
+          </td>             
+
+<td className="px-3 py-4 whitespace-nowrap">
+  <select
+    name="status"
+    value={newSalaryDetails.status}
+    onChange={(e)=>setNewSalaryDetails((prev)=>({...prev,status:e.target.value}))}
+
+    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(newSalaryDetails.status)}`}
+  >
+    <option value="">payout type</option>
+    <option value="bank">Bank</option>
+    <option value="cash">Cash</option>
+
+  </select>
+
+</td>
+
+                <td className="px-3 py-4 whitespace-nowrap"><input
+                type="text"
+                name="description"
+                value={newSalaryDetails.description}
+                onChange={(e)=>setNewSalaryDetails((prev)=>({...prev,description:e.target.value}))}
+                placeholder="Enter description"
+                className="rounded-lg w-full px-3 py-2 border-none "
+              /></td>
+          </tr>
+        )}
+
+       
+  
+      </table>
+                    
+     
+              </div>
+              <div colSpan="2" className="px-6 py-3 text-right  font-medium text-gray-500 uppercase tracking-wider" style={{ borderTopWidth: '2px', width: '100%', display: 'block' }}>
+          Total Salaries: ${  (selectedEmployee.salary.reduce((acc, employee) => acc +  parseInt(employee.amount,10), 0)).toLocaleString()}
+        </div>
+                      {!showAddRowSalary? (
+                        <>
+                          <button
+                          onClick={handleAddRowSalary}
+                          className="button-white  mt-5 mr-5"
+                        >
+                          Add Salary
+                        </button>
+                         {selectedEmployee.salary !=orginal.salary && (
+                         <>
+                         <button
+                           onClick={()=>  updateSalary(selectedEmployee.salary,orginal.salary)}
+                     
+                           className="button-blue  mt-5"
+                         >
+                          submit Changes
+                         </button>
+                         <button
+                           onClick={()=> setSelectedEmployee(orginal)}
+                     
+                           className="bg-gray-500 text-black-500  font-bold mt-5 ml-5 border rounded-lg px-5 py-2"
+                         >
+                          Cancel Changes
+                         </button>
+                         </> )}  
+                        </>
+                      
+                      ):(
+                        <>
+                         <button
+                onClick={handleSaveSalary}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
+              >
+                Save
+              </button>
+              <button
+                onClick={handleCancelAddSalaryRow}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+              >
+                Cancel
+              </button></>
+                      )}
+ <button      className="button-excel  ml-5 absolute right-4 top-2" onClick={()=>exportToExcelSalary(selectedCoach.nameandsurname,startDate.toLocaleDateString(),endDate.toLocaleDateString(),'salary')}>Import</button>
+
+            </div>
+            <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 relative" style={{ width: 'calc(100% - 24px)' }}>
+              <h3 className="text-lg font-bold mb-4">Other Payouts</h3>
+              <div className="table-container " style={{ overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
+                <table className="w-full min-w-full divide-y divide-gray-200" id='payouts'>
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        description
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       amount
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       payout type
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       date
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                       action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                  {selectedEmployee.others.map((other,index) => (
+
+            <tr key={other.id} >
+               
+               <td className="px-6 py-4 max-w-20 overflow-wrap break-word overflow-hidden ">{other.description}</td>
+
+         <td className="px-6 py-4 whitespace-nowrap text-center">{other.amount}</td>
+            
+
+         <td className="px-6 py-4 whitespace-nowrap text-center ">  
+         <select
+    name="payment"
+    value={other.payment}
+    onChange={(e) => {
+      const { name, value } = e.target;
+      setSelectedEmployee((prev) => ({
+        ...prev,
+        others: prev.others.map((other, idx) =>
+          idx === index ? { ...other, [name]: value } : other
+        ),
+      }));
+    }}
+    
+    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(other.payment)}`}
+  >
+    <option value="">payout type</option>
+    <option value="bank">Bank</option>
+    <option value="cash">Cash</option>
+
+  </select></td>
+{other.date   && (         <td className="px-6 py-4 whitespace-nowrap text-center">{other.date.toDate ? other.date.toDate().toLocaleDateString(): other.date.toLocaleDateString()}</td>)    }
+
+<td className="px-6 py-4 whitespace-nowrap align-center justify-center">
+<div className="flex  justify-center">
+                  
+         {!other.removed ?(    <button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} onClick={()=>handleRemove(other,selectedEmployee.others,`others`)}>Remove</button>):
+         (<button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} disabled={true}>Removed</button>)   }
+     
+            </div>
+
+</td>
+  
+       
+            </tr>
+          ))}
+                  </tbody>
+                {/* Add Player row */}
+         {showAddRowOther && (
+     <tr >
+                <td className="px-3 py-4 whitespace-nowrap"><input
+                type="text"
+                name="description"
+                value={newOtherDetails.description}
+                onChange={(e)=>setNewOtherDetails((prev)=>({...prev,description:e.target.value}))}
+                placeholder="Enter description"
+                className="rounded-lg w-full px-3 py-2 border-none "
+              /></td>
+                         <td className="px-3 py-4 whitespace-nowrap"><input
+                type="number"
+                name="amount"
+                value={newOtherDetails.amount}
+                onChange={(e)=>setNewOtherDetails((prev)=>({...prev,amount:e.target.value}))}
+                placeholder="Enter total amount"
+                className="rounded-lg w-full px-3 py-2 border-none "
+              /></td>
+<td className="px-3 py-4 whitespace-nowrap">
+  <select
+    name="payment"
+    value={newOtherDetails.status}
+    onChange={(e)=>setNewOtherDetails((prev)=>({...prev,status:e.target.value}))}
+    
+    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(newOtherDetails.payment)}`}
+  >
+    <option value="">payout type</option>
+    <option value="bank">Bank</option>
+    <option value="cash">Cash</option>
+
+  </select>
+</td>
+
+<td className="px-3 py-4 whitespace-nowrap">
+        <DatePicker
+        id="date"
+        selected={newOtherDetails.date}
+        onChange={(date) => setNewOtherDetails((prev) => ({ ...prev, date: date }))} // Update the 'date' field in newPlayerDetails
+
+        dateFormat="dd-MM-yyyy" // Specify the date format
+        className="rounded-lg w-full px-3 py-2 border-none"
+        placeholderText="Date"
+      />
+        </td>
+
+          </tr>
+        )}
+
+       
+  
+      </table>
+                    
+     
+              </div>
+              <div colSpan="2" className="px-6 py-3 text-right  font-medium text-gray-500 uppercase tracking-wider" style={{ borderTopWidth: '2px', width: '100%', display: 'block' }}>
+          Total Amount: ${  (selectedEmployee.others.reduce((acc, employee) => acc +  parseInt(employee.amount,10), 0)).toLocaleString()}
+        </div>
+                      {!showAddRowOther? (
+                        <>
+                          <button
+                          onClick={handleAddRowOther}
+                          className="button-white  mt-5 mr-5"
+                        >
+                          Add Other
+                        </button>
+                         {selectedEmployee.others !=orginal.others && (
+                         <>
+                         <button
+                           onClick={()=> updateOthers(selectedEmployee.others,orginal.others)}
+                     
+                           className="button-blue  mt-5"
+                         >
+                          submit Changes
+                         </button>
+                         <button
+                           onClick={()=> setSelectedEmployee(orginal)}
+                     
+                           className="bg-gray-500 text-black-500  font-bold mt-5 ml-5 border rounded-lg px-5 py-2"
+                         >
+                          Cancel Changes
+                         </button>
+                         </> )}  
+                        </>
+                      
+                      ):(
+                        <>
+                         <button
+                onClick={handleSaveOther}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
+              >
+                Save
+              </button>
+              <button
+                onClick={handleCancelAddOtherRow}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+              >
+                Cancel
+              </button></>
+                      )}
+                                                    <button      className="button-excel  ml-5 absolute right-4 top-2" onClick={()=>exportToExcel(selectedCoach.nameandsurname,startDate.toLocaleDateString(),endDate.toLocaleDateString(),'payouts')}>Import</button>
+
+            </div>
+            <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 relative" style={{ width: 'calc(100% - 24px)' }}>
               <h3 className="text-lg font-bold mb-4">Commission</h3>
               <div className="table-container " style={{  overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
-                <table className="w-full min-w-full divide-y divide-gray-200">
+                <table className="w-full min-w-full divide-y divide-gray-200" id='commission'>
                   <thead className="bg-gray-50">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -920,522 +1526,10 @@ onChange={(e) => {
               </button></>
                   
                   )}
+                              <button      className="button-excel  ml-5 absolute right-4 top-2" onClick={()=>exportToExcel(selectedCoach.nameandsurname,startDate.toLocaleDateString(),endDate.toLocaleDateString(),'commission')}>Import</button>
             </div>
-            
-            <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
-              <h3 className="text-lg font-bold mb-4">Classes</h3>
-              <div className="table-container " style={{ overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
-                <table className="w-full min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        class
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        date
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       start
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       end
-                      </th>
-                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       duration
-                      </th>
-                    </tr>
-                  </thead>
+      
 
-                  <tbody className="bg-white divide-y divide-gray-200">
-                  {selectedEmployee.classesAttendance.map((attendance,index) => (
-
-            <tr key={attendance.id} >
-                        <td className="px-6 py-4 whitespace-nowrap ">{attendance.className}</td>
-          
-         <td className="px-6 py-4 whitespace-nowrap ">{formatDateToDDMMYYYY(new Date(attendance.date.toDate()))}</td>
-
-         <td className="px-6 py-4 whitespace-nowrap ">{formatTimeFromFirestoreTimestamp(attendance.date)}</td>
-    
-         <td className="px-6 py-4 whitespace-nowrap ">{formatTimeFromFirestoreTimestamp(attendance.end)}</td>
-         <td className="px-6 py-4 whitespace-nowrap ">{calculateDurationInMinutes(new Date(attendance.date.toDate()),new Date(attendance.end.toDate()))} Minutes</td>
-            </tr>
-          ))}     
-                  </tbody>
-  
-      </table>
-     
-              </div>
-    
-        <div colSpan="2" className="px-6 py-3 text-right pr-10 font-medium text-gray-500 uppercase tracking-wider" style={{ borderTopWidth: '2px', width: '100%', display: 'block' }}>
-          Salary: ${salary}
-        </div>
-           
-            </div>
-            <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 bg-white" style={{ width: 'calc(100% - 24px)' }}>
-              <h3 className="text-lg font-bold mb-4">Attendance</h3>
-              <div className="table-container " style={{overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
-                <table className="w-full min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      date
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Time In
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       Time Out
-                      </th>
-                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       duration
-                      </th>
-                    </tr>
-                  </thead>
-
-                  <tbody className="bg-white divide-y divide-gray-200">
-                  {selectedEmployee.attendances.map((attendance,index) => (
-
-            <tr key={attendance.id} >
-          
-          
-         <td className="px-6 py-4 whitespace-nowrap ">{formatDateToDDMMYYYY(new Date(attendance.startTime.toDate()))}</td>
-
-         <td className="px-6 py-4 whitespace-nowrap">
-  <input
-    value={attendance.timeIn.hours}
-    readOnly
-    className="px-2 py-1 border rounded-md bg-gray-100 text-gray-800 w-auto mr-1"
-    style={{ width: `${attendance.timeIn.hours.length * 30}px` }} // Adjust the multiplier as needed
-  />
-  <input
-    value={attendance.timeIn.minutes}
-    readOnly
-    className="px-2 py-1 border rounded-md bg-gray-100 text-gray-800 w-auto"
-    style={{ width: `${attendance.timeIn.hours.length * 30}px` }} // Adjust the multiplier as needed
-  />
-</td>
-    
-         <td className="px-6 py-4 whitespace-nowrap ">
-         <div className="flex">
-    <input
-        value={attendance.timeOut.hours}
-      readOnly
-      className="px-2 py-1 border rounded-md bg-gray-100 text-gray-800 w-auto  mr-1"
-      style={{ width: `${attendance.timeIn.hours.length * 30}px` }} 
-    />
-      <input
-        value={attendance.timeOut.minutes}
-      readOnly
-      className="px-2 py-1 border rounded-md bg-gray-100 text-gray-800 w-auto"
-      style={{ width: `${attendance.timeIn.hours.length * 30}px` }} 
-    />
-</div>
-         </td>
-         <td className="px-6 py-4 whitespace-nowrap ">{(Math.floor(new Date(attendance.endTime.toDate()).getTime()-new Date(attendance.startTime.toDate()).getTime())/(1000*60)).toFixed(2)} Minutes</td>
-            </tr>
-          ))}     
-                  </tbody>
- 
-      </table>
-                    
-              </div>
-            </div>
-            <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
-              <h3 className="text-lg font-bold mb-4">Other Payouts</h3>
-              <div className="table-container " style={{ overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
-                <table className="w-full min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        description
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       amount
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       payout type
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       date
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                  {selectedEmployee.others.map((other,index) => (
-
-            <tr key={other.id} >
-               
-               <td className="px-6 py-4 max-w-20 overflow-wrap break-word overflow-hidden ">{other.description}</td>
-
-         <td className="px-6 py-4 whitespace-nowrap text-center">{other.amount}</td>
-            
-
-         <td className="px-6 py-4 whitespace-nowrap text-center ">  
-         <select
-    name="status"
-    value={other.status}
-    onChange={(e) => {
-      const { name, value } = e.target;
-      setSelectedEmployee((prev) => ({
-        ...prev,
-        others: prev.others.map((other, idx) =>
-          idx === index ? { ...other, [name]: value } : other
-        ),
-      }));
-    }}
-    
-    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(other.status)}`}
-  >
-    <option value="">payout type</option>
-    <option value="bank">Bank</option>
-    <option value="cash">Cash</option>
-
-  </select></td>
-{other.date   && (         <td className="px-6 py-4 whitespace-nowrap text-center">{other.date.toDate ? other.date.toDate().toLocaleDateString(): other.date.toLocaleDateString()}</td>)    }
-
-<td className="px-6 py-4 whitespace-nowrap align-center justify-center">
-<div className="flex  justify-center">
-                  
-         {!other.removed ?(    <button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} onClick={()=>handleRemove(other,selectedEmployee.others,`others`)}>Remove</button>):
-         (<button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} disabled={true}>Removed</button>)   }
-     
-            </div>
-
-</td>
-  
-       
-            </tr>
-          ))}
-                  </tbody>
-                {/* Add Player row */}
-         {showAddRowOther && (
-     <tr >
-                <td className="px-3 py-4 whitespace-nowrap"><input
-                type="text"
-                name="description"
-                value={newOtherDetails.description}
-                onChange={(e)=>setNewOtherDetails((prev)=>({...prev,description:e.target.value}))}
-                placeholder="Enter description"
-                className="rounded-lg w-full px-3 py-2 border-none "
-              /></td>
-                         <td className="px-3 py-4 whitespace-nowrap"><input
-                type="number"
-                name="amount"
-                value={newOtherDetails.amount}
-                onChange={(e)=>setNewOtherDetails((prev)=>({...prev,amount:e.target.value}))}
-                placeholder="Enter total amount"
-                className="rounded-lg w-full px-3 py-2 border-none "
-              /></td>
-<td className="px-3 py-4 whitespace-nowrap">
-  <select
-    name="status"
-    value={newOtherDetails.status}
-    onChange={(e)=>setNewOtherDetails((prev)=>({...prev,status:e.target.value}))}
-    
-    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(newOtherDetails.status)}`}
-  >
-    <option value="">payout type</option>
-    <option value="banck">Bank</option>
-    <option value="cash">Cash</option>
-
-  </select>
-</td>
-
-<td className="px-3 py-4 whitespace-nowrap">
-        <DatePicker
-        id="date"
-        selected={newOtherDetails.date}
-        onChange={(date) => setNewOtherDetails((prev) => ({ ...prev, date: date }))} // Update the 'date' field in newPlayerDetails
-
-        dateFormat="dd-MM-yyyy" // Specify the date format
-        className="rounded-lg w-full px-3 py-2 border-none"
-        placeholderText="Date"
-      />
-        </td>
-
-          </tr>
-        )}
-
-       
-  
-      </table>
-                    
-     
-              </div>
-              <div colSpan="2" className="px-6 py-3 text-right  font-medium text-gray-500 uppercase tracking-wider" style={{ borderTopWidth: '2px', width: '100%', display: 'block' }}>
-          Total Amount: ${  (selectedEmployee.others.reduce((acc, employee) => acc +  parseInt(employee.amount,10), 0)).toLocaleString()}
-        </div>
-                      {!showAddRowOther? (
-                        <>
-                          <button
-                          onClick={handleAddRowOther}
-                          className="button-white  mt-5 mr-5"
-                        >
-                          Add Other
-                        </button>
-                         {selectedEmployee.others !=orginal.others && (
-                         <>
-                         <button
-                           onClick={()=> updateOthers(selectedEmployee.others,orginal.others)}
-                     
-                           className="button-blue  mt-5"
-                         >
-                          submit Changes
-                         </button>
-                         <button
-                           onClick={()=> setSelectedEmployee(orginal)}
-                     
-                           className="bg-gray-500 text-black-500  font-bold mt-5 ml-5 border rounded-lg px-5 py-2"
-                         >
-                          Cancel Changes
-                         </button>
-                         </> )}  
-                        </>
-                      
-                      ):(
-                        <>
-                         <button
-                onClick={handleSaveOther}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
-              >
-                Save
-              </button>
-              <button
-                onClick={handleCancelAddOtherRow}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
-              >
-                Cancel
-              </button></>
-                      )}
-            </div>
-            <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
-              <h3 className="text-lg font-bold mb-4">Salaries</h3>
-              <div className="table-container " style={{ overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
-                <table className="w-full min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                       <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       date
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       amount
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       payout type
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       Description
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                  {selectedEmployee.salary.map((salary,index) => (
-
-            <tr key={salary.id} >
-               
-               <td className="px-6 py-4 overflow-wrap ">
-<div className='flex flex-row '>
-<DatePicker
-    selected={salary.from.toDate ? salary.from.toDate().toLocaleDateString() : salary.from.toLocaleDateString()}
-    onChange={(date) => setNewSalaryDetails((prev) => ({ ...prev, from: date }))}
-    selectsStart
-    startDate={startDate}
-    endDate={endDate}
-    maxDate={endDate}
-
-    className="rounded-lg w-40 " // Add other classes if needed
-  />
-
-
-      <DatePicker
-        selected={salary.to.toDate ? salary.to.toDate().toLocaleDateString(): salary.to.toLocaleDateString()}
-        onChange={(date) => setNewSalaryDetails((prev)=>({
-          ...prev,to:date
-        }))}
-        selectsEnd
-        startDate={startDate}
-        endDate={endDate}
- 
-        className="rounded-lg ml-5 w-40" 
-      />
-</div>
- 
- 
-  </td>
-
-
-         <td className="px-6 py-4 whitespace-nowrap text-center">{salary.amount}</td>
-            
-
-
-         <td className="px-6 py-4 whitespace-nowrap text-center ">  
-         <select
-    name="status"
-    value={salary.status}
-    onChange={(e) => {
-      const { name, value } = e.target;
-      setSelectedEmployee((prev) => ({
-        ...prev,
-       salary: prev.salary.map((other, idx) =>
-          idx === index ? { ...other, [name]: value } : other
-        ),
-      }));
-    }}
-    
-    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(salary.status)}`}
-  >
-    <option value="">payout type</option>
-    <option value="bank">Bank</option>
-    <option value="cash">Cash</option>
-
-  </select></td>
-<td className="px-6 py-4 max-w-20 overflow-wrap break-word overflow-hidden ">{salary.description}</td>
-<td className="px-6 py-4 whitespace-nowrap align-center justify-center">
-<div className="flex  justify-center">
-{!salary.removed ?(               <button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} onClick={()=>handleRemove(salary,selectedEmployee.salary,`salary`)}>Remove</button>
-):
-         (<button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} disabled={true}>Removed</button>)   }
-     
-            </div>
-
-</td>
-  
-       
-            </tr>
-          ))}
-                  </tbody>
-                {/* Add Player row */}
-         {showAddRowSalary && (
-       
-     <tr >
-          <td className="px-3 py-4 whitespace-nowrap">
-          <div className='flex flex-row self-end px-4'>
-          <div>
-           <strong className='mr-2 mt-4 mb-6'>from: </strong>
-                <DatePicker
-      selected={newSalaryDetails.from.toDate ? salary.from.toDate().toLocaleDateString(): newSalaryDetails.from.toLocaleDateString()}
-      onChange={(date) => setNewSalaryDetails((prev)=>({
-        ...prev,from:date
-      }))}
-      selectsStart
-      startDate={startDate}
-      endDate={endDate}
-      maxDate={endDate}
-      className="rounded-lg" 
-    />
-          </div>
-          <div>
-           <strong className='ml-2 mt-4 mb-6'>to :</strong>
-    <DatePicker
-      selected={newSalaryDetails.to.toDate ? newSalaryDetails.to.toDate().toLocaleDateString(): newSalaryDetails.to.toLocaleDateString()}
-      onChange={(date) => setNewSalaryDetails((prev)=>({
-        ...prev,to:date
-      }))}
-      selectsEnd
-      startDate={startDate}
-      endDate={endDate}
-
-      className="rounded-lg ml-5" 
-    />
-    </div>
-  </div>
-  </td>
-  <td className="px-3 py-4 whitespace-nowrap"><input
-                type="number"
-                name="amount"
-                value={newSalaryDetails.amount}
-                onChange={(e)=>setNewSalaryDetails((prev)=>({...prev,amount:e.target.value}))}
-                placeholder="Enter total amount"
-                className="rounded-lg w-full px-3 py-2 border-none "
-              />
-          </td>             
-
-<td className="px-3 py-4 whitespace-nowrap">
-  <select
-    name="status"
-    value={newSalaryDetails.status}
-    onChange={(e)=>setNewSalaryDetails((prev)=>({...prev,status:e.target.value}))}
-    
-    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(newSalaryDetails.status)}`}
-  >
-    <option value="">payout type</option>
-    <option value="banck">Bank</option>
-    <option value="cash">Cash</option>
-
-  </select>
-
-</td>
-
-                <td className="px-3 py-4 whitespace-nowrap"><input
-                type="text"
-                name="description"
-                value={newSalaryDetails.description}
-                onChange={(e)=>setNewSalaryDetails((prev)=>({...prev,description:e.target.value}))}
-                placeholder="Enter description"
-                className="rounded-lg w-full px-3 py-2 border-none "
-              /></td>
-          </tr>
-        )}
-
-       
-  
-      </table>
-                    
-     
-              </div>
-              <div colSpan="2" className="px-6 py-3 text-right  font-medium text-gray-500 uppercase tracking-wider" style={{ borderTopWidth: '2px', width: '100%', display: 'block' }}>
-          Total Salaries: ${  (selectedEmployee.salary.reduce((acc, employee) => acc +  parseInt(employee.amount,10), 0)).toLocaleString()}
-        </div>
-                      {!showAddRowSalary? (
-                        <>
-                          <button
-                          onClick={handleAddRowSalary}
-                          className="button-white  mt-5 mr-5"
-                        >
-                          Add Salary
-                        </button>
-                         {selectedEmployee.salary !=orginal.salary && (
-                         <>
-                         <button
-                           onClick={()=>  updateSalary(selectedEmployee.salary,orginal.salary)}
-                     
-                           className="button-blue  mt-5"
-                         >
-                          submit Changes
-                         </button>
-                         <button
-                           onClick={()=> setSelectedEmployee(orginal)}
-                     
-                           className="bg-gray-500 text-black-500  font-bold mt-5 ml-5 border rounded-lg px-5 py-2"
-                         >
-                          Cancel Changes
-                         </button>
-                         </> )}  
-                        </>
-                      
-                      ):(
-                        <>
-                         <button
-                onClick={handleSaveSalary}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
-              >
-                Save
-              </button>
-              <button
-                onClick={handleCancelAddSalaryRow}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
-              >
-                Cancel
-              </button></>
-                      )}
-            </div>
-            <button      className="button-blue  ml-5 " onClick={generatePDF}>Generate PDF</button>
             </div>
     </div>
   )
@@ -1870,19 +1964,19 @@ const handleEyeClick = (employee) => {
         <table className="w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider"  style={{ color: '#0E2433' }}>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
                 #
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
              Coach
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
                 Salary type
               </th>
-              <th scope="col" className="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
-                Download Payout
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                Salary 
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider" style={{ color: '#0E2433' }}>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
                 Action
               </th>
             </tr>
@@ -1892,15 +1986,11 @@ const handleEyeClick = (employee) => {
               <tr key={transaction.id}>
                 <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{transaction.id}</td>
                 <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{transaction.nameandsurname}</td>
-                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>
-   {/* {isAnyTimestampToday(transaction.attendance)} */}
+
    <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{transaction.salaryType}</td>
-    </td>
-    <td className="px-6 py-4 whitespace-nowrap align-center justify-center flex">
-           <button onClick={() => handleEyeClick(transaction)}>
-           <ReceiptText  color='#737373'/>              
-              </button>
-                  </td>
+   <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{transaction.salaryType ==='monthly' ?transaction.salary :transaction.hourly}</td>
+
+
                   <td className="px-6 py-4 whitespace-nowrap ">
            <button onClick={() => handleEyeClick(transaction)}>
            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#737373" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>          
