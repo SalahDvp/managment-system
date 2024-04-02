@@ -1,5 +1,6 @@
 'use client'
 import { db } from '@/app/firebase';
+import AutosuggestComponent from '@/components/UI/Autocomplete';
 import { Timestamp, addDoc, collection, deleteDoc, doc, getDocs, increment, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
@@ -91,10 +92,10 @@ const reservedSlots = reservationsForDate.map((reservation) => {
 
   return filteredStartTimes;
 };
-const MatchDetails=({reservationDetails,setI,i,courts,setShowModal,setReservation,})=>{
+const MatchDetails=({reservationDetails,setI,i,courts,setShowModal,setReservation,trainers})=>{
 
 
-const reservation=reservationDetails?reservationDetails:{date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[]} 
+const reservation=reservationDetails?reservationDetails:{name:'',description:'',date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[]} 
 const [aa,setAA]=useState()
 
 const [availableStartTimes,setAvailableStartTimes]=useState()
@@ -135,11 +136,17 @@ const handleSubmit = async () => {
   
     // Return the end time as an ISO string
     const courtRef = doc(db, 'Courts', reservation.courtName, 'Reservations', `Court1${id}`);
-    console.log({...reservation,date:Timestamp.fromDate(new Date(reservation.date)),endTime:Timestamp.fromDate(endTime),duration:parseInt(reservation.duration, 10),startTime:Timestamp.fromDate(new Date(reservation.startTime))});
-    await setDoc(courtRef, {...reservation,date:Timestamp.fromDate(new Date(reservation.date)),endTime:Timestamp.fromDate(endTime),duration:parseInt(reservation.duration, 10),startTime:Timestamp.fromDate(new Date(reservation.startTime))});
+    await setDoc(courtRef, 
+      {...reservation,
+        name:reservation.name,
+      description:reservation.description,
+      date:Timestamp.fromDate(new Date(reservation.date)),
+      endTime:Timestamp.fromDate(endTime),duration:parseInt(reservation.duration, 10),
+      startTime:Timestamp.fromDate(new Date(reservation.startTime))});
     const paymentReceivedRef = collection(db, 'Club/GeneralInformation/PaymentReceived');
     await addDoc(paymentReceivedRef, {
- 
+      name:reservation.name,
+      description:reservation.description,
       date: new Date(),
       matchRef: `Court1${id}`,
       payment:reservation.payment,
@@ -148,7 +155,7 @@ const handleSubmit = async () => {
   await updateDoc(doc(db, 'Club/GeneralInformation'), {
     totalRevenue: increment(reservation.Price),
   });
-    setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[]})
+    setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:''})
     alert('Reservation submitted successfully!');
   setShowModal(false);
   setI(!i)
@@ -290,6 +297,10 @@ const cancelMatch = async () => {
   </select>
   </div>
   <div className="flex flex-col">
+            <strong>Select sConsumer</strong>
+<AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation}/>
+  </div>
+  <div className="flex flex-col">
             <strong>Select start time</strong>
   <select
     id="startTime"
@@ -332,6 +343,17 @@ const cancelMatch = async () => {
       />
 
   </div>
+  <div className="flex flex-col">
+              <strong>Description</strong>
+              <input
+          className="rounded-lg"
+          type="text"
+          name="description"
+          value={reservation.description}
+          onChange={handleInputChange}
+        />
+  
+    </div>
   <button onClick={handleSubmit} className="mb-3 px-4 py-2 bg-blue-500 text-white rounded-md">Submit Reservation</button>
 {reservation.date.seconds &&(  <button onClick={()=>  setShowRefundModal(true)} className="mb-3 px-4 py-2 bg-red-500 text-white rounded-md">Cancel a Match</button>)}
 <Modal
@@ -397,7 +419,7 @@ const ManageMatchesPage = () => {
   const [searchHour, setSearchHour] = useState('');
   const [showModal, setShowModal] = useState(false);
 const [originalList,setOriginalList]=useState()
-const [reservation,setReservation]=useState({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[]}) 
+const [reservation,setReservation]=useState({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:''}) 
 const [courts, setCourts] = useState([]);
 const [i,setI]=useState(false)
 useEffect(() => {
@@ -436,7 +458,15 @@ useEffect(() => {
 
   fetchCourtsAndReservations();
 }, [i]);
-
+const [trainers,setTrainers]=useState([])
+useEffect(()=>{
+  const geetTrainers=async ()=>{
+    const trainersRef= await getDocs(collection(db,'Trainees'))
+    const trainersData= trainersRef.docs.map((doc)=>({id:doc.id,...doc.data()}))
+    setTrainers(trainersData)
+  }
+  geetTrainers()
+  },[])
 const handleSearchChange = (event) => {
   setSearchHour(event.target.value);
   filterMatches(event.target.value);
@@ -541,7 +571,7 @@ const handleSetReservation = (match) => {
         </div>
         </div>
       </div>
-      {showModal && (<MatchDetails reservationDetails={reservation} setI={setI} i={i} setShowModal={setShowModal} courts={courts} setReservation={setReservation}/>
+      {showModal && (<MatchDetails reservationDetails={reservation} setI={setI} i={i} setShowModal={setShowModal} courts={courts} setReservation={setReservation} trainers={trainers}/>
       )}
     </>
   );

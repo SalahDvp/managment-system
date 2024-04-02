@@ -11,6 +11,7 @@ import { addDoc, collection,doc, getDocs, increment,  orderBy,  query,  setDoc, 
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer,BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ReferenceLine, Label,Text } from 'recharts';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable'
+import AutosuggestComponent from '@/components/UI/Autocomplete';
 const Card = ({ title, data, subtitle, icon }) => {
   return (
     <div className="bg-white shadow-md rounded-xl p-6 w-72">
@@ -33,14 +34,15 @@ const generateRandomUid = (length) => {
   return uid.slice(0, length); // Get the first 'length' characters
 };
 
-const MatchDetails=({setShowModal})=>{
+const MatchDetails=({setShowModal,trainers})=>{
 
   const [bookingType, setBookingType] = useState('match');
   const [reservation,setReservation]=useState( {date: new Date(),
   [`${bookingType}Ref`]:'',
   payment:'Card',
   price: 0,
-  type:''})
+  type:'',
+name:'',description:''})
 
   
  
@@ -67,7 +69,8 @@ const MatchDetails=({setShowModal})=>{
         [`${bookingType}Ref`]:id,
         payment:reservation.payment,
         price:parseInt( reservation.price,10),
-
+        name:reservation.name,
+        description:reservation.description,
         typedis:reservation.type
       });
       console.log(aa);
@@ -134,7 +137,11 @@ const MatchDetails=({setShowModal})=>{
     
               </div>
           
-        
+              <div className="flex flex-col">
+                <strong>Consumer</strong>   
+                <AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation}
+         />
+      </div>
   <div className="flex flex-col">
               <strong>Payment</strong>
               <select
@@ -217,6 +224,17 @@ const MatchDetails=({setShowModal})=>{
     </div>
         </>
       )}
+          <div className="flex flex-col">
+              <strong>Description</strong>
+              <input
+          className="rounded-lg"
+          type="text"
+          name="description"
+          value={reservation.description}
+          onChange={handleInputChange}
+        />
+  
+    </div>
                 <button type="submit" onClick={handleSubmit} className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-4">
         Submit
       </button>
@@ -265,6 +283,7 @@ const ManageSalaryPage = () => {
 
   const [startDate, setStartDate] = useState(thirtyDaysAgo);
   const [endDate, setEndDate] = useState(today);
+  const [trainers,setTrainers]=useState([])
   const [status, setStatus] = useState({
     overallBalance: 0,
     performanceChange: 0,
@@ -367,7 +386,14 @@ setTransactions(combinedData)
 
   getTransactions();
 }, [startDate,endDate]);
-
+useEffect(()=>{
+const geetTrainers=async ()=>{
+  const trainersRef= await getDocs(collection(db,'Trainees'))
+  const trainersData= trainersRef.docs.map((doc)=>({id:doc.id,...doc.data()}))
+  setTrainers(trainersData)
+}
+geetTrainers()
+},[])
 
   const handleEyeClick = (employee) => {
     setSelectedEmployee(employee);
@@ -387,22 +413,7 @@ return formattedDate
   const addNewMatch = () => {
     setShowModal(true);
   };
-  const invoiceData = {
-    invoiceNumber: '12345',
-    date: 'April 1, 2024',
-    customerName: 'John Doe',
-    address: '123 Main St, City',
-    items: [
-        { description: 'Product 1', quantity: 2, unitPrice: 50, totalPrice: 100 },
-        // Add more items as needed
-    ],
-    subtotal: 100,
-    taxRate: 10,
-    taxAmount: 10,
-    total: 110,
-    paymentMethod: 'Cash',
-    paymentDue: 'April 30, 2024',
-};
+
 const generatePDF = (transaction) => {
   console.log(transaction);
   const doc = new jsPDF();
@@ -574,7 +585,7 @@ doc.text('Contact us at support@example.com for any inquiries.', footerTextX1, f
           </tbody>
         </table>
       </div>
-      {showModal && (<MatchDetails setShowModal={setShowModal} />     )}
+      {showModal && (<MatchDetails setShowModal={setShowModal} trainers={trainers}/>     )}
 
     </div>
     </div>

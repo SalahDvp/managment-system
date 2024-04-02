@@ -468,10 +468,11 @@ let u=updatedCommissionss;
         // Check for new items
         updatedCommissionss.forEach(async updatedItem => {
             if (!originalIds.has(updatedItem.id)) {
+              console.log(updatedItem);
                 const commissionRef=await addDoc(collection(db,'Club','GeneralInformation','Payouts'),{
                   amount:parseInt(updatedItem.amount,10),
                   date:updatedItem.date,
-                  payment:updatedItem.payment,
+                  payment:updatedItem.status,
                   traineruid:selectedCoach.id,
                   payoutType:'other',
                   type:updatedItem.description
@@ -480,7 +481,7 @@ let u=updatedCommissionss;
                   Ref:commissionRef,
                   amount:parseInt(updatedItem.amount,10),
                   date:updatedItem.date,
-                  payment:updatedItem.payment,
+                  payment:updatedItem.status,
       
                  description:updatedItem.description,
                  type:updatedItem.description,
@@ -1015,9 +1016,9 @@ onChange={(e) => {
 <td className="px-6 py-4 max-w-20 overflow-wrap break-word overflow-hidden ">{salary.description}</td>
 <td className="px-6 py-4 whitespace-nowrap align-center justify-center">
 <div className="flex  justify-center">
-{!salary.removed ?(               <button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} onClick={()=>handleRemove(salary,selectedEmployee.salary,`salary`)}>Remove</button>
+{!salary.removed ?(               <button className="px-3 py-1 button-red   mr-2"  onClick={()=>handleRemove(salary,selectedEmployee.salary,`salary`)}>Remove</button>
 ):
-         (<button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} disabled={true}>Removed</button>)   }
+         (<button className="px-3 py-1  button-red-removed rounded mr-2" disabled={true}>Removed</button>)   }
      
             </div>
 
@@ -1189,8 +1190,8 @@ onChange={(e) => {
 
          <td className="px-6 py-4 whitespace-nowrap text-center ">  
          <select
-    name="payment"
-    value={other.payment}
+    name="status"
+    value={other.status}
     onChange={(e) => {
       const { name, value } = e.target;
       setSelectedEmployee((prev) => ({
@@ -1201,7 +1202,7 @@ onChange={(e) => {
       }));
     }}
     
-    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(other.payment)}`}
+    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(other.status)}`}
   >
     <option value="">payout type</option>
     <option value="bank">Bank</option>
@@ -1213,8 +1214,8 @@ onChange={(e) => {
 <td className="px-6 py-4 whitespace-nowrap align-center justify-center">
 <div className="flex  justify-center">
                   
-         {!other.removed ?(    <button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} onClick={()=>handleRemove(other,selectedEmployee.others,`others`)}>Remove</button>):
-         (<button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} disabled={true}>Removed</button>)   }
+         {!other.removed ?(    <button className="px-3 py-1 button-red rounded mr-2"  onClick={()=>handleRemove(other,selectedEmployee.others,`others`)}>Remove</button>):
+         (<button className="px-3 py-1  button-red-removed mr-2"  disabled={true}>Removed</button>)   }
      
             </div>
 
@@ -1245,7 +1246,7 @@ onChange={(e) => {
               /></td>
 <td className="px-3 py-4 whitespace-nowrap">
   <select
-    name="payment"
+    name="status"
     value={newOtherDetails.status}
     onChange={(e)=>setNewOtherDetails((prev)=>({...prev,status:e.target.value}))}
     
@@ -1395,8 +1396,8 @@ onChange={(e) => {
 <td className="px-6 py-4 whitespace-nowrap align-center justify-center">
 <div className="flex  justify-center">
           
-         {!commission.removed ?(<button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} onClick={()=>handleRemove(commission,selectedEmployee.commissions,`commissions`)}>Remove</button>):
-         (<button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}} disabled={true}>Removed</button>)   }
+         {!commission.removed ?(<button className="px-3 py-1 button-red rounded mr-2"  onClick={()=>handleRemove(commission,selectedEmployee.commissions,`commissions`)}>Remove</button>):
+         (<button className="px-3 py-1 button-red-removed rounded mr-2"  disabled={true}>Removed</button>)   }
      
             </div>
 

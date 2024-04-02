@@ -1,0 +1,35 @@
+.autosuggest-container {
+    position: relative;
+  }
+  
+  /* Style for the input field */
+  .autosuggest-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  /* Style for the suggestions container */
+  .autosuggest-suggestions-container {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+  }
+  
+  /* Style for individual suggestion items */
+  .autosuggest-suggestion {
+    padding: 8px;
+    cursor: pointer;
+  }
+  
+  /* Style for the selected suggestion item */
+  .autosuggest-suggestion--selected {
+    background-color: #f0f0f0;
+  }
