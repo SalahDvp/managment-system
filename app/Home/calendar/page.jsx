@@ -14,7 +14,7 @@ import { db } from '@/app/firebase';
       const today = new Date().getDay();
       return targetDay >= today ? targetDay - today : 7 - (today - targetDay);
   };
-  const fetchFirestoreData = async () => {
+ export  const fetchFirestoreData = async () => {
 
     const classesQuery = query(collection(db, 'Classes'));
     const classesSnapshot = await getDocs(classesQuery);
@@ -154,7 +154,38 @@ async function updateMatchEvent(event, updatedEvent,oldEvent) {
 const DemoApp = () => {
   const [events, setEvents] = useState([]);
   const [selectedEventType, setSelectedEventType] = useState('all'); // Default value for select element
-
+  const [noteList, setNoteList] = useState([
+    {
+      id: 1,
+      content: "Contact HubbTennis Academy for partnership opportunities.",
+      category: "Partnership",
+      date: "2024-04-03"
+    },
+    {
+      id: 2,
+      content: "Research top tennis academies in Europe for coaching techniques.",
+      category: "Research",
+      date: "2024-04-03"
+    },
+    {
+      id: 3,
+      content: "Attend a workshop on sports psychology for tennis players.",
+      category: "Training",
+      date: "2024-04-03"
+    },
+    {
+      id: 4,
+      content: "Update website with new training programs for juniors.",
+      category: "Website",
+      date: "2024-04-03"
+    },
+    {
+      id: 5,
+      content: "Schedule a meeting with players to discuss tournament strategy.",
+      category: "Strategy",
+      date: "2024-04-03"
+    }
+  ])
   useEffect(() => {
       const fetchData = async () => {
           try {
@@ -209,7 +240,7 @@ const DemoApp = () => {
   };
 
   const [notes, setNotes] = useState('');
-  const [noteList, setNoteList] = useState([]);
+
   const handleNoteChange = (event) => {
     setNotes(event.target.value);
   };
@@ -225,8 +256,35 @@ const DemoApp = () => {
   const filteredEvents = selectedEventType === 'all' ? events : events.filter(event => event.type === selectedEventType);
 
   return (
-    <div className='flex bg-white pt-10 pb-10'>
-      <div style={{ width: '80%', margin: '50px',marginTop:'0px'}}>
+    <div className="container mx-auto  h-full mt-10 ">
+      <div className='flex items-center justify-between'>
+      <h1 className="text-3xl font-bold mb-5">Schedule</h1>
+        <div>
+        <h2 style={{ marginBottom: '10px' }}>Event Type</h2>
+        <select
+         value={selectedEventType} onChange={handleEventTypeChange}
+          style={{
+            padding: '8px',
+            fontSize: '16px',
+            borderRadius: '5px',
+            border: '1px solid #ccc',
+            marginBottom: '20px',
+            width:"200px"
+          }}
+        >
+         
+          <option value="all">All</option>
+          <option value="class">Class</option>
+          <option value="tournament">Tournament</option>
+          <option value="leagues">Leagues</option>
+          <option value="match">Booking</option>
+          
+        </select>
+        </div>
+      </div>
+        
+        <div className='bg-white pt-4 border rounded-lg flex-row flex'>
+      <div style={{ width: '70%', margin: '50px',marginTop:'0px'}}>
         <FullCalendar
                 plugins={[timeGridPlugin, interactionPlugin, listPlugin]} // Include listPlugin for list view
                 initialView="timeGridWeek"
@@ -273,43 +331,24 @@ const DemoApp = () => {
         />
       </div>
       <div style={{ flex: '1', padding: '0 20px', display: 'flex', flexDirection: 'column' }}>
-        <h2 style={{ marginBottom: '10px' }}>Event Type</h2>
-        <select
-         value={selectedEventType} onChange={handleEventTypeChange}
-          style={{
-            padding: '8px',
-            fontSize: '16px',
-            borderRadius: '5px',
-            border: '1px solid #ccc',
-            marginBottom: '20px'
-          }}
-        >
-         
-          <option value="all">All</option>
-          <option value="class">Class</option>
-          <option value="tournament">Tournament</option>
-          <option value="leagues">Leagues</option>
-          <option value="match">Booking</option>
-          
-        </select>
-        <div style={{ marginBottom: '20px' }}>
-          <h2>Notes</h2>
-          <textarea
+
+
+          <h1 className='my-5 text-xl font-bold mb-5'>Notes</h1>
+        <div>
+          <ul style={{ listStyleType: 'none', padding: '0' }}>
+            {noteList.map((note, index) => (
+              <li key={index} style={{ marginBottom: '5px', borderBottom: '1px solid #ccc', paddingBottom: '5px' }}>{note.content}</li>
+            ))}
+          </ul>
+        </div>
+        <textarea
             value={notes}
             onChange={handleNoteChange}
             style={{ width: '100%', minHeight: '100px', padding: '8px', fontSize: '16px', marginBottom: '10px' }}
             placeholder="Write your notes here..."
           ></textarea>
-         <button onClick={handleSaveNotes} style={{ backgroundColor: 'blue', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Save Notes</button>
-
-        </div>
-        <div>
-          <ul style={{ listStyleType: 'none', padding: '0' }}>
-            {noteList.map((note, index) => (
-              <li key={index} style={{ marginBottom: '5px', borderBottom: '1px solid #ccc', paddingBottom: '5px' }}>{note}</li>
-            ))}
-          </ul>
-        </div>
+         <button onClick={handleSaveNotes} className='button-white'>Save Notes</button>
+      </div>
       </div>
     </div>
   );

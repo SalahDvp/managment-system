@@ -7,6 +7,7 @@ import 'jspdf-autotable'
 import * as XLSX from 'xlsx';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '@/app/firebase';
 import { Timestamp, addDoc, collection,doc, getDoc, getDocs, increment,  orderBy,  query,  setDoc, updateDoc, where, } from 'firebase/firestore';
@@ -488,7 +489,7 @@ let u=updatedCommissionss;
                  status:'paid'
                 })
                 await updateDoc(doc(db,'Club','GeneralInformation'),{
-                  totalExpenses:increment(parseInt(updatedItem.amout,10))
+                  totalExpenses:increment(parseInt(updatedItem.amount,10))
                 })
                 setSelectedEmployee((prev) => ({
                   ...prev,

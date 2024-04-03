@@ -8,8 +8,9 @@ import {
   updateDoc, doc, getDoc, query, where, deleteDoc, setDoc, Timestamp, orderBy, onSnapshot, writeBatch, increment,
   
 } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid';
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { Clock, Clock12, Clock4, LogIn } from 'lucide-react';
+import { Clock, Clock12, Clock4, Download, LogIn, Repeat2 } from 'lucide-react';
 import Image from 'next/image';
 import DateTimePicker from 'react-datetime-picker';
 import 'react-datetime-picker/dist/DateTimePicker.css';
@@ -18,6 +19,8 @@ import 'react-clock/dist/Clock.css';
 import Modal from 'react-modal';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { X } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 export const formatCreatedAt = (timestamp) => {
   const date = new Date(timestamp.toDate()); // Convert Firestore timestamp to JavaScript Date object
@@ -26,6 +29,18 @@ export const formatCreatedAt = (timestamp) => {
   const hours = date.getHours().toString().padStart(2, '0'); // Ensure two-digit format
   const minutes = date.getMinutes().toString().padStart(2, '0'); // Ensure two-digit format
   return `${day} ${hours}:${minutes}`;
+};
+const getStatusColorClass = (status) => {
+  switch (status) {
+    case "active":
+      return "bg-green-200 text-green-800";
+    case "suspended":
+      return "bg-orange-200 text-orange-800";
+  
+    default:
+      return "bg-gray-200 text-gray-800";
+  }
+  return ''; // Default class or no class if paymentStatus is neither 'suspended' nor 'active'
 };
 const ChatScreen = ({classId,classData}) => {
  
@@ -201,196 +216,375 @@ const isSameDay = (date1, date2) => {
     date1.getDate() === date2.getDate()
   );
 };
+const generateRandomUid = (length) => {
+  const uid = uuidv4().replace(/-/g, ''); // Remove hyphens
+  return uid.slice(0, length); // Get the first 'length' characters
+};
 const ParticipantsHorizontalScroll = ({ participants,trainees,setClassDetails,classDetails }) => {
   
   const [showModal, setShowModal] = useState(false);
-  const [selectedPlayers, setSelectedPlayers] = useState([]);
-  const [fees, setFees] = useState(trainees.map(()=>{return "0"}));
-  const [months, setMonths] = useState(trainees.map(()=>{return "1"}));
-  const [prices, setPrices] = useState(trainees.map(() =>classDetails.classTime[0].price))
-  const nonParticipants = trainees.filter((player) => !participants.some((participant) => participant.uid === player.uid));
+  const [selectedPlayers, setSelectedPlayers] = useState(participants);
+  const [newPlayerDetails,setNewPlayerDetails]=useState({ 
+  status:'active',
+    image:'',
+    name:'',
+  level:'',
+  Category:0,
+  lessonsLeft:0,
+  Price: classDetails.classTime[0].price,
+  Duration:0,
+  date:new Date(),
+  paymentStatus:'',
+  paymentType:'',
+  uid:generateRandomUid(20)})
 
-  const togglePlayerSelection = (player) => {
-    const isSelected = selectedPlayers.some((p) => p.uid === player.uid);
-    if (isSelected) {
-      setSelectedPlayers(selectedPlayers.filter((p) => p.uid !== player.uid));
-    } else {
+  const nonParticipants = trainees.filter((player) => {
 
-      setSelectedPlayers([...selectedPlayers, {image:player.image,level:"Beginner",name:player.nameandsurname,uid:player.uid}]);
-    }
+    const notInParticipants = !participants.some((participant) => participant.nameandsurname === player.nameandsurname);
+    const notInSelectedPlayers = !selectedPlayers.some((selectedPlayer) => selectedPlayer.name === player.nameandsurname || selectedPlayer.nameandsurname === player.nameandsurname);
+    return notInParticipants && notInSelectedPlayers;
+  });
+
+
+
+
+
+  const handleSaveOther = () => {
+    setSelectedPlayers([...selectedPlayers,newPlayerDetails]);
+    setShowModal(false);
+    setNewPlayerDetails({
+      name:'',
+      level:'',
+      Category:0,
+      lessonsLeft:0,
+      Price: classDetails.classTime[0].price*1*1,
+      Duration:0,
+      date:new Date(),
+      paymentStatus:'',
+      paymentType:'',
+      uid:generateRandomUid(20),
+      status:'active',
+    });
   };
-  // Function to handle adding a player to the participants list
-  const handleAddPlayer = () => {
+  const handleCancelAddOtherRow = () => {
+    setShowModal(false);
+    setNewPlayerDetails({
+      name:'',
+      level:'',
+      Category:0,
+      lessonsLeft:0,
+      Price: classDetails.classTime[0].price*1*1,
+      Duration:0,
+      date:new Date(),
+      paymentStatus:'',
+      paymentType:'',
+      uid:generateRandomUid(20),
+      status:'active',
+    });
+  };
+  const handleInputChange=(e)=>{
+    const { name, value } = e.target;
+    setNewPlayerDetails((prev) => ({
+      ...prev,
+      [name]:value
+    }));
+  }
+  useEffect(()=>{
+    setNewPlayerDetails((prev) => ({
+      ...prev,
+      Price:classDetails.classTime[newPlayerDetails.Category].price*newPlayerDetails.Duration,
+      lessonsLeft:(Number(newPlayerDetails.Category) + 1)*Number(newPlayerDetails.Duration)*4
+    }));
+  },[newPlayerDetails.Duration,newPlayerDetails.Category])
+  
+  
+  
+  
+  async function updateOthers() {
     setClassDetails((prevClassDetails) => {
-      const updatedParticipants = selectedPlayers.map(player => {
-        const playerIndex = trainees.findIndex(trainee => trainee.uid === player.uid);
-      
-        // Check if the player exists in the trainees array
-        if (playerIndex !== -1) {
-          return {
-            ...player,
-            Category: fees[playerIndex],
-            lessonsLeft: (parseInt(fees[playerIndex], 10) + 1) * 4 * parseInt(months[playerIndex], 10),
-            Price: parseInt(prices[playerIndex], 10)
-          };
-        } else {
-          // Handle case where player is not found in trainees array
-          console.error('Player not found in trainees array:', player);
-          return null; // Or handle the error as needed
-        }
-      }).filter(Boolean); // Remove any null values from the updatedParticipants array
-
       return {
         ...prevClassDetails,
-        participants: [...prevClassDetails.participants, ...updatedParticipants],
+        participants: selectedPlayers,
       };
     });
+    await updateDoc(doc(db, 'Classes', classDetails.id), {
+      participants:selectedPlayers,
+      participantsuid: selectedPlayers.map((p) => p.uid)
+    });
     setShowModal(false)
-    setSelectedPlayers([])
-  };
-  const handleTimesPerWeekChange = (index, value ) => {
-    setFees((prevSelectedPlayers) => {
-      const updatedPlayers = [...prevSelectedPlayers];
-      updatedPlayers[index] = value;
-      return updatedPlayers;
-    });
-    setPrices((prevSelectedPlayers) => {
-      const updatedPlayers = [...prevSelectedPlayers];
-      updatedPlayers[index] =classDetails.classTime[value].price * parseInt(months[index], 10);
-      return updatedPlayers;
-    });
+    
 
-  };
-  const handleMonthChange = (index, value ) => {
-    setMonths((prevSelectedPlayers) => {
-      const updatedPlayers = [...prevSelectedPlayers];
-      updatedPlayers[index] = value;
-      return updatedPlayers;
-    });
-    setPrices((prevSelectedPlayers) => {
-      const updatedPlayers = [...prevSelectedPlayers];
-      updatedPlayers[index] =classDetails.classTime[fees[index]].price * value;
-      return updatedPlayers;
-    });
-  };
-  const handlePriceChange = (index,e) => {
-    setPrices((prevSelectedPlayers) => {
-      const updatedPlayers = [...prevSelectedPlayers];
-      updatedPlayers[index] =e.target.value;
-      return updatedPlayers;
-    });
-  };
+  
 
-
-  return (    <div className="flex justify-center overflow-x-scroll space-x-4 py-4 w-full relative">
-
-<button
-  className="absolute top-0 right-0 bg-blue-500 text-white px-2 py-2 rounded"
+  }
+  return (          
+    
+    <div className='relative'>
+{!showModal && (<button
+className="absolute top-0 right-0 button-white px-2 py-2 rounded" style={{ top: '-50px', right: '-10px' }}
   onClick={() => setShowModal(true)}
 >
   Add Player
-</button>
-{showModal && (
-  <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
-    <div className="bg-white p-4 rounded-lg max-h-[80vh] overflow-y-auto">
-      <h2 className="text-lg font-semibold  mb-4">Select Players</h2>
-      {/* List of players */}
-      <table>
-        <tbody>
-          {nonParticipants.map((player, index) => (
-            <tr key={index} onClick={() => togglePlayerSelection(player)} className="hover:bg-blue-100 cursor-pointer">
-              <td>
-                <div className="flex items-center">
-                  <div className="mr-3">
-                    {selectedPlayers.some((p) => p.uid === player.uid) && (
-                      <span className="text-blue-500">&#10003;</span> // Checkmark if player is selected
-                    )}
-                  </div>
-                  <div className="relative w-20 h-20 rounded-full overflow-hidden">
-                    <Image
-                      src={player.image}
-                      layout="fill"
-                      objectFit="cover"
-                      className="rounded-full"
-                    />
-                  </div>
-                  <div className="ml-3">
-                  <strong  className='ml-2 mt-4 mb-6 text-gray-600 font-semibold'>{player.nameandsurname}</strong>
-                    <p>{player.level}</p>
-                    {/* Times per week */}
-                    <div className='flex flex-row'>
-                      <div className="flex flex-col">
-                        <strong className='text-gray-600 font-semibold ml-2 mt-4 mb-6'>How many times a week?</strong>
-                        <select
-                          value={player.timesPerWeek}
-                          onChange={(e) => handleTimesPerWeekChange(index, e.target.value)}
-                          className="rounded-lg mt-1 px-2 py-1 border border-gray-300 focus:outline-none focus:border-blue-500"
-                        >
-                          {classDetails.classTime.map((cls, index) => (
-                            <option value={index}>{index + 1} time/week</option>
-                          ))}
-                        </select>
-                      </div>
-                      {/* Duration */}
-                      <div className="flex flex-col">
-                        <strong  className='text-gray-600 font-semibold ml-2 mt-4 mb-6'>Duration</strong>
-                        <select
-                          value={player.timesPerWeek}
-                          onChange={(e) => handleMonthChange(index, e.target.value)}
-                          className="rounded-lg mt-1 px-2 py-1 border border-gray-300 focus:outline-none focus:border-blue-500"
-                        >
-                          <option value="1">1 Month</option>
-                          <option value="2">2 Months</option>
-                          <option value="3">3 Months</option>
-                          {/* Add more options as needed */}
-                        </select>
-                      </div>
-                      {/* Total Price */}
-                      <div className="flex flex-col">
-                        <strong  className='text-gray-600 font-semibold ml-2 mt-4 mb-6'>Total Price</strong>
-                        <input
-                          className="rounded-lg ml-5"
-                          type="text"
-                          value={prices[index]}
-                          onChange={(e)=>handlePriceChange(index,e)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {/* Button to add the selected player */}
-      <button className="bg-blue-500 text-white px-2 py-1 rounded" onClick={handleAddPlayer}>
-        Add Players
-      </button>
-      {/* Close button */}
-      <button className="ml-2 text-gray-600" onClick={() =>{ setPrices(trainees.map(()=>classDetails.classTime[0].price)); setFees(trainees.map(()=>{return "0"}));
-  setMonths(trainees.map(()=>{return "1"})); setShowModal(false)}}>
-        Close
-      </button>
-    </div>
-  </div>
-)}
-      {participants.map((participant,index) => (
-        <div key={index} className="flex flex-col items-center">
-          <div className="relative w-20 h-20 rounded-full overflow-hidden">
-            <Image
-              src={participant.image}
-              alt={participant.name}
-              layout="fill"
-              objectFit="cover"
-              className="rounded-full"
-            />
-          </div>
-          <p>{participant.name}</p>
-          <p>{participant.level}</p>
-        </div>
-      ))}
+</button>)
+}
 
+          <table className="w-full divide-y divide-gray-200 ">
+          <thead className="bg-gray-50">
+            <tr>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                name
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+              level
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                times per week
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                susbcription plan
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+               lessons left
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+               status
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+               type
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+               Amount
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+               Joining date
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+               Status
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+          {selectedPlayers.map((participant,index) => (
+              <tr key={participant.id}>
+                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.level}</td>
+                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.Category}</td>
+                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.Duration}</td>
+                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.lessonsLeft}</td>
+                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.paymentStatus}</td>
+                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.paymentType}</td>
+                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.Price}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">{participant.date.toDate ? participant.date.toDate().toLocaleDateString(): participant.date.toLocaleDateString()}</td>
+              
+                <td className="px-6 py-4 whitespace-nowrap text-center ">  
+         <select
+    name="status"
+    value={participant.status}
+    onChange={(e) => {
+      const { name, value } = e.target;
+      setSelectedPlayers((prev) =>
+        prev.map((part, idx) =>
+          idx === index ? { ...part, [name]: value } : part
+        )
+      );
+    }}
+    id='cssassas'
+    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(participant.status)}`}
+  >
+    <option value="">Status</option>
+    <option value="active">Active</option>
+    <option value="suspended">Suspended</option>
+    <option value="paused">Paused</option>
+
+  </select></td>
+              </tr>
+            ))}
+          </tbody>
+          {showModal && (
+    <tr className="">
+      < td className="px-3 py-4 whitespace-nowrap">
+   <select
+    className="px-3 py-2 border rounded-md w-full sm:w-auto"
+    style={{ width: '70px' }} 
+    value={newPlayerDetails.name}
+    onChange={(e) => { 
+      const selectedParticipant = JSON.parse(e.target.value);
+      setNewPlayerDetails((prev) => ({
+        ...prev,
+        name: selectedParticipant.nameandsurname,
+        uid: selectedParticipant.uid,
+        image: selectedParticipant.image
+      }));
+    }}
+
+
+  >
+          <option value="">Select player</option>
+{nonParticipants.map((participant)=>(
+    
+<option value={JSON.stringify(participant)}>{participant.nameandsurname}</option>
+
+))}
+  
+  </select>
+  </ td>
+
+  < td className="px-3 py-4 whitespace-nowrap w-30"> 
+     <select
+    className="px-3 py-2 border rounded-md w-full sm:w-auto"
+    style={{ width: '70px' }} 
+
+    name='level'
+    value={newPlayerDetails.level}
+  onChange={handleInputChange}
+  >
+    <option value="" disabled hidden>Select Level</option>
+    <option value="Begginer">Begginer</option>
+    <option value="Advanced">Advanced</option>
+    <option value="Pro">Pro</option>
+    {/* Add more options as needed */}
+  </select>
+  </ td>
+
+  < td className="px-3 py-4 whitespace-nowrap w-30"> 
+  <select
+  className="px-3 py-2 border rounded-md w-full sm:w-auto"
+  style={{ width: '70px' }} 
+  name='Category'
+  value={newPlayerDetails.Category}
+  onChange={handleInputChange}
+>
+  <option value="" disabled hidden>Select times</option>
+  {classDetails.classTime.map((cls, index) => (
+    <option key={index} value={Number(index)}>{index + 1} time/week</option>
+  ))}
+</select>
+
+
+  </ td>
+
+  < td className="px-3 py-4 whitespace-nowrap">  <select
+    className="px-3 py-2 border rounded-md w-full sm:w-auto"
+    style={{ width: '70px' }} 
+
+    name='Duration'
+    value={newPlayerDetails.Duration}
+  onChange={handleInputChange}
+  itemType='number'
+  >
+    <option value="" disabled hidden>Select Subscription Plan</option>
+    <option value={1}>1 Month</option>
+    <option value={2}>2 Months</option>
+    <option value={3}>3 Months</option>
+    {/* Add more options as needed */}
+  </select></ td>
+
+  < td className="px-3 py-4 whitespace-nowrap"> 
+   <input
+    type="number"
+    placeholder="Weeks left"
+    className="px-3 py-2 border rounded-md w-full sm:w-auto"
+    style={{ width: '70px' }} 
+    readOnly
+    value={newPlayerDetails.lessonsLeft}
+  /></ td>
+
+  < td className="px-3 py-4 whitespace-nowrap"> 
+   <select
+  className="px-3 py-2 border rounded-md w-full sm:w-auto"
+  style={{ width: '70px' }} 
+ 
+  name='paymentStatus'
+  value={newPlayerDetails.paymentStatus}
+onChange={handleInputChange}
+
+  >
+
+    <option value="" disabled hidden>Select Payment Status</option>
+    <option value="paid">Paid</option>
+    <option value="not paid">Not Paid</option>
+    {/* Add more options as needed */}
+  </select></ td>
+
+  < td className="px-3 py-4 whitespace-nowrap">
+      <select
+  className="px-3 py-2 border rounded-md w-full sm:w-auto"
+  style={{ width: '70px' }} 
+
+  name='paymentType'
+  value={newPlayerDetails.paymentType}
+onChange={handleInputChange}
+
+    disabled={newPlayerDetails.paymentStatus!='paid'}
+  >
+    <option value="" disabled hidden>Select Payemnt Type</option>
+    <option value="bank">Bank</option>
+    <option value="cash">Cash</option>
+    {/* Add more options as needed */}
+  </select></ td>
+
+  < td className="px-3 py-4 whitespace-nowrap">  <input
+    type="number"
+    placeholder="Amount"
+    className="px-3 py-2 border rounded-md w-full sm:w-auto"
+    style={{ width: '80px' }} 
+   
+    name='Price'
+    value={newPlayerDetails.Price}
+  onChange={handleInputChange}
+  /></ td>
+
+<td className="px-3 py-4 whitespace-nowrap">
+        <DatePicker
+        id="date"
+        selected={newPlayerDetails.date}
+        onChange={(date) => setNewPlayerDetails((prev) => ({ ...prev, date: date }))} // Update the 'date' field in newPlayerDetails
+    
+        dateFormat="dd-MM-yyyy" // Specify the date format
+        className="rounded-lg w-full px-3 py-2 border-none"
+        
+        placeholderText="Date"
+      />
+        </td>
+        
+</tr>
+)}        </table>   
+   {!showModal? (
+  <>
+   {participants !=selectedPlayers && (
+   <>
+   <button
+  onClick={updateOthers}
+     className="button-blue  mt-5"
+   >
+    submit Changes
+   </button>
+   <button
+  
+
+     className="bg-gray-500 text-black-500  font-bold mt-5 ml-5 border rounded-lg px-5 py-2"
+   >
+    Cancel Changes
+   </button>
+   </> )}  
+  </>
+
+):(
+  <div className='flex flex-row'>
+   <button
+onClick={handleSaveOther}
+className="button-blue mr-2"
+>
+Save
+</button>
+<button
+onClick={handleCancelAddOtherRow}
+className="button-red"
+>
+Cancel
+</button></div>
+)}
+     
     </div>
   );
 };
@@ -909,7 +1103,7 @@ const Item =  ({ item, onNavigate,i,setI,trainers,trainees}) => {
     </svg>
   </button>
 
-  <div className="w-3/6 h-full bg-white border rounded-t flex flex-col justify-start items-start">
+  <div className="w-8/12 h-full bg-white border rounded-t flex flex-col justify-start items-start">
 
     <div className='flex'>
     
@@ -957,7 +1151,7 @@ const Item =  ({ item, onNavigate,i,setI,trainers,trainees}) => {
 
       <div className="ml-4 grid grid-cols-3 gap-4">
         
-        <div>
+      <div className="flex flex-col">
 
         
           <strong  className='text-gray-600 font-semibold'>Name</strong> 
@@ -1094,7 +1288,7 @@ const Item =  ({ item, onNavigate,i,setI,trainers,trainees}) => {
     <h3 className="text-lg font-semibold  ml-4 mb-2">Time</h3>
     <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 relative" style={{ width: 'calc(100% - 24px)' }}>
         <button className="absolute top-2 right-2 bg-blue-500 text-white px-4 py-2 rounded" onClick={handleAddTime}>Add Time</button>
-    <div className="grid grid-cols-1 gap-4">
+    <div className="grid grid-cols-2 gap-4">
 {    classDetails.classTime.map((date, index) => (
     <div key={index} className=''>
       <strong className='text-gray-600 font-semibold'>Date {index + 1}</strong> <br />
@@ -1193,12 +1387,12 @@ const Item =  ({ item, onNavigate,i,setI,trainers,trainees}) => {
    
       </div>
     </div>
-    <h3 className="text-lg font-semibold  ml-4 mb-2">Participants</h3>
+
     <div className="p-6 mt-4  border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
      
 
       <div>
- 
+      <h3 className="text-lg font-semibold  ml-4 mb-2">Participants</h3>
       <ParticipantsHorizontalScroll classDetails={classDetails} participants={classDetails.participants} trainees={trainees} setClassDetails={setClassDetails}/>
     </div>
 
@@ -1793,15 +1987,15 @@ async function createAttendanceForClass(docRef) {
       
           </div>
         </div>
+        <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 relative" style={{ width: 'calc(100% - 24px)' }}>
         <h3 className="text-lg font-semibold  ml-4 mb-2">Participants</h3>
-        <div className="p-6 mt-4  border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
+
          
     
-          <div>
+ 
      
           <ParticipantsHorizontalScroll classDetails={classDetails} participants={classDetails.participants} trainees={trainees} setClassDetails={setClassDetails}/>
-        </div>
-    
+
         </div>
       
     <div className='bg-white w-full'>
@@ -1920,7 +2114,7 @@ const Dashboard = () => {
       const trainersCollection = collection(db, 'Trainees');
       const querySnapshot = await getDocs(trainersCollection);
       const trainersData = querySnapshot.docs.map((doc) => ({
-        Ref: doc.ref,
+        Ref: doc.ref,uid:doc.id,
         ...doc.data()
       }));
       setTrainees(trainersData);
@@ -1934,7 +2128,7 @@ const Dashboard = () => {
     // You can define your navigation logic here
     console.log("Navigate to details:", item);
   };
-
+console.log(items[0]);
   return (
     <div className="container mx-auto">
       <h1 className="text-3xl font-semibold  my-4 text-center">Class List</h1>

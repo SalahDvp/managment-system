@@ -14,7 +14,129 @@ import { addDoc, collection, collectionGroup, deleteDoc, doc, getDoc, getDocs, o
 import { db } from '@/app/firebase';
 import { addDays } from '@fullcalendar/core/internal';
 import { Card } from '../payment/coaches/page';
-import { BadgeDollarSign, Gauge, Hourglass, UserPlus, UserRound } from 'lucide-react';
+import { BadgeDollarSign, Gauge, Hourglass, MoreHorizontalIcon, User2, UserPlus, UserRound } from 'lucide-react';
+import styles from '@/app/Home/firstpage/dashboard.module.css'
+import Rightbar from '@/components/UI/rightside/rightbar';
+// Mocked data for cards and chart
+const cards = [
+  { id: 1, title: "Active Users", number: 1024, change: 5 },
+  { id: 2, title: "New Registrations", number: 75, change: -2 },
+];
+
+const Image = ({ src, alt, width, height, className }) => (
+  <img src={src} alt={alt} style={{ width, height, borderRadius: '50%' }} className={className} />
+);
+const chartData = [
+  { name: "Sun", visit: 4000, click: 2400 },
+  { name: "Mon", visit: 3000, click: 1398 },
+  { name: "Tue", visit: 2000, click: 9800 },
+  { name: "Wed", visit: 2780, click: 3908 },
+  { name: "Thu", visit: 1890, click: 4800 },
+  { name: "Fri", visit: 2390, click: 3800 },
+  { name: "Sat", visit: 3490, click: 4300 },
+];
+// Chart Component
+const ChartComponent = () => (
+  <div style={{ height: '400px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
+    <h2>Weekly Recap</h2>
+    <ResponsiveContainer width="100%" height="80%">
+      <LineChart data={chartData}>
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Line type="monotone" dataKey="visit" stroke="#8884d8" />
+        <Line type="monotone" dataKey="click" stroke="#82ca9d" />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
+);
+
+// Card Component
+// const Card = ({ item }) => (
+//   <div style={{
+//     backgroundColor: '#FFFFFF',
+//     padding: '20px',
+//     borderRadius: '10px',
+//     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+//     marginBottom: '20px',
+//     marginLeft: '20px', // Added margin
+//     marginRight: '20px', // Added margin
+//   }}>
+//     <User2 size={24} />
+//     <div>
+//       <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>{item.title}</div> {/* Added margin bottom */}
+//       <div style={{ fontSize: '24px', fontWeight: '500', marginBottom: '10px' }}>{item.number}</div> {/* Added margin bottom */}
+//       <div>
+//         <span style={{ color: item.change > 0 ? 'green' : 'red' }}>
+//           {item.change}%
+//         </span>{" "}
+//         {item.change > 0 ? "Increase" : "Decrease"} from last week
+//       </div>
+//     </div>
+//   </div>
+// );
+// Transactions Component
+const Transactions = () => {
+  const containerStyle = {
+    backgroundColor: 'var(--bgSoft)',
+    padding: '20px',
+    borderRadius: '10px',
+    marginBottom: '20px',
+    marginLeft: '20px',
+    marginRight: '20px',
+    border: '1px solid #ddd',
+  };
+
+  const titleStyle = {
+    marginBottom: '20px',
+    fontWeight: '200',
+    color: 'var(--textSoft)',
+  };
+
+  const tableStyle = {
+    width: '100%',
+    borderCollapse: 'collapse',
+  };
+
+  const tdStyle = {
+    padding: '10px',
+    borderBottom: '1px solid #ddd',
+  };
+
+  // Example transaction data
+  const transactionsData = [
+    { name: 'John Doe', status: 'Pending', date: '14.02.2024', amount: '$3,200' },
+    { name: 'Jane Smith', status: 'Done', date: '15.02.2024', amount: '$2,500' },
+    // Add more transactions as needed
+  ];
+
+  return (
+    <div style={containerStyle}>
+      <h2 style={titleStyle}>Latest Transactions</h2>
+      <table style={tableStyle}>
+        <thead>
+          <tr>
+            <td style={tdStyle}>Name</td>
+            <td style={tdStyle}>Status</td>
+            <td style={tdStyle}>Date</td>
+            <td style={tdStyle}>Amount</td>
+          </tr>
+        </thead>
+        <tbody>
+          {transactionsData.map((transaction, index) => (
+            <tr key={index}>
+              <td style={tdStyle}>{transaction.name}</td>
+              <td style={tdStyle}>{transaction.status}</td>
+              <td style={tdStyle}>{transaction.date}</td>
+              <td style={tdStyle}>{transaction.amount}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
 
 const formatDate = (date) => {
@@ -56,7 +178,7 @@ const netRevenueData = calculateNetRevenue(payments, refunds);
   return (
 
 
-    <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" height={400} className='bg-white border rounded-lg py-3'>
     <LineChart width={600} height={400} data={netRevenueData}>
       
         <XAxis dataKey="date" type="category" tickFormatter={formatDate} tick={{color:"#0e2433" }} />
@@ -161,7 +283,7 @@ setSelectedAttendance(attendanceData[0])
 
   fetchTrainers();
 }, []);
-console.log(attendance);
+
 useEffect(() => {
 
   const fetchTrainers = async () => {
@@ -428,40 +550,26 @@ const handleAddRow = () => {
 
 
   return (
-    <div className="container mx-auto  h-full mt-10">
-           <h2 className="text-3xl font-bold mb-10 ml-2">Dashboard</h2>
-      <div className="h-full flex flex-col relative ">
+<div className={styles.wrapper}>
 
-      <div className="flex flex-wrap justify-center gap-10">
-  <Card title={'Played Matches'} data={status.totalMatches} subtitle={`${status.totalMatches} from last month`} icon={<Gauge size={32} color="#0E2433" className="text-gray-600" />} />
-  <Card title={'Revenues'} data={`$ ${status.revenue}`} subtitle={` `} icon={<BadgeDollarSign size={32} color="#0E2433" className="text-gray-600" />} />
-  <Card title={'Hours of court occupation'} data={`${convertMinutesToHours(status.totalReservation)} hours`} subtitle={` `} icon={<Hourglass size={32} color="#0E2433" className="text-gray-600" />} />
-  <Card title={'Total Clients'} data={status.users} subtitle={`${status.users} new ones`} icon={<UserPlus size={32} color="#0E2433" className="text-gray-600" />} />
-  {/* <Card title={'Total Coaches'} data={status.coaches} subtitle={` `} icon={<UserRound size={32} color="#0E2433" className="text-gray-600" />} /> */}
-</div>
-       
+<div className={styles.main}>
+<h2 className="text-3xl font-bold mb-10 ml-2">Dashboard</h2>
+  <div className={styles.cards}>
  
-          <div className="mb-4 ml-4 mt-3 flex flex-col justify-center bg-white border rounded-lg p-4">
-          <div className='flex-grow'>
+   <Card title={'Played Matches'} data={status.totalMatches} subtitle={`${status.totalMatches} from last month`} icon={<Gauge size={32} color="#0E2433" className="text-gray-600" />} />
+   <Card title={'Revenues'} data={`$ ${status.revenue}`} subtitle={` `} icon={<BadgeDollarSign size={32} color="#0E2433" className="text-gray-600" />} />
+   <Card title={'Hours of court occupation'} data={`${convertMinutesToHours(status.totalReservation)} hours`} subtitle={` `} icon={<Hourglass size={32} color="#0E2433" className="text-gray-600" />} />
+    <Card title={'Total Clients'} data={status.users} subtitle={`${status.users} new ones`} icon={<UserPlus size={32} color="#0E2433" className="text-gray-600" />} /> 
+   {/* <Card title={'Total Coaches'} data={status.coaches} subtitle={` `} icon={<UserRound size={32} color="#0E2433" className="text-gray-600" />} /> */}
 
-          
-<h3 className="text-xl font-bold mb-2">Revenue :</h3>
-<div className=" p-2"  >
-
-<div   >
-
-
-  <RevenueLineChart payments={payments.payments} refunds={payments.refunds}/>
+       
   </div>
-  </div>
-</div> 
 
-<h3 className="text-xl font-bold mb-2 self-start mt-2">Attendance :</h3>
-<div className="ml-4  border rounded-lg w-3/4 p-4 relative mb-4 ml-4 mt-3 self-center">
+<div className="  border rounded-lg w-full bg-white p-4 relative mb-4  mt-3 self-center">
              
-
-    <div className="flex ">
-      <DatePicker
+<h3 className="text-xl font-bold mb-2 self-start mt-2">Attendance :</h3>
+    <div className="">
+     <DatePicker
         id="date"
         selected={
           selectedAttendance && selectedAttendance.date
@@ -676,17 +784,22 @@ onChange={(e) => {
             
               
       </div>
-      {!showAddRow &&(<div className="mt-4">
-      <button className="px-4 py-2 bg-blue-500 text-white rounded mr-2" onClick={()=>handleSubmitToDatabase()}>Submit</button>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded px-4 py-2  text-white rounded mr-2" onClick={handleDownloadExcel}>Download</button>
-      </div>)}
-      {!showAddRow ? (
+      {!showAddRow && attendance.find(obj => obj.date === selectedAttendance.date) && 
+      JSON.stringify(attendance.find(obj => obj.date === selectedAttendance.date).listData) !== JSON.stringify(selectedAttendance.listData) 
+      && (
+  <div className="mt-4">
+    <button className="px-4 py-2 bg-blue-500 text-white rounded mr-2" onClick={handleSubmitToDatabase}>Submit</button>
+  </div>
+)}
+      {!showAddRow ? (<div className='absolute top-0 right-2'>
+                <button className="px-4 py-2 button-excel mr-2" onClick={handleDownloadExcel}>Import</button>
                         <button
                           onClick={handleAddRow}
-                          className="absolute top-0 right-2 button-white mt-3"
+                          className=" button-white mt-3"
                         >
                           Add Player
                         </button>
+                        </div>
                       ):(
                         <>
                          <button
@@ -704,11 +817,12 @@ onChange={(e) => {
               </>
                       )}
     </div>
-
-      </div>
-    </div>
-    </div>
-   
+    <RevenueLineChart payments={payments.payments} refunds={payments.refunds}/>
+</div>
+<div className={styles.side}>
+  <Rightbar />
+</div>
+</div>
   );
 };
 
