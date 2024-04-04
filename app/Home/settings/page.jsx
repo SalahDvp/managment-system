@@ -1,6 +1,6 @@
 "use client"
 import { db } from "@/app/firebase"
-import { arrayUnion, collection, doc, getDoc, updateDoc } from "firebase/firestore"
+import { addDoc, arrayRemove, arrayUnion, collection, doc, getDoc, updateDoc } from "firebase/firestore"
 import { useEffect, useState } from "react"
 
 const Settings=()=>{
@@ -14,27 +14,36 @@ const Settings=()=>{
         }
 getClubInfo()
     },[])
-    const handleAddCourt = () => {
+    const handleAddCourt = async () => {
         const newCourt = prompt('Enter the new court name:');
         if (newCourt) {
             setClubInformation((prev) => ({
                 ...prev,
                 courts: [...prev.courts, newCourt],
               }));
-              updateDoc(doc(db,'Club','GeneralInformation'),{
+              await updateDoc(doc(db,'Club','GeneralInformation'),{
                 courts:arrayUnion(newCourt)
               })
+              await addDoc(collection(db,'Courts'),{
+                name:newCourt
+              })
+              
         }
       };
     
-      const handleRemoveCourt = () => {
-        const updatedCourts = courts.filter((_, idx) => idx !== clubInformation.courts.length-1);
+      const handleRemoveCourt = async() => {
+        const newCourt = prompt('Enter the court name:');
+        const updatedCourts = clubInformation.courts.filter((court) => court !== newCourt);
+        console.log(updatedCourts);
         setClubInformation((prev) => ({
             ...prev,
-            court:updatedCourts,
+            courts:updatedCourts,
           }));
+          await updateDoc(doc(db,'Club','GeneralInformation'),{
+            courts:arrayRemove(newCourt)
+          })
       };
-    console.log(clubInformation);
+
 return(
     <>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet" />
@@ -126,7 +135,7 @@ return(
   <svg xmlns="http://www.w3.org/2000/svg" class="absolute top-0 right-0 m-5 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
     <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
-  <div className="mt-3 flex  space-x-1" id="courtsContainer">
+  <div class="grid grid-cols-5 gap-3 flex items-center mt-3">
   {clubInformation?.courts?.map((court, index) => (
         <div
           key={index}
@@ -140,7 +149,7 @@ return(
   <div class="mt-2 flex justify-between text-sm text-gray-400">
   <div
         className="flex h-12 w-16 cursor-pointer items-center justify-center rounded-md bg-red-200 font-bold text-red-900 hover:bg-red-300 align-center flex text-center"
-
+        onClick={handleRemoveCourt}
       >
         remove court
       </div>
