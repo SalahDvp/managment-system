@@ -34,7 +34,6 @@ const TennisAmenitiesList = ({amenities,setAmenities}) => {
   };
 const LaneSchedule = ({schedule,setSchedule}) => {
 
-    
     const handleToggleDay = (day) => {
         setSchedule((prevClubInformation) => ({
           ...prevClubInformation,
@@ -118,8 +117,19 @@ const Settings=()=>{
         const getClubInfo=async()=>{
             const clubInfoRef=doc(db,'Club','GeneralInformation')
             const clubinfoData=await getDoc(clubInfoRef)
-          setClubInformation(clubinfoData.data())
-          setClubInformationOriginal(clubinfoData.data())
+            const orderedDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+            // Assuming clubinfoData is the Firestore document containing the schedule data
+            const scheduleData = clubinfoData.data().schedule;
+
+// Custom sorting function based on the orderedDays array
+const sortedSchedule = Object.fromEntries(
+    Object.entries(scheduleData).sort((a, b) => orderedDays.indexOf(a[0]) - orderedDays.indexOf(b[0]))
+  );
+  
+  // Update clubInformation with the sorted schedule and other data
+  setClubInformation({ ...clubinfoData.data(), schedule: sortedSchedule });
+          setClubInformationOriginal({ ...clubinfoData.data(), schedule: sortedSchedule });
         }
 getClubInfo()
     },[])
@@ -308,7 +318,7 @@ onClick={handleAddCourt}
   <p class="py-2 text-xl font-semibold">Opening hours</p>
   <p class="py-2 text-xl font-semibold">weekdays</p>
 
-<LaneSchedule schedule={clubInformation.schedule} setSchedule={setClubInformation}/>
+{clubInformation.schedule &&(<LaneSchedule schedule={clubInformation.schedule} setSchedule={setClubInformation}/>)}
 
 <hr class="mt-4 mb-8" />
   <p class="py-2 text-xl font-semibold">Amenities</p>
