@@ -23,8 +23,35 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import AttendanceRateChart from './AttendanceChart';
 import { getFunctions,httpsCallable } from 'firebase/functions';
 import { formatCreatedAt } from '../classes/page';
+import { deleteFieldsInDocument } from "/app/firebaseDeleteFiled.js";
+import {deleteDocumentFromStorage} from  "/app/firebaseDeleteFiled.js";
 const ChatScreen = ({coachDetails}) => {
- 
+ // delete filed 
+  async function handleDeleteFields() {
+    const documentPath = "Attendance/3nRDgqRCTXfIKEfwKMMt"; // Example document path
+    const fieldsToDelete = ["date"]; // Example fields to delete
+    const success = await deleteFieldsInDocument(documentPath, fieldsToDelete);
+    if (success) {
+        // Handle success
+        console.log('filed deleted successfully ');
+    } else {
+        // Handle failure
+        console.log('Error deleting filed ');
+    }
+}
+
+async function handleDeleteDocument() {
+  const documentPath = "test/invoice_receipt.pdf"; // Example document path
+  const success = await deleteDocumentFromStorage(documentPath);
+  if (success) {
+      // Handle success
+      console.log('document deleted successfully ');
+  } else {
+      // Handle failure
+      console.log('Error deleting document ');
+  }
+}
+// delete a document from storage
   const [messages, setMessages] = useState([]);
 
   const [message, setMessage] = useState('');
