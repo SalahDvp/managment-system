@@ -1,11 +1,119 @@
 "use client"
 import { db } from "@/app/firebase"
-import { addDoc, arrayRemove, arrayUnion, collection, doc, getDoc, updateDoc } from "firebase/firestore"
+import { addDoc, arrayRemove, arrayUnion, collection, doc, getDoc, setDoc, updateDoc } from "firebase/firestore"
+import { Check } from "lucide-react";
 import { useEffect, useState } from "react"
+import Switch from "react-switch";
 
+const TennisAmenitiesList = ({amenities,setAmenities}) => {
+    
+      const handleToggleAmenity = (amenity) => {
+
+        setAmenities((prevClubInformation) => ({
+          ...prevClubInformation,
+          amenities: {
+            ...prevClubInformation.amenities,
+            [amenity]: { ...prevClubInformation.amenities[amenity], selected: !prevClubInformation.amenities[amenity]?.selected },
+          },
+        }));
+      };
+    return (
+      <div className="flex flex-col space-y-2">
+      {Object.keys(amenities).map((amenity, index) => (
+          <div key={index} className="flex items-center flex-row  justify-between" style={{width:"350px"}}>
+                     <span>{amenity}</span>
+   
+                     <div key={index} onClick={() => handleToggleAmenity(amenity)} className="border rounded-lg border-black-500 bg-white p-2 items-center justify-center align-center flex-col">
+          { <Check color={amenities[amenity].selected ?"black" :'white' } />}
+             </div>
+   
+          </div>
+        ))}
+      </div>
+    );
+  };
+const LaneSchedule = ({schedule,setSchedule}) => {
+
+    
+    const handleToggleDay = (day) => {
+        setSchedule((prevClubInformation) => ({
+          ...prevClubInformation,
+          schedule: {
+            ...prevClubInformation.schedule,
+            [day]: { ...prevClubInformation.schedule[day], open: !prevClubInformation.schedule[day]?.open },
+          },
+        }));
+      };
+    
+      const handleTimeChange = (day, field, time) => {
+        setSchedule((prevClubInformation) => ({
+          ...prevClubInformation,
+          schedule: {
+            ...prevClubInformation.schedule,
+            [day]: { ...prevClubInformation.schedule[day], [field]: time },
+          },
+        }));
+      };
+      const generateTimeOptions = () => {
+        const options = [];
+        for (let hour = 9; hour <= 21; hour++) {
+          for (let minute = 0; minute < 60; minute += 30) {
+            const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+            options.push(<option key={time} value={time}>{time}</option>);
+          }
+        }
+        return options;
+      };    
+  
+    return (
+      <div>
+ 
+ {Object.keys(schedule).map((day) => (
+           <div key={day} className="flex flex-row  align-center">
+                       <div key={day} className="flex flex-col mr-5">
+            <span className="font-medium text-gray-500 uppercase">{day}</span>
+            <div className="my-3">
+
+            <Switch onChange={()=>handleToggleDay(day)} checked={schedule[day].open} />
+            </div>
+            </div>
+            <div className="flex flex-col align-starts mr-10" style={{width:'200px'}}>
+            <span className="font-medium text-gray-500 uppercase">from</span>
+           
+                      
+            <select
+              value={schedule[day].from}
+              onChange={(e) => handleTimeChange(day,"from", e.target.value)}
+              className="rounded-lg  px-3 py-2 border focus:outline-none  "
+              disabled={!schedule[day].open}
+            >
+              {generateTimeOptions()}
+            </select>
+ 
+          </div>
+          <div className="flex flex-col align-starts" style={{width:'200px'}}>
+            <span className="font-medium text-gray-500 uppercase">to</span>
+           
+                      
+            <select
+              value={schedule[day].to}
+              onChange={(e) => handleTimeChange(day,"to", e.target.value)}
+              className="rounded-lg  px-3 py-2 border focus:outline-none  "
+              disabled={!schedule[day].open}
+            >
+              {generateTimeOptions()}
+            </select>
+ 
+          </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 const Settings=()=>{
-    const [clubInformation,setClubInformation]=useState({courts:[]})
-    const [clubInformationOriginal,setClubInformationOriginal]=useState({courts:[]})
+    const [clubInformation,setClubInformation]=useState({courts:[],schedule:{},amenities:{}})
+    const [clubInformationOriginal,setClubInformationOriginal]=useState({courts:[],schedule:{},amenities:{}})
+
     useEffect(()=>{
         const getClubInfo=async()=>{
             const clubInfoRef=doc(db,'Club','GeneralInformation')
@@ -15,6 +123,7 @@ const Settings=()=>{
         }
 getClubInfo()
     },[])
+    
     const handleAddCourt = async () => {
         const newCourt = prompt('Enter the new court name:');
         if (newCourt) {
@@ -29,7 +138,7 @@ getClubInfo()
               await updateDoc(doc(db,'Club','GeneralInformation'),{
                 courts:arrayUnion(newCourt)
               })
-              await addDoc(collection(db,'Courts'),{
+              await setDoc(collection(db,'Courts',newCourt),{
                 name:newCourt
               })
               
@@ -59,6 +168,19 @@ getClubInfo()
           [e.target.name]: e.target.value,
         }));
       };
+      const amenities = {
+        "Outdoor tennis courts": { selected: true },
+        "Indoor tennis courts": { selected: false },
+        "Professional tennis coaching": { selected: false },
+        "Tennis equipment rental": { selected: true },
+        "Tennis training programs": { selected: true },
+        "Tennis tournaments": { selected: false },
+        "Fitness center or gym": { selected: true },
+        "Pro shop for tennis gear": { selected: false },
+        "Tennis clinics or workshops": { selected: true },
+        "Cafe or lounge area": { selected: false }
+      };
+      
       const submitChanges=async()=>{
         await updateDoc(doc(db,'Club','GeneralInformation'),clubInformation)
         setClubInformationOriginal(clubInformation)
@@ -183,32 +305,18 @@ onClick={handleAddCourt}
   </div>
   </div>
   <hr class="mt-4 mb-8" />
-  <p class="py-2 text-xl font-semibold">Days and Hours</p>
+  <p class="py-2 text-xl font-semibold">Opening hours</p>
+  <p class="py-2 text-xl font-semibold">weekdays</p>
 
-<div class="grid grid-cols-3 gap-3 flex items-center">
-    <label for="club-name">
-      <span class="text-sm text-gray-500">Club Name</span>
-      <div class="relative flex overflow-hidden rounded-md border-2 transition focus-within:border-blue-600">
-        <input onChange={handleInputChange} type="text" name='name' id="club-name" class="w-full flex-shrink appearance-none border-gray-300 bg-white py-2 px-4 text-base text-gray-700 placeholder-gray-400 focus:outline-none" value={clubInformation?.name} />
-      </div>
-    </label>
-    <label for="club-website">
-      <span class="text-sm text-gray-500">Website</span>
-      <div class="relative flex overflow-hidden rounded-md border-2 transition focus-within:border-blue-600">
-        <input  onChange={handleInputChange} name="website" type="website" id="club-website" class="w-full flex-shrink appearance-none border-gray-300 bg-white py-2 px-4 text-base text-gray-700 placeholder-gray-400 focus:outline-none"  />
-      </div>
-    </label>
-    <label for="club-phone">
-      <span class="text-sm text-gray-500">Phone</span>
-      <div class="relative flex overflow-hidden rounded-md border-2 transition focus-within:border-blue-600">
-        <input type="number"  onChange={handleInputChange} name="phone" id="club-phone" class="w-full flex-shrink appearance-none border-gray-300 bg-white py-2 px-4 text-base text-gray-700 placeholder-gray-400 focus:outline-none"  />
-      </div>
-    </label>
+<LaneSchedule schedule={clubInformation.schedule} setSchedule={setClubInformation}/>
 
-  </div>
+<hr class="mt-4 mb-8" />
+  <p class="py-2 text-xl font-semibold">Amenities</p>
 
 
-  {clubInformationOriginal !=clubInformation && (
+<TennisAmenitiesList amenities={clubInformation.amenities} setAmenities={setClubInformation}/>
+<hr class="mt-4 mb-8" />
+  {JSON.stringify(clubInformationOriginal) !=JSON.stringify(clubInformation) && (
                          <>
                     <button
                          
@@ -228,7 +336,7 @@ onClick={handleAddCourt}
 
     </div>
 
-    
+
   </div>
 </div>
 
