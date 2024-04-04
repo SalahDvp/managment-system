@@ -68,6 +68,11 @@ const items= [
       },
     ],
   },
+  {
+    name: "Settings",
+    path: "/Home/settings",
+    icon: Settings,
+  },
 ];
 
 const Sidebar = () => {

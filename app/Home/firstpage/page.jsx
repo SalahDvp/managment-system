@@ -489,15 +489,15 @@ const handleSubmitToDatabase = async () => {
       const wb = XLSX.utils.book_new();
     
       // Loop through each attendance entry
-      attendance.forEach((entry, index) => {
-        const formattedDate = new Date(entry.date.seconds?entry.date.toDate():entry.date).toLocaleDateString('en-US', {
+
+        const formattedDate = new Date(selectedAttendance.date.seconds?selectedAttendance.date.toDate():selectedAttendance.date).toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
           day: 'numeric'
         });
       
         // Prepare data for Excel
-        const data = entry.listData.map(trainer => ({
+        const data = selectedAttendance.listData.map(trainer => ({
           Name: trainer.name,
           'Time In': `${trainer.timeIn.hours}:${trainer.timeIn.minutes}`,
           'Time Out': `${trainer.timeOut.hours}:${trainer.timeOut.minutes}`
@@ -510,11 +510,11 @@ const handleSubmitToDatabase = async () => {
         XLSX.utils.sheet_add_aoa(ws, [[`Attendance of ${formattedDate}`]], { origin: 'A1' });
     
         // Add the worksheet to the workbook
-        XLSX.utils.book_append_sheet(wb, ws, `Attendance_${index + 1}`);
-      });
+        XLSX.utils.book_append_sheet(wb, ws, `Attendance of ${formattedDate}`);
+   
     
       // Generate a file name for the Excel file
-      const fileName = 'Attendance_Data.xlsx';
+      const fileName =  `Attendance of ${formattedDate}.xlsx`;
     
       // Export the workbook to a file
       XLSX.writeFile(wb, fileName);
@@ -572,11 +572,7 @@ const handleAddRow = () => {
      <DatePicker
         id="date"
         selected={
-          selectedAttendance && selectedAttendance.date
-              ? selectedAttendance.date.seconds
-                  ? new Date(selectedAttendance.date.toDate())
-                  : selectedAttendance.date
-              : new Date()
+        selectedDate
       }
         onChange={(date) =>   {setSelectedDate(date);setSelectedAttendance((prev) => ({
           ...prev,
