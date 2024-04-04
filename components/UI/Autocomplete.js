@@ -1,20 +1,9 @@
 import React, { useState } from 'react';
 import Autosuggest from 'react-autosuggest';
 
-
-
-
-
-// Mock data for suggestions
-const suggestions = [
-    { id: 1, name: 'Apple' },
-    { id: 2, name: 'Banana' },
-    { id: 3, name: 'Cherry' },
-    { id: 4, name: 'Durian' },
-  ];
   
   const AutosuggestComponent = ({trainers,setReservation,reservation}) => {
-    const [value, setValue] = useState(' ');
+  
     const [suggestionsList, setSuggestionsList] = useState([]);
   
     // Autosuggest input value change handler
@@ -31,10 +20,7 @@ const suggestions = [
       setSuggestionsList(trainers); // Show all suggestions when input is focused
     };
   
-    // Autosuggest input blur handler
-    const onBlur = () => {
-      setSuggestionsList([]); // Hide suggestions when input is blurred
-    };
+
 
     // Autosuggest input suggestions fetch handler
     const onSuggestionsFetchRequested = ({ value }) => {
@@ -60,10 +46,10 @@ const suggestions = [
     // Autosuggest input props
     const inputProps = {
       placeholder: 'Type something...',
-      value:reservation.name,
+      value:reservation?.name ,
       onChange,
       onFocus,
-      onBlur,
+
       
     };
   

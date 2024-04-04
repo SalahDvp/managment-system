@@ -95,7 +95,7 @@ const reservedSlots = reservationsForDate.map((reservation) => {
 const MatchDetails=({reservationDetails,setI,i,courts,setShowModal,setReservation,trainers})=>{
 
 
-const reservation=reservationDetails?reservationDetails:{name:'',description:'',date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[]} 
+const reservation=reservationDetails?reservationDetails:{name:'name',description:'',date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[]} 
 const [aa,setAA]=useState()
 
 const [availableStartTimes,setAvailableStartTimes]=useState()
@@ -166,7 +166,7 @@ const handleSubmit = async () => {
   }
 };
 const handleClose = () => {
-  setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[]})
+  setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:''})
   setShowModal(false);
 
 };
@@ -298,7 +298,7 @@ const cancelMatch = async () => {
   </div>
   <div className="flex flex-col">
             <strong>Select sConsumer</strong>
-<AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation}/>
+<AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation} name={reservation.name}/>
   </div>
   <div className="flex flex-col">
             <strong>Select start time</strong>
@@ -419,7 +419,7 @@ const ManageMatchesPage = () => {
   const [searchHour, setSearchHour] = useState('');
   const [showModal, setShowModal] = useState(false);
 const [originalList,setOriginalList]=useState()
-const [reservation,setReservation]=useState({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:''}) 
+const [reservation,setReservation]=useState({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'name',description:''}) 
 const [courts, setCourts] = useState([]);
 const [i,setI]=useState(false)
 useEffect(() => {
