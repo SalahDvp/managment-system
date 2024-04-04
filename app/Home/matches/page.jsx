@@ -237,7 +237,7 @@ const cancelMatch = async () => {
           </div>
         </div>
         {/* Form inputs */}
-        <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
+        <form onSubmit={handleSubmit} className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
           <div className="ml-4 grid grid-cols-1 gap-4">
           <div className="flex flex-col">
               <strong>Date</strong>
@@ -245,7 +245,7 @@ const cancelMatch = async () => {
 
     <DatePicker
    selected={reservation.date.seconds?new Date(reservation.date.toDate()):reservation.date}
-
+   required 
       onChange={(date) => {
         setReservation({ ...reservation, date: date })
       // Close calendar after date selection
@@ -264,6 +264,7 @@ const cancelMatch = async () => {
     value={reservation.courtName}
     onChange={handleInputChange}
     className="rounded-lg"
+    required 
   >
     <option value="">Select Court</option>
     {courts.map((court, index) => (
@@ -276,6 +277,7 @@ const cancelMatch = async () => {
   <div className="flex flex-col">
             <strong>Duration</strong>
             <select
+               required 
     name="duration"
     value={reservation.duration}
     onChange={(e)=>{handleInputChange(e);  setReservation(prevReservation => ({
@@ -298,7 +300,7 @@ const cancelMatch = async () => {
   </div>
   <div className="flex flex-col">
             <strong>Select sConsumer</strong>
-<AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation} name={reservation.name}/>
+<AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation} name={reservation.name} />
   </div>
   <div className="flex flex-col">
             <strong>Select start time</strong>
@@ -308,6 +310,7 @@ const cancelMatch = async () => {
     value={reservation.startTime}
     onChange={handleInputChange}
     className='rounded-lg'
+    required 
   >
     <option value="">{reservation.startTime.seconds?`${new Date(reservation.startTime.toDate()).getHours().toString().padStart(2, '0')}:${new Date(reservation.startTime.toDate()).getMinutes().toString().padStart(2, '0')}`:' Select Start Time'}</option>
     {availableStartTimes?.map((time) => (
@@ -322,6 +325,7 @@ const cancelMatch = async () => {
     value={reservation.payment}
     onChange={handleInputChange}
     className="rounded-lg"
+    required 
   >
 
     <option value="cash">
@@ -340,6 +344,7 @@ const cancelMatch = async () => {
         name="Price"
         value={priceMap[reservation.duration]}
         readOnly
+
       />
 
   </div>
@@ -351,10 +356,11 @@ const cancelMatch = async () => {
           name="description"
           value={reservation.description}
           onChange={handleInputChange}
+          required 
         />
   
     </div>
-  <button onClick={handleSubmit} className="mb-3 px-4 py-2 bg-blue-500 text-white rounded-md">Submit Reservation</button>
+  <button  className="mb-3 px-4 py-2 bg-blue-500 text-white rounded-md">Submit Reservation</button>
 {reservation.date.seconds &&(  <button onClick={()=>  setShowRefundModal(true)} className="mb-3 px-4 py-2 bg-red-500 text-white rounded-md">Cancel a Match</button>)}
 <Modal
   isOpen={showRefundModal}
@@ -406,7 +412,7 @@ const cancelMatch = async () => {
         </div>
       </Modal>
           </div>
-        </div>
+        </form>
 
       </div>
     </div>

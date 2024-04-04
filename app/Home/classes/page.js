@@ -301,6 +301,35 @@ const ParticipantsHorizontalScroll = ({ participants,trainees,setClassDetails,cl
   
   
   async function updateOthers() {
+    let total=0
+  
+    // Check for new participants
+    const newParticipants = selectedPlayers.filter(participant =>
+      !participants.some(prevParticipant => prevParticipant.uid === participant.uid)
+    );
+    if (newParticipants.length > 0) {
+      const currentDate = new Date();
+
+
+      // Create documents in PaymentReceived subcollection for new participants
+      newParticipants.forEach(participant => {
+        const paymentReceivedRef = collection(db, 'Club/GeneralInformation/PaymentReceived'); // Generate a new document ID
+        addDoc(paymentReceivedRef, {
+          uid: participant.uid,
+          date: currentDate,
+          classRef: classDetails.id,
+          payment: 'on-site',
+          paymentStatus:participant.paymentStatus,
+          paymentType:participant.paymentType,
+          price: participant.Price
+        });
+        total+=participant.Price
+      });
+
+await updateDoc(doc(db,'Club','GeneralInformation'),{
+  totalRevenue:increment(total)
+})
+    }
     setClassDetails((prevClassDetails) => {
       return {
         ...prevClassDetails,
@@ -311,6 +340,9 @@ const ParticipantsHorizontalScroll = ({ participants,trainees,setClassDetails,cl
       participants:selectedPlayers,
       participantsuid: selectedPlayers.map((p) => p.uid)
     });
+ 
+
+
     setShowModal(false)
     
 
@@ -612,7 +644,7 @@ const ClassHistory = ({ classes}) => {
       {classes.map((cls,index) => (
         <div key={index} className="border rounded-lg p-4 mb-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold ">{formatTimestampToDate(cls.start)}</h2>
+            <h2 className="text-lg font-semibold ">{formatTimestampToDate(cls.date)}</h2>
             <div>
             <button
               className="px-3 py-1 rounded bg-blue-500 text-white ml-5"
@@ -1011,38 +1043,8 @@ const Item =  ({ item, onNavigate,i,setI,trainers,trainees}) => {
     updatedClassDetails.participantsuid = participantsUid;
     if (previous !== classDetails) {
       try {
-        let total=0
-        await updateDoc(doc(db, 'Classes', classDetails.id), updatedClassDetails);
-  
-        // Check for new participants
-        const newParticipants = classDetails.participants.filter(participant =>
-          !previous.participants.some(prevParticipant => prevParticipant.uid === participant.uid)
-        );
-  
-        if (newParticipants.length > 0) {
-          const currentDate = new Date();
-  
-  
-          // Create documents in PaymentReceived subcollection for new participants
-          newParticipants.forEach(participant => {
-            const paymentReceivedRef = collection(db, 'Club/GeneralInformation/PaymentReceived'); // Generate a new document ID
-            addDoc(paymentReceivedRef, {
-              uid: participant.uid,
-              date: currentDate,
-              classRef: classDetails.id,
-              payment: 'on-site',
-              price: participant.Price
-            });
-            total+=participant.Price
-          });
-    
-    await updateDoc(doc(db,'Club','GeneralInformation'),{
-      totalRevenue:increment(total)
-    })
 
-        }
-  
-        // If the update is successful, setIsSubmitting(false);
+        await updateDoc(doc(db, 'Classes', classDetails.id), updatedClassDetails);
         alert('Changes Submitted.');
         setIsSubmitting(false);
         setI(!i);
@@ -1587,61 +1589,62 @@ async function createAttendanceForClass(docRef) {
   }
 }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (Object.values(classDetails).some(value => value === undefined)) {
-      alert('Please fill in all required fields.');
-      return;
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
   
-    try {
-      const updatedClassDetails = { ...classDetails };
-  
-      // Remove unnecessary properties from updatedClassDetails
-      delete updatedClassDetails.attendance;
-      delete updatedClassDetails.trainer;
-      delete updatedClassDetails.history;
-      delete updatedClassDetails.canceled;
-  
-      const participantsUid = classDetails.participants.map(participant => participant.uid);
-      updatedClassDetails.participantsuid = participantsUid;
-  
+  // Validate required fields
+  if (Object.values(classDetails).some(value => value === undefined)) {
+    alert('Please fill in all required fields.');
+    return;
+  }
 
-      const docRef = await addDoc(collection(db, 'Classes'), updatedClassDetails);
-      await createAttendanceForClass(docRef.id)
+  try {
+    // Remove unnecessary properties from classDetails
+    const updatedClassDetails = { ...classDetails };
+    delete updatedClassDetails.attendance;
+    delete updatedClassDetails.trainer;
+    delete updatedClassDetails.history;
+    delete updatedClassDetails.canceled;
 
-      if (updatedClassDetails.participants.length > 0) {
-        const currentDate = new Date();
-        let total = 0;
-  
-        // Create documents in PaymentReceived subcollection for new participants
-        updatedClassDetails.participants.forEach(participant => {
-          const paymentReceivedRef = collection(db, 'Club/GeneralInformation/PaymentReceived');
-          addDoc(paymentReceivedRef, {
-            uid: participant.uid,
-            date: currentDate,
-            classRef: docRef.id,
-            payment: 'on-site',
-            price: participant.Price,
-          });
-          total += parseInt(participant.Price, 10); // Increment total price
-        });
-  
-        // Update totalRevenue in Firestore
-        await updateDoc(doc(db, 'Club/GeneralInformation'), {
-          totalRevenue: increment(total),
-        });
-      }
-  
-      // Close modal, show success message, and update state
-      handleClose();
-      alert('Class Created Successfully');
-      setI(!i);
-    } catch (error) {
-      console.error('Error adding document:', error);
-      alert('An error occurred. Please try again.');
-    }
-  };
+    // Create class document in Firestore
+    const docRef = await addDoc(collection(db, 'Classes'), updatedClassDetails);
+    await createAttendanceForClass(docRef.id); // Create attendance records
+
+    // Handle payment details and update total revenue
+    await handlePaymentDetails(updatedClassDetails.participants, docRef.id);
+
+    // Close modal, show success message, and update state
+    handleClose();
+    alert('Class Created Successfully');
+    setI(!i);
+  } catch (error) {
+    console.error('Error adding document:', error);
+    alert('An error occurred. Please try again.');
+  }
+};
+
+const handlePaymentDetails = async (participants, classId) => {
+  const currentDate = new Date();
+  let total = 0;
+
+  // Create documents in PaymentReceived subcollection for new participants
+  const paymentReceivedRef = collection(db, 'Club/GeneralInformation/PaymentReceived');
+  await Promise.all(participants.map(async (participant) => {
+    await addDoc(paymentReceivedRef, {
+      uid: participant.uid,
+      date: currentDate,
+      classRef: classId,
+      payment: 'on-site',
+      price: participant.Price,
+    });
+    total += parseInt(participant.Price, 10); // Increment total price
+  }));
+
+  // Update totalRevenue in Firestore
+  await updateDoc(doc(db, 'Club/GeneralInformation'), {
+    totalRevenue: increment(total),
+  });
+};
   
   const handleClose = () => {
     setShowForm(false);
@@ -1699,7 +1702,7 @@ async function createAttendanceForClass(docRef) {
         <span className="text-5xl">+</span>
       </div>
     ) :    (
-      <div className="fixed inset-0 flex justify-end items-center h-full overflow-auto bg-gray-600 bg-opacity-50" style={{ height: 'calc(100% )', zIndex: '9999' }}>
+      <div className="fixed inset-0 flex justify-end items-center h-full overflow-auto bg-gray-600 bg-opacity-50" style={{ height: 'calc(100% )', zIndex: '9999' }} >
 
     
       <div className="w-3/6 h-full bg-white border rounded-t flex flex-col justify-start items-start">
@@ -1721,7 +1724,7 @@ async function createAttendanceForClass(docRef) {
  
         </div>
    
-      <div className="bg-white w-full">
+      <form className="bg-white w-full" onSubmit={handleSubmit} >
                 <h1 className="text-lg font-semibold  ml-4 mb-2">General Information</h1>
     
     
@@ -1734,6 +1737,7 @@ async function createAttendanceForClass(docRef) {
             
               <strong className='text-gray-600 font-semibold'>Name</strong> 
               <input
+              required
               className="rounded-lg"
               type="text"
               name="className"
@@ -1747,7 +1751,7 @@ async function createAttendanceForClass(docRef) {
               <select
               className="rounded-lg"
               name="Type"
- 
+              required
               onChange={handleInputChange}
     
             >
@@ -1765,7 +1769,7 @@ async function createAttendanceForClass(docRef) {
               className="rounded-lg ml-2"
               type="number"
               name="Duration"
-         
+              required
               min={1}
               onChange={handleInputChange}
             />
@@ -1788,6 +1792,7 @@ async function createAttendanceForClass(docRef) {
                   TrainerRef: selectedTrainer.Ref, // Assuming selectedTrainer is the object reference
                 }));
               }}
+              required
               >
               <option value="">select Trainer</option>
               {trainers.map((trainer,index) => (
@@ -1807,7 +1812,7 @@ async function createAttendanceForClass(docRef) {
               className="rounded-lg"
               type="text"
               name="Features"
-           
+              required
               onChange={(e) => setClassDetails({ ...classDetails, features: e.target.value.split(', ') })} // Convert string back to array on change
             />
               
@@ -1820,7 +1825,8 @@ async function createAttendanceForClass(docRef) {
               type="text"
               name="RegistrationDeadLine"
               value={classDetails.RegistrationDeadLine?classDetails.RegistrationDeadLine.toDateString():new Date().toDateString()}
-             onClick={handleTextClick} // Convert string back to array on change
+             onClick={handleTextClick} 
+             required// Convert string back to array on change
             />
               
           {showCalendar && (
@@ -1831,7 +1837,7 @@ async function createAttendanceForClass(docRef) {
                 handleCalendarClose(); // Close calendar after date selection
               }}
               calendarIcon={null} // Remove default calendar icon
-         
+              required
             />
           )}
             </div>
@@ -1850,6 +1856,7 @@ async function createAttendanceForClass(docRef) {
           
           }}
           style={{ display: 'none' }}
+          required
         />
       </label>
     </div>
@@ -1865,6 +1872,7 @@ async function createAttendanceForClass(docRef) {
                name="classTime"
             value={cls.price}
                onChange={(e) => handlePriceChange(e.target.value,'price',index)}
+               required
              />
              </div>
                ))}
@@ -1879,7 +1887,7 @@ async function createAttendanceForClass(docRef) {
               type="text"
               name="description"
               multiple
-
+              required
               onChange={handleInputChange} // Convert string back to array on change
             />
               
@@ -1899,6 +1907,7 @@ async function createAttendanceForClass(docRef) {
         className="rounded-lg"
         value={date.day}
        onChange={(e) => handleTimeChange(e.target.value,'day',index)}
+       required
       >
         <option value="Monday">Monday</option>
         <option value="Tuesday">Tuesday</option>
@@ -1917,7 +1926,7 @@ async function createAttendanceForClass(docRef) {
         name='startTime'
         value={date.startTime}
         onChange={(e) => handleTimeChange(e.target.value,'startTime',index)}
-    
+        required
       />
     </div>
     <div className='mr-2'>
@@ -1928,7 +1937,7 @@ async function createAttendanceForClass(docRef) {
         name='endTime'
         value={date.endTime}
         onChange={(e) => handleTimeChange(e.target.value,'endTime',index)}
-    
+        required
       />
     </div>
     <div className="flex flex-col">
@@ -1936,7 +1945,7 @@ async function createAttendanceForClass(docRef) {
                       <select
                         className="rounded-lg"
                         name="Court"
-        
+                        required
                         onChange={(e) => handlePriceChange(e.target.value,'Court',index)}
                       >
                         <option value=''>choose a court</option>
@@ -1960,18 +1969,18 @@ async function createAttendanceForClass(docRef) {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <strong className='text-gray-600 font-semibold'>Min. Players</strong> <br />
-              <input className="rounded-lg" type="number" name='minmumNumber' onChange={handleInputChange} min={1}    />
+              <input className="rounded-lg" type="number" name='minmumNumber' onChange={handleInputChange} min={1}           required />
             </div>
             <div>
               <strong className='text-gray-600 font-semibold'>Max. Players</strong> <br />
-              <input className="rounded-lg" type="number" name='maximumNumber' onChange={handleInputChange} min={classDetails.minmumNumber}  />
+              <input className="rounded-lg" type="number" name='maximumNumber' onChange={handleInputChange} min={classDetails.minmumNumber}         required />
             </div>
     
             <div>
               <strong className='text-gray-600 font-semibold'>Level</strong> <br />
               <select
       className="rounded-lg"
-
+      required
       onChange={(e) => setClassDetails({ ...classDetails, level: e.target.value })}
     >
      
@@ -1982,7 +1991,7 @@ async function createAttendanceForClass(docRef) {
             </div>
             <div>
               <strong className='text-gray-600 font-semibold'>Average Age</strong> <br />
-              <input className="rounded-lg mt-2" type="text" name='age' onChange={handleInputChange}  />
+              <input className="rounded-lg mt-2" type="text" name='age' onChange={handleInputChange}          required/>
             </div>
       
           </div>
@@ -2003,13 +2012,14 @@ async function createAttendanceForClass(docRef) {
     
     <button
           className="ml-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold  py-2 px-4 rounded mb-10"
-          onClick={handleSubmit}
+                       
           disabled={isSubmitting}
+
         >
           Submit
         </button>
       </div>
-      </div>
+      </form>
    
       </div>
       
@@ -2039,10 +2049,10 @@ const Dashboard = () => {
           const CanceledSnapshot = (await getDocs(collection(db, `Classes/${doc.id}/CanceledClasses`)));
           const canceledClasses = CanceledSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
           
-          const HistorySnapshot = await getDocs(collection(db, `Classes/${doc.id}/ClassHistory`));
+          const HistorySnapshot = await getDocs(query(collection(db, `Classes/${doc.id}/attendance`),where('date','<',(new Date()))));
           const HistoryPromises = HistorySnapshot.docs.map(async (HistoryDoc) => {
             const HistoryData = HistoryDoc.data();
-            const participants = HistoryData.Trainees;
+            const participants = HistoryData.Participants;
   
             // Merging participant details
             const mergedParticipants = participants.map((participant) => {

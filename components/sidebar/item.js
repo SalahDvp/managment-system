@@ -39,7 +39,7 @@ className={`flex items-center space-x-2 p-2 rounded-md  rounded-md rounded-md   
       >
         <div className="flex items-center space-x-2">
           <Icon size={20} className='w-6 h-6'/>
-          <p className="">{name} </p>
+          <p className="" style={{ cursor: 'pointer' }}>{name} </p>
         </div>
         {items && items.length > 0 && <ChevronDown size={18} />}
       </div>
