@@ -298,10 +298,10 @@ const cancelMatch = async () => {
       </option>
   </select>
   </div>
-  <div className="flex flex-col">
+  {reservation.name &&(<div className="flex flex-col">
             <strong>Select sConsumer</strong>
 <AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation} name={reservation.name} />
-  </div>
+  </div>)}
   <div className="flex flex-col">
             <strong>Select start time</strong>
   <select

@@ -16,22 +16,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-
-        <div className="flex min-h-screen w-full bg-slate-100">
-   
-          <Sidebar />
-       
-          <div className="flex flex-col w-full h-full ml-64">  
-          <Header/>
-          <div className=" p-4 ">
-          {children}
-          </div>
-  
+    <body className={typeof window !== 'undefined' ? inter.className : ''}>
+       <div className="flex min-h-screen w-full bg-slate-100">
+        <Sidebar />
+        <div className="flex flex-col w-full h-full ml-64">  
+          <Header />
+          <div className="p-4">
+            {children}
           </div>
         </div>
-      </body>
-    </html>
+      </div>
+    </body>
+  </html>
   );
 }
 

@@ -318,7 +318,7 @@ const ParticipantsHorizontalScroll = ({ participants,trainees,setClassDetails,cl
           uid: participant.uid,
           date: currentDate,
           classRef: classDetails.id,
-          payment: 'on-site',
+          payment: participant.paymentType,
           paymentStatus:participant.paymentStatus,
           paymentType:participant.paymentType,
           price: participant.Price
@@ -1634,7 +1634,7 @@ const handlePaymentDetails = async (participants, classId) => {
       uid: participant.uid,
       date: currentDate,
       classRef: classId,
-      payment: 'on-site',
+      payment:participant.paymentType,
       price: participant.Price,
     });
     total += parseInt(participant.Price, 10); // Increment total price

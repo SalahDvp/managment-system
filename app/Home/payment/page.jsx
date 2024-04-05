@@ -11,6 +11,7 @@ import { addDoc, collection,doc, getDocs, increment,  orderBy,  query,  setDoc, 
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer,BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ReferenceLine, Label,Text } from 'recharts';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable'
+import * as XLSX from 'xlsx';
 import AutosuggestComponent from '@/components/UI/Autocomplete';
 const Card = ({ title, data, subtitle, icon }) => {
   return (
@@ -494,7 +495,87 @@ doc.text('Thank you for your business!', footerTextX1+15, footerTextY);
 doc.text('Contact us at support@example.com for any inquiries.', footerTextX1, footerTextY + 10);
   doc.save('invoice_receipt.pdf');
 };
+const exportToExcelSalary = (from,to,tableName) => {
+  const updatedData = transactions.map(item => {
+    let updatedItem = { ...item }; // Create a copy of the item
+    updatedItem.date=updatedItem.date.toDate().toLocaleDateString()
+    if (updatedItem.matchRef) {
+      updatedItem.reason = 'match';
+      delete updatedItem.matchRef; // Remove matchRef
 
+    } else if (updatedItem.classRef) {
+      updatedItem.reason = 'class';
+      delete updatedItem.classRef; // Remove classRef
+    } else if (updatedItem.typedis) {
+      updatedItem.reason = updatedItem.typedis;
+      delete updatedItem.typedis; // Remove typedis
+      delete updatedItem.otherRef; // Remove typedis
+    }
+    delete updatedItem.type; 
+    return updatedItem; // Return the updated item
+  });
+  
+  const worksheet = XLSX.utils.json_to_sheet(updatedData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+  XLSX.writeFile(workbook, 'data.xlsx');
+//   // Preprocess data before exporting
+//   const rows = tableElement.querySelectorAll('tr');
+//   const data = [];
+
+//   // Add styled title row with trainer name and date
+//   const trainerRow = [`Trainer Name: ${trainerName}`];
+//   data.push(trainerRow);
+
+//   // Add the table titles row as the second row
+//   const titlesRow = [];
+//   rows[0].querySelectorAll('th, td').forEach((cell) => {
+//       titlesRow.push(cell.textContent.trim());
+//   });
+//   data.push(titlesRow);
+//   for (let i = 1; i < rows.length; i++) {
+//     const row = rows[i];
+//     const rowData = [];
+//     const cells = row.querySelectorAll('th, td');
+
+//     // Extract start and end data from the first cell
+//     if (cells.length > 0) {
+//         const startDatePicker = cells[0].querySelector('.react-datepicker-wrapper:first-child input');
+//         const endDatePicker = cells[0].querySelector('.react-datepicker-wrapper:last-child input');
+//         const start = startDatePicker ? startDatePicker.value : '';
+//         const end = endDatePicker ? endDatePicker.value : '';
+//         rowData.push(start.trim());
+//         rowData.push(end.trim());
+//     }
+
+//     // Add other cells' data to rowData as needed
+//     cells.forEach((cell, index) => {
+//         if (index > 0 && index < cells.length - 1) { // Exclude the last column
+//             if (cell.classList.contains('multi-select')) {
+//                 const selectedOptions = [];
+//                 cell.querySelectorAll('option:checked').forEach((option) => {
+//                     selectedOptions.push(option.textContent);
+//                 });
+//                 rowData.push(selectedOptions.join(', ')); // Separate options by commas
+//             } else {
+//                 rowData.push(cell.textContent.trim());
+//             }
+//         }
+//     });
+
+//     data.push(rowData);
+// }
+
+
+//   const ws = XLSX.utils.aoa_to_sheet(data)
+
+//   const wb = XLSX.utils.book_new();
+//   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+//   // Save the Excel file
+//   const fileName = `${trainerName} ${tableName} ${from} - ${to}.xlsx`;
+//   XLSX.writeFile(wb, fileName);
+};
   return (
     <div className="container mx-auto h-full mt-10">
 <div className="flex items-center justify-between">
@@ -547,9 +628,11 @@ doc.text('Contact us at support@example.com for any inquiries.', footerTextX1, f
 
       </div>
     
-      <div className="flex overflow-x-auto border bg-white flex-col p-4 rounded-lg">
+      <div className="flex overflow-x-auto border bg-white flex-col p-4 rounded-lg relative">
       <StraightAnglePieChart data={status.data}/>
-        <table className="w-full divide-y divide-gray-200">
+      <button      className="button-excel  ml-5 absolute right-6 top-4" onClick={()=>exportToExcelSalary(startDate.toLocaleDateString(),endDate.toLocaleDateString(),'receipts')}>Import</button>
+
+        <table className="w-full divide-y divide-gray-200" id='receipts'>
           <thead className="bg-gray-50">
             <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
