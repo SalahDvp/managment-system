@@ -3,12 +3,334 @@
 import { v4 as uuidv4 } from 'uuid';
 import React, { useState,useEffect, useRef } from 'react';
 import { db } from '@/app/firebase';
-import { Timestamp, addDoc, collection, doc, getDocs, onSnapshot, orderBy, query, setDoc, updateDoc } from 'firebase/firestore';
+import { Timestamp, addDoc, collection, doc, getDocs, onSnapshot, orderBy, query, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { getFunctions, httpsCallable } from "firebase/functions";
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+// Function to create teams based on tournament type
+function createTeams(players, tournamentType) {
+  if (tournamentType === 'single') {
+    // For single tournaments, each player is a team
+    return players.map((player,index) => ({ teamName: `Team ${index+ 1}`, members: [] }));
+  } else if (tournamentType === 'couple') {
+    // For couple tournaments, divide players into pairs
+    const teams = [];
+    for (let i = 0; i < players.length; i += 2) {
+      const teamName = `Team ${i / 2 + 1}`;
+      teams.push({ teamName, members: [] });
+    }
+    return teams;
+  } else {
+    // Handle other tournament types if needed
+    return [];
+  }
+}
+
+// Sample list of players with random names
+const playersList = [
+  { name: 'John Doe' },
+  { name: 'Jane Smith' },
+  { name: 'Michael Johnson' },
+  { name: 'Emily Williams' },
+  { name: 'David Brown' },
+  { name: 'Sarah Davis' },
+  { name: 'James Wilson' },
+  { name: 'Emma Martinez' },
+];
+
+const TeamCard = ({ team, onDropPlayer }) => {
+  const [{ isOver }, drop] = useDrop({
+    accept: 'player', // Define the accepted type as 'player'
+    drop: (item) => onDropPlayer(item.player, team.teamName,team),
+    collect: monitor => ({
+      isOver: monitor.isOver(),
+    }),
+  });
+
+  return (
+    <div ref={drop} className={`bg-gray-100 p-4 rounded-lg shadow ${isOver ? 'border-4 border-blue-500' : ''}`}>
+      <h2 className="text-lg font-bold mb-2">{team.teamName}</h2>
+      <ul className="list-disc pl-6">
+        {team.members.map((player, index) => (
+          <li key={index}>{player.name}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+const Player = ({ name }) => {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'player',
+    item: {player: { name } }, // Define type as 'player'
+    collect: monitor => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  });
+
+  return (
+    <div ref={drag} className={`bg-gray-200 px-2 py-1 rounded-md ${isDragging ? 'opacity-50' : ''}`}>
+      {name}
+    </div>
+  );
+};
 
 
+const TournamentTeams = ({tournament}) => {
+  const [tournamentType, setTournamentType] = useState(tournament.type);
+  const [players, setPlayers] = useState(tournament.participants);
+  const [teams, setTeams] = useState(tournament.teams?tournament.teams:createTeams(players, tournamentType));
+  const [teamso, setTeamso] = useState(tournament.teams?tournament.teams:createTeams(players, tournamentType));
+  const [matches,setMatches]=useState(tournament.matches?tournament.matches:{})
+const [ orginalplayers,setorginalplayers]=useState(tournament.participants)
+const generateFirstRoundMatches = async () => {
+  // Check if all teams have players
+  const allTeamsHavePlayers = teams.every(team => team.members.length > 0);
+  if (!allTeamsHavePlayers) {
+    alert('All teams must have players to generate first round matches.');
+    return;
+  }
+
+  // Generate first round matches
+  const firstRoundMatches = [];
+  const roundName = 'Round 1';
+  const batch = writeBatch(db);
+
+  // Generate matches for the first round
+  for (let i = 0; i < teams.length; i += 2) {
+    const team1 = teams[i];
+    const team2 = teams[i + 1];
+    const matchNumber = i / 2 + 1;
+    const matchRef = doc(collection(db, 'Competitions', tournament.id, 'Matches'), `1${matchNumber}`);
+    const match = {
+      id: `1${matchNumber}`,
+      time: 'Today | 5PM',
+      round: roundName,
+      confirmationStatus: 'Finished',
+      status: 'Court booked',
+      team1: team1.members,
+      team2: team2.members,
+      winner: null, // Winner will be determined later
+    };
+
+    firstRoundMatches.push(match);
+   
+    batch.set(matchRef, match);
+  }
+  await batch.commit();
+  // Set the first round matches
+  setMatches({[roundName]:firstRoundMatches});
+};
+
+const generateNextRoundMatches = async (currentMatches) => {
+  const maxRound = Math.max(...Object.keys(currentMatches).map(round => parseInt(round.replace('Round ', ''), 10)));
+  const batch = writeBatch(db);
+
+  // Check if all matches have winners in the max round
+  const allMatchesHaveWinners = currentMatches[`Round ${maxRound}`].every(match => match.winner);
+  if (!allMatchesHaveWinners) {
+    alert('All matches in the max round must have a winner to generate the next round.');
+    return currentMatches; // Return current matches without changes
+  }
+
+  const nextRoundMatches = [];
+  const nextRoundName = `Round ${maxRound + 1}`;
+
+  // Generate matches based on winners of the max round
+  for (let i = 0; i < currentMatches[`Round ${maxRound}`].length; i += 2) {
+    const team1 = currentMatches[`Round ${maxRound}`][i].winner;
+    const team2 = currentMatches[`Round ${maxRound}`][i + 1].winner;
+    
+    // Update winners in Firestore using batched writes
+    const match1Ref = doc(db, 'Competitions', tournament.id, 'Matches', currentMatches[`Round ${maxRound}`][i].id);
+    const match2Ref = doc(db, 'Competitions', tournament.id, 'Matches', currentMatches[`Round ${maxRound}`][i + 1].id);
+    
+    batch.update(match1Ref, { winner: team1 });
+    batch.update(match2Ref, { winner: team2 });
+
+    const matchNumber = i / 2 + 1;
+    const matchRef = doc(collection(db, 'Competitions', tournament.id, 'Matches'), `${maxRound + 1}${matchNumber}`);
+    const match = {
+      id: `${maxRound + 1}${matchNumber}`,
+      time: 'Today | 5PM',
+      round: nextRoundName,
+      confirmationStatus: 'Finished',
+      status: 'Court booked',
+      team1: team1,
+      team2: team2,
+      winner: null, // Winner will be determined later
+    };
+
+    nextRoundMatches.push(match);
+    batch.set(matchRef, match);
+  }
+
+  // Commit the batched write operation
+  await batch.commit();
+  return { ...currentMatches, [nextRoundName]: nextRoundMatches };
+};
+  const handleDropPlayer = (player, teamName,team) => {
+    const updatedTeams = teams.map(team =>
+      team.teamName === teamName ? { ...team, members: [...team.members, player] } : team
+    );
+    
+    // Adjust the logic based on the tournament type
+    if (tournamentType === 'single' && team.members.length > 0) {
+      alert('A single team can have only one player.');
+      return;
+    } else if (tournamentType === 'couple' && team.members.length > 1) {
+      alert('A couple team can have only two players.');
+      return;
+    }
+  
+    const newPlayers = players.filter(pla => pla.name !== player.name);
+    setPlayers(newPlayers);
+    setTeams(updatedTeams);
+  };
+  const handleReset = () => {
+    setPlayers(orginalplayers);
+    setTeams(createTeams(orginalplayers, tournamentType));
+  }
+
+  const handleRandomize = () => {
+    const shuffledPlayers = players.sort(() => Math.random() - 0.5);
+    const randomizedTeams = createTeams(shuffledPlayers, tournamentType);
+  
+    // Clear members from teams if tournament type is single
+    const updatedTeams = tournamentType === 'single' ?
+      randomizedTeams.map((team, index) => ({
+        ...team,
+        members: [shuffledPlayers[index]],
+      })) :
+      randomizedTeams.map((team, index) => ({
+        ...team,
+        members: [shuffledPlayers[index * 2], shuffledPlayers[index * 2 + 1]],
+      }));
+  setPlayers([])
+    setTeams(updatedTeams);
+  };
+  const confirmTeams=async()=>{
+    setTeamso(teams)
+    await updateDoc(doc(db,'Competitions',tournament.id),{teams:teams})
+  }
+console.log(matches);
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div className="container mx-auto py-8 relative">
+        <h1 className="text-2xl font-bold mb-4">Tournament Teams</h1>
+        <div className="flex flex-wrap gap-2">
+          {players.map((player, index) => (
+            <Player key={index} name={player.name} />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {teams.map((team, index) => (
+            <TeamCard key={index} team={team} onDropPlayer={handleDropPlayer} />
+          ))}
+        </div>
+       {!Object.keys(matches).length>0 &&(<div className="mt-4 absolute top-2 right-4">
+        <button onClick={handleRandomize} className="button-white mr-4">Randomize</button>
+          <button onClick={handleReset} className="button-red ">Reset</button>
+
+        </div>)}
+      </div>
+      {JSON.stringify(teams) !== JSON.stringify(teamso) && (
+  <button onClick={confirmTeams} className="button-white mr-4">
+    Confirm Teams
+  </button>
+)}
+{Object.keys(matches).length > 0 && (
+  <MatchesComponent
+    matches={matches}
+    setMatches={setMatches}
+    generateNextRoundMatches={generateNextRoundMatches}
+  />
+)} 
+{ teamso.every(team => team.members.length >=1) && Object.keys(matches).length == 0  && (
+  <button className='button-blue' onClick={generateFirstRoundMatches}>
+    Generate First Round Matches
+  </button>
+)}
+    </DndProvider>
+  );
+};
+
+const MatchesComponent = ({ matches, generateNextRoundMatches,setMatches }) => {
+  const rounds = Object.keys(matches);
+  const maxRound = Math.max(...rounds.map(round => parseInt(round.replace('Round ', ''), 10)));
+  const handleGenerateMatches =async () => {
+const updated=await generateNextRoundMatches(matches)
+
+  
+    setMatches(updated);
+    
+  };
+  const handleWinnerSelection =async (roundName, matchIndex, team) => {
+    const updatedMatches = { ...matches };
+    updatedMatches[roundName][matchIndex].winner = team;
+  
+    setMatches(updatedMatches);
+
+  };
+  return (
+    <div>
+      {Object.keys(matches).map(roundName => (
+        <div key={roundName} className="round-container">
+          <h2 className="round-title">{roundName}</h2>
+          <ul className="matches-list">
+            {matches[roundName].map((match, index) => (
+              <div key={match.id} className="match-card">
+                <div className="match-info">
+                  <span className="match-time">{`Match ${index + 1}:`}</span>
+                </div>
+                <div className="teams-container">
+                  <div
+                    className={`bg-gray-100 p-4 rounded-lg shadow relative ${
+                      JSON.stringify(match.winner) === JSON.stringify(match.team1) && 'border border-blue-500'
+                    }`}
+                    onClick={() => handleWinnerSelection(roundName,index, match.team1)}
+                  >
+                    <h2 className="text-lg font-bold mb-2">Team 1:</h2>
+                    <ul className="list-disc pl-6">
+                      {match.team1.map((player, index) => (
+                        <li key={index}>{player.name}</li>
+                      ))}
+                    </ul>
+                    {   JSON.stringify(match.winner) === JSON.stringify(match.team1) && (
+                      <img src="/trophy.png" alt="Trophy" className="absolute top-0 right-0 w-10 h-15" />
+                    )}
+                  </div>
+                  <h2 className="text-lg font-bold mb-2 align-center justify-center self-center">VS</h2>
+                  <div
+                    className={`bg-gray-100 p-4 rounded-lg shadow relative ${
+                      JSON.stringify(match.winner) === JSON.stringify(match.team2)&& 'border border-blue-500'
+                    }`}
+                    onClick={() => handleWinnerSelection(roundName,index, match.team2)}
+                  >
+                    <h2 className="text-lg font-bold mb-2">Team 2:</h2>
+                    <ul className="list-disc pl-6">
+                      {match.team2.map((player, index) => (
+                        <li key={index}>{player.name}</li>
+                      ))}
+                    </ul>
+                    {  JSON.stringify(match.winner) === JSON.stringify(match.team2) && (
+                      <img  src="/trophy.png"  alt="Trophy" className="absolute top-0 right-0 w-10 h-15" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </ul>
+        </div>
+      ))}
+    {matches[`Round ${maxRound}`].length>1 && (<button className="button-blue" onClick={handleGenerateMatches}>
+        Generate Next Round Matches
+      </button>) }
+    </div>
+  );
+};
 export const formatCreatedAt = (timestamp) => {
   const date = new Date(timestamp.toDate()); // Convert Firestore timestamp to JavaScript Date object
   const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -338,15 +660,20 @@ const NewItem=({setI,i,setShowModal,courts})=>{
           </div>
           <div>
             <label htmlFor="type" className="font-semibold">Tournament Type</label>
-            <input
-              id="type"
-              className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
-              type="text"
-              placeholder="type"
-              name="type"
-              value={tournamentDetails.type}
-              onChange={handleInputChange}
-            />
+            <select
+        id="type"
+        className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
+ 
+   
+        name="type"
+        value={tournamentDetails.type}
+        onChange={handleInputChange}
+      >
+       
+        <option value="single">Single</option>
+        <option value="Couple">Couple</option>
+      </select>
+
           </div>
           <div>
           <label htmlFor="level" className="font-semibold">Level</label>
@@ -898,6 +1225,10 @@ const EditItem=({setI,i,setShowModal,courts,selectedTournament})=>{
         alert("List Updated!")
         setI(!i)
     }
+
+
+
+  
     return(
 
         <div className={`flex bg-white p-1 mb-1 rounded-lg items-center border-b h-full  border-gray-400`}>
@@ -1170,13 +1501,11 @@ const EditItem=({setI,i,setShowModal,courts,selectedTournament})=>{
 {activeSection === 'additional' &&(
 
     <div className="border rounded-lg p-4 w-full mb-8">
-      <h2 className="text-lg font-semibold mb-2">List of Players</h2>
 
-      <div>
-        {/* {tournamentDetails.participants.map((player, index) => (
-          <PlayerListItem key={index} player={player} />
-        ))} */}
-      </div>
+
+
+<TournamentTeams tournament={tournamentDetails} />
+    
     </div> 
     
   )}
@@ -1227,16 +1556,42 @@ const [Original,setOriginal]=useState([])
 
 
   useEffect(()=>{
-    const getTournaments=async ()=>{
-        const tournaments=await getDocs(collection(db,'Competitions') )
-        const tournamentsData=tournaments.docs.map((doc)=>({
-            id:doc.id,
-            ...doc.data()
-        }))
-        setTournaments(tournamentsData)
-        setOriginal(tournamentsData)
-    }
-    getTournaments()
+    const getTournaments = async () => {
+      try {
+        const tournamentsSnapshot = await getDocs(collection(db, 'Competitions'));
+        const tournamentsData = await Promise.all(
+          tournamentsSnapshot.docs.map(async (doc) => {
+            const tournamentData = { id: doc.id, ...doc.data() };
+
+            // Fetch matches subcollection for the current tournament
+            const matchesSnapshot = await getDocs(collection(doc.ref, 'Matches'));
+            const matchesData = matchesSnapshot.docs.map((matchDoc) =>( {id:doc.id,...matchDoc.data()}));
+
+            // Organize matches into rounds
+            const matchesByRound = {};
+            matchesData.forEach((match) => {
+              const { round } = match; // Assuming each match has a "roundName" field
+              if (!matchesByRound[round]) {
+                matchesByRound[round] = [];
+              }
+              matchesByRound[round].push(match);
+            });
+
+            tournamentData.matches = matchesByRound;
+            return tournamentData;
+          })
+        );
+
+        setTournaments(tournamentsData);
+        setOriginal(tournamentsData);
+      } catch (error) {
+        console.error('Error fetching tournaments:', error);
+        // Handle error
+      }
+    };
+
+
+    getTournaments();
   },[i])
   const handleSearchChange = (event) => {
     setSearchName(event.target.value);

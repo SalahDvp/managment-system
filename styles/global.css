@@ -125,3 +125,51 @@
 .autosuggest-suggestion--selected {
   background-color: #f0f0f0;
 }
+.round-container {
+  margin-bottom: 20px;
+}
+
+.round-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.matches-list {
+  list-style: none;
+  padding: 0;
+}
+
+.match-card {
+
+  border-radius: 5px;
+  margin-bottom: 10px;
+  padding: 10px;
+
+}
+
+.match-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.teams-container {
+  display: flex;
+  justify-content:space-evenly;
+  margin-bottom: 10px;
+}
+
+.team {
+  width: 45%;
+}
+
+.match-level {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.match-confirmation {
+  color: green;
+}
