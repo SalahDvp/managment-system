@@ -21,14 +21,14 @@ export const timestampToHourString=(time)=>{
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 export const generateAvailableStartTimes = (selectedCourtName, selectedDate, matchDuration,courts) => {
-  const selectedCourt = courts.find((court) => Object.values(court)[0] === selectedCourtName);
+  const selectedCourt = courts.find((court) => Object.values(court)[1] === selectedCourtName);
 
   if (!selectedCourt) {
     console.error('Court not found!');
     return [];
   }
  
-  const reservations = Object.values(selectedCourt)[1];
+  const reservations = Object.values(selectedCourt)[2];
   console.log(reservations);
   // Convert selectedDate to a Date object
   const dateToCheck = new Date(selectedDate);
@@ -95,7 +95,7 @@ const reservedSlots = reservationsForDate.map((reservation) => {
 
   return filteredStartTimes;
 };
-const MatchDetails=({reservationDetails,setI,i,courts,setShowModal,setReservation,trainers,trainees})=>{
+export const MatchDetails=({reservationDetails,setI,i,courts,setShowModal,setReservation,trainers,trainees})=>{
 
 
 const reservation=reservationDetails?reservationDetails:{coachname:'coach',name:'name',description:'',date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],reaccuring:false,players:[],reaccurance:0} 
@@ -287,7 +287,7 @@ const handleParticipantChange = (e,) => {
     )
 };
   return    (
-    <div className="fixed inset-0 h-full flex bg-gray-600 bg-opacity-50 justify-end items-center overflow-scroll mb-10" style={{ height: '100%' }}>
+    <div className="fixed inset-0 h-full flex bg-gray-600 bg-opacity-50 justify-end items-center overflow-scroll mb-10 z-50" style={{ height: '100%' }}>
       <button onClick={handleClose} className="absolute top-0 right-0 m-3 text-gray-500 hover:text-gray-700 focus:outline-none">
         <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

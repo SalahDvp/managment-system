@@ -113,13 +113,14 @@ const LaneSchedule = ({schedule,setSchedule}) => {
       </div>
     );
   };
-  const MatchDetailsDiscount=({setShowModal,membership,setMemberships,classes})=>{
+  const MatchDetailsDiscount=({setShowModal,membership,setMemberships,classes,tournaments,courts})=>{
    
     const [discountType, setDiscountType] = useState('classes');
     const [selectedEntities, setSelectedEntities] = useState([]);
-    console.log(selectedEntities);
+    
     const [options, setOptions] = useState([]);
-    const [reservation,setReservation]=useState(membership?membership: {price:0,frequency:'', name:'',description:'',firstTrainingDiscount:0,otherTrainingDiscount:0,courtBookingDiscount:0,tournamentDiscount:0,type:'membership',status:'enabled',consumers:0})
+    const [reservation,setReservation]=useState(membership?membership: {price:0, name:'',description:'',type:'discount',status:'enabled',consumers:0,startDate:new Date(),endDate:new Date(),})
+
     const getOptions = () => {
         switch (discountType) {
           case 'classes':
@@ -130,17 +131,15 @@ const LaneSchedule = ({schedule,setSchedule}) => {
               value: typeof classItem === 'object' ? classItem : classItem.id,
             }));
           case 'tournaments':
-            return [
-              { label: 'Tournament 1', value: 'Tournament 1' },
-              { label: 'Tournament 2', value: 'Tournament 2' },
-              { label: 'Tournament 3', value: 'Tournament 3' },
-            ]; // Replace with your actual tournament options
+            return tournaments.map((classItem) => ({
+              label: `${classItem.name}`,
+              value: typeof classItem === 'object' ? classItem : classItem.id,
+            }));
           case 'courts':
-            return [
-              { label: 'Court 1', value: 'Court 1' },
-              { label: 'Court 2', value: 'Court 2' },
-              { label: 'Court 3', value: 'Court 3' },
-            ]; // Replace with your actual court options
+            return courts.map((classItem) => ({
+              label: `${classItem.name}`,
+              value: typeof classItem === 'object' ? classItem : classItem.id,
+            }));
           default:
             return [];
         }
@@ -159,15 +158,19 @@ const LaneSchedule = ({schedule,setSchedule}) => {
       }));
     };
     
+
     const handleSubmit = async () => {
       try {
-       
-     await addDoc(collection(db,'Discounts'),reservation)
-        setMemberships((prev)=>[...prev,reservation])
+       const discountData={
+        ...reservation,
+        discountType: discountType,
+        uid: selectedEntities.map((doc) => doc.value.id), // Extract only the 'id' values
+      }
+        await addDoc(collection(db, 'Discounts'),discountData);
+        setMemberships((prev)=>[...prev,discountData])
       
   
 
-       
    
     
       } catch (error) {
@@ -276,29 +279,42 @@ const LaneSchedule = ({schedule,setSchedule}) => {
 <h2 className="text-xl font-bold ml-4 mt-8 mb-2">Club Discount price</h2>
               <p class="font ml-4 text-slate-600 mb-6">this is the price that will be charged to your club Memebers</p> 
       <div className="ml-4 grid grid-cols-2 gap-4 mt-6">
-      <div>
+
+      <div className="flex flex-col">
               <label htmlFor="startDate" className="font-semibold">Start Date</label>
-              <input
-                id="startDate"
-                className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
-                type="date"
-                placeholder="Enter Start Date"
-                name="startDate"
-                value={reservation.startDate}
-                onChange={handleInputChange}
-              />
+       
+                  <DatePicker
+        selected={reservation.startDate}
+        onChange={(date)=>setReservation(prevReservation => ({
+          ...prevReservation,
+          startDate: date,
+        }))}
+        selectsStart
+        startDate={reservation.startDate}
+        endDate={reservation.endDate}
+        maxDate={reservation.endDate}
+        className="rounded-lg w-full" 
+        dateFormat="dd/MM/yyyy"
+        name="startDate"
+      />
             </div>
-      <div>
+            <div className="flex flex-col w-full">
               <label htmlFor="endDate" className="font-semibold">End Date</label>
-              <input
-                id="endDate"
-                className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
-                type="date"
-                placeholder="Enter End Date"
-                name="endDate"
-                value={reservation.endDate}
-                onChange={handleInputChange}
-              />
+              <DatePicker
+        selected={reservation.endDate}
+        onChange={(date)=>setReservation(prevReservation => ({
+          ...prevReservation,
+          endDate: date,
+        }))}
+        selectsEnd
+        startDate={reservation.startDate}
+        endDate={reservation.endDate}
+        minDate={reservation.startDate}
+       
+        className="rounded-lg w-full" 
+        dateFormat="dd/MM/yyyy"
+        name="endDate"
+      />
             </div>
        
             <div className="flex flex-col">
@@ -313,7 +329,7 @@ onChange={handleInputChange}
       </div>
    
   <button type="submit"  className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-4">
-          Create membership
+          Create discount
         </button>
               </div>
       
@@ -504,7 +520,7 @@ onChange={handleInputChange}
 const Settings=()=>{
     const [clubInformation,setClubInformation]=useState({courts:[],schedule:{},amenities:{}})
     const [clubInformationOriginal,setClubInformationOriginal]=useState({courts:[],schedule:{},amenities:{}})
-    const { exampleState, setExampleState,classes } = useAuth();
+    const {classes,tournaments,courts,discounts,memberships,setDiscounts,setMemberships } = useAuth();
 
     useEffect(()=>{
         const getClubInfo=async()=>{
@@ -594,26 +610,10 @@ getClubInfo()
       const handleScreenChange = (screen) => {
         setSelectedScreen(screen);
       };
+
       const [showModal,setShowModal]=useState(false)
       const [showModalDiscount,setShowModalDiscount]=useState(false)
-      const [memberships,setMemberships]=useState([])
-      useEffect(()=>{
-        const getMemberships=async()=>{
-            const ref=await getDocs(collection(db,'Memberships'))
-            const data=ref.docs.map((doc)=>({id:doc.id,...doc.data()}))
-            setMemberships(data)
-        }
-        getMemberships()
-      },[])
-      const [discounts,setDiscounts]=useState([])
-      useEffect(()=>{
-        const getMemberships=async()=>{
-            const ref=await getDocs(collection(db,'Discounts'))
-            const data=ref.docs.map((doc)=>({id:doc.id,...doc.data()}))
-            setDiscounts(data)
-        }
-        getMemberships()
-      },[])
+ 
 return(
     <>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet" />
@@ -835,7 +835,7 @@ onClick={handleAddCourt}
                 onClick={()=>setShowModalDiscount(true)}
 
               >
-                AddDiscounts
+                Add Discounts
               </button>
               </div>
 
@@ -870,7 +870,7 @@ onClick={handleAddCourt}
           
       <hr class="mt-4 mb-8" />
     {showModal &&(<MatchDetails setShowModal={setShowModal} setMemberships={setMemberships}/>)}
-    {showModalDiscount &&(<MatchDetailsDiscount setShowModal={setShowModalDiscount} setMemberships={setDiscounts} classes={classes}/>)}
+    {showModalDiscount &&(<MatchDetailsDiscount setShowModal={setShowModalDiscount} setMemberships={setDiscounts} classes={classes} tournaments={tournaments} courts={courts}/>)}
 
     </div>)}
 
