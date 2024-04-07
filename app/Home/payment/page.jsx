@@ -13,6 +13,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable'
 import * as XLSX from 'xlsx';
 import AutosuggestComponent from '@/components/UI/Autocomplete';
+import { getStatusColorClass } from '../tournaments/page';
 const Card = ({ title, data, subtitle, icon }) => {
   return (
     <div className="bg-white shadow-md rounded-xl p-6 w-72">
@@ -72,7 +73,8 @@ name:'',description:''})
         price:parseInt( reservation.price,10),
         name:reservation.name,
         description:reservation.description,
-        typedis:reservation.type
+        typedis:reservation.type,
+        status:reservation.status
       });
       console.log(aa);
     await updateDoc(doc(db, 'Club/GeneralInformation'), {
@@ -157,6 +159,23 @@ name:'',description:''})
         </option>
         <option  value="card">
           Card
+        </option>
+    </select>
+    </div>
+    <div className="flex flex-col">
+              <strong>Status</strong>
+              <select
+      name="status"
+      value={reservation.status}
+      onChange={handleInputChange}
+      className="rounded-lg"
+    >
+  
+      <option value="paid">
+         Paid
+        </option>
+        <option  value="not paid">
+         Not paid
         </option>
     </select>
     </div>
@@ -645,12 +664,15 @@ const exportToExcelSalary = (from,to,tableName) => {
                 Amout
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+               Status
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
                 Download Receipt
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {transactions.map(transaction => (
+            {transactions.map((transaction,index) => (
               <tr key={transaction.id}>
                 <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{transaction.id}</td>
                 <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{dateFormat(transaction.date.toDate())}</td>
@@ -658,6 +680,27 @@ const exportToExcelSalary = (from,to,tableName) => {
       {transaction.type === 'refund' ? '-₺' : '+₺'}
       {Math.abs(transaction.price)}
     </td>
+    <td className="px-6 py-4 whitespace-nowrap text-center ">  
+         <select
+    name="status"
+    value={transaction.status}
+    onChange={(e) => {
+      const { name, value } = e.target;
+      setTransactions((prev) =>
+        prev.map((part, idx) =>
+          idx === index ? { ...part, [name]: value } : part
+        )
+      );
+    }}
+    id='cssassas'
+    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(transaction.status)}`}
+  >
+    <option value="">Unknown</option>
+    <option value="paid">Paid</option>
+    <option value="not paid">Not paid</option>
+   
+
+  </select></td> 
     <td className="px-6 py-4 whitespace-nowrap">
            <button onClick={()=>generatePDF(transaction)}>
                  <Download color='#737373'/>

@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import Autosuggest from 'react-autosuggest';
 
   
-  const AutosuggestComponent = ({trainers,setReservation,reservation}) => {
+  const AutosuggestComponent = ({trainers,setReservation,reservation,name,field}) => {
   
     const [suggestionsList, setSuggestionsList] = useState([]);
-  
+
     // Autosuggest input value change handler
     const onChange = (event, { newValue }) => {
         setReservation(prevReservation => ({
             ...prevReservation,
-            name: newValue,
+            [field]: newValue,
           }));
     };
   
@@ -46,7 +46,7 @@ import Autosuggest from 'react-autosuggest';
     // Autosuggest input props
     const inputProps = {
       placeholder: 'Type something...',
-      value:reservation?.name ,
+      value:name,
       onChange,
       onFocus,
 

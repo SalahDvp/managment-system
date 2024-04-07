@@ -7,6 +7,7 @@ import listPlugin from '@fullcalendar/list';
 import { collection, getDocs, query, where, getFirestore, Timestamp, updateDoc, doc } from 'firebase/firestore';
 import { db } from '@/app/firebase';
 
+import dayGridPlugin from '@fullcalendar/daygrid';
     // Function to calculate the difference in days based on the given day string
     const dayDiff = (day) => {
       const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -254,7 +255,11 @@ const DemoApp = () => {
     }
   };
   const filteredEvents = selectedEventType === 'all' ? events : events.filter(event => event.type === selectedEventType);
-
+  const courtsData = [
+    { id: 1, title: 'Court 1' },
+    { id: 2, title: 'Court 2' },
+    // Add more courts as needed
+];
   return (
     <div className="container mx-auto  h-full mt-10 ">
       <div className='flex items-center justify-between'>
@@ -284,51 +289,51 @@ const DemoApp = () => {
       </div>
         
         <div className='bg-white pt-4 border rounded-lg flex-row flex'>
-      <div style={{ width: '70%', margin: '50px',marginTop:'0px'}}>
-        <FullCalendar
-                plugins={[timeGridPlugin, interactionPlugin, listPlugin]} // Include listPlugin for list view
-                initialView="timeGridWeek"
-                headerToolbar={{
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'timeGridWeek,timeGridDay,listWeek' // Include list views in the header
-                }}
-                views={{
-                  listWeek: { buttonText: 'List Week' }, // Customize list week button text
-          
-              }}
-          events={filteredEvents.map(event => ({
-            ...event,
-            backgroundColor: getColor(event.type),
-        }))}
-          editable={true}
-          eventResizable={true}
-          eventClick={handleEventClick} 
-          eventDrop={async (info) => {
-            try {
-    
-                await updateFirestoreEvent(info.event,info.oldEvent);
-                // Optionally handle success cases
-            } catch (error) {
-                console.error('Error updating Firestore event:', error);
-                // Handle error cases
-            }
-        }}
-        eventStartEditable={true}
-        eventResize={async (info) => {
-          try {
-  
-              await updateFirestoreEvent(info.event,info.oldEvent);
-              // Optionally handle success cases
-          } catch (error) {
-              console.error('Error updating Firestore event:', error);
-              // Handle error cases
-          }
-      }}
-      slotMinTime="09:00:00" // Set minimum time to 9 AM
-      slotMaxTime="22:00:00" // Set maximum time to 9 PM
-      slotDuration="00:30:00" // Set slot duration to 15 minutes (adjust as needed)
-        />
+      <div style={{ width: '70%', margin: '50px',marginTop:'0px',}}>
+ <FullCalendar
+plugins={[timeGridPlugin, interactionPlugin, listPlugin]} // Include listPlugin for list view
+initialView="timeGridWeek"
+headerToolbar={{
+    left: 'prev,next today',
+    center: 'title',
+    right: 'timeGridWeek,timeGridDay,listWeek' // Include list views in the header
+}}
+views={{
+  listWeek: { buttonText: 'List Week' }, // Customize list week button text
+
+}}
+events={filteredEvents.map(event => ({
+...event,
+backgroundColor: getColor(event.type),
+}))}
+editable={true}
+eventResizable={true}
+eventClick={handleEventClick} 
+eventDrop={async (info) => {
+try {
+
+await updateFirestoreEvent(info.event,info.oldEvent);
+// Optionally handle success cases
+} catch (error) {
+console.error('Error updating Firestore event:', error);
+// Handle error cases
+}
+}}
+eventStartEditable={true}
+eventResize={async (info) => {
+try {
+
+await updateFirestoreEvent(info.event,info.oldEvent);
+// Optionally handle success cases
+} catch (error) {
+console.error('Error updating Firestore event:', error);
+// Handle error cases
+}
+}}
+slotMinTime="09:00:00" // Set minimum time to 9 AM
+slotMaxTime="22:00:00" // Set maximum time to 9 PM
+slotDuration="00:30:00" // Set slot duration to 15 minutes (adjust as needed)
+/> 
       </div>
       <div style={{ flex: '1', padding: '0 20px', display: 'flex', flexDirection: 'column' }}>
 

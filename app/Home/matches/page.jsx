@@ -1,23 +1,26 @@
 'use client'
 import { db } from '@/app/firebase';
 import AutosuggestComponent from '@/components/UI/Autocomplete';
-import { Timestamp, addDoc, collection, deleteDoc, doc, getDocs, increment, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { Timestamp, addDoc, collection, deleteDoc, doc, getDocs, increment, query, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Modal from 'react-modal';
-function generateRandom13DigitNumber() {
+import Switch from "react-switch";
+
+
+export function generateRandom13DigitNumber() {
   const randomNumber = Math.floor(Math.random() * 1e13); // Generate a random 13-digit number
   return randomNumber.toString();
 }
 
-const timestampToHourString=(time)=>{
+export const timestampToHourString=(time)=>{
   const firebaseTimestamp = time// Example Firestore timestamp
   const timestampInMillis = firebaseTimestamp.seconds * 1000 + firebaseTimestamp.nanoseconds / 1000000;
   const date = new Date(timestampInMillis);
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
-const generateAvailableStartTimes = (selectedCourtName, selectedDate, matchDuration,courts) => {
+export const generateAvailableStartTimes = (selectedCourtName, selectedDate, matchDuration,courts) => {
   const selectedCourt = courts.find((court) => Object.values(court)[0] === selectedCourtName);
 
   if (!selectedCourt) {
@@ -92,10 +95,10 @@ const reservedSlots = reservationsForDate.map((reservation) => {
 
   return filteredStartTimes;
 };
-const MatchDetails=({reservationDetails,setI,i,courts,setShowModal,setReservation,trainers})=>{
+const MatchDetails=({reservationDetails,setI,i,courts,setShowModal,setReservation,trainers,trainees})=>{
 
 
-const reservation=reservationDetails?reservationDetails:{name:'name',description:'',date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[]} 
+const reservation=reservationDetails?reservationDetails:{coachname:'coach',name:'name',description:'',date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],reaccuring:false,players:[],reaccurance:0} 
 const [aa,setAA]=useState()
 
 const [availableStartTimes,setAvailableStartTimes]=useState()
@@ -123,50 +126,99 @@ useEffect(()=>{
   }
 
 },[reservation.date,reservation.duration,reservation.courtName])
+const addReservation = async (reservation, participants) => {
+  const batch = writeBatch(db);
+
+  const id = generateRandom13DigitNumber();
+  const startTime = new Date(reservation.startTime);
+  const endTime = new Date(startTime.getTime() + reservation.duration * 60000);
+
+  const courtRef = doc(db, 'Courts', reservation.courtName, 'Reservations', `Court1${id}`);
+  batch.set(courtRef, {
+    ...reservation,
+    name: reservation.name,
+    description: reservation.description,
+    date: Timestamp.fromDate(new Date(reservation.date)),
+    endTime: Timestamp.fromDate(endTime),
+    duration: parseInt(reservation.duration, 10),
+    startTime: Timestamp.fromDate(new Date(reservation.startTime)),
+    players: participants ? participants:[],
+    status: 'not paid',
+  });
+
+  const paymentReceivedRef = collection(db, 'Club/GeneralInformation/PaymentReceived');
+  const paymentReceivedDoc = doc(paymentReceivedRef, `Court1${id}`);
+  batch.set(paymentReceivedDoc, {
+    name: reservation.name,
+    description: reservation.description,
+    date: Timestamp.fromDate(new Date(reservation.date)),
+    matchRef: `Court1${id}`,
+    payment: reservation.payment,
+    price: priceMap[reservation.duration],
+    status: 'not paid',
+  });
+const a=priceMap[reservation.duration]
+  const clubInfoRef = doc(db, 'Club/GeneralInformation');
+  batch.update(clubInfoRef, {
+    totalRevenue: increment(a),
+  });
+
+  // Commit the batched write
+  await batch.commit();
+};
 const handleSubmit = async () => {
   try {
     if(aa!=reservation){
+      if (!reservation.reaccuring) {
+        // Execute once for non-reaccuring reservation
+        await addReservation(reservation);
+        setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:'',coachname:'',reaccuring:false,players:[],reaccurance:0})
+      //   alert('Reservation submitted successfully!');
+      // setShowModal(false);
+      // setI(!i)
+      }else {
 
- 
-    const id=generateRandom13DigitNumber()
-    const startTime = new Date(reservation.startTime);
+        // Execute for each time of reaccuration
+        const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const startDate = new Date(reservation.date);
+        const selectedDayOfWeek = daysOfWeek[startDate.getDay()];
+        const startTime = new Date(reservation.startTime);
+        const reservationPromises = [];
 
-    // Calculate the end time by adding the duration in minutes to the start time
-    const endTime = new Date(startTime.getTime() + reservation.duration * 60000); // Convert minutes to milliseconds
-  
-    // Return the end time as an ISO string
-    const courtRef = doc(db, 'Courts', reservation.courtName, 'Reservations', `Court1${id}`);
-    await setDoc(courtRef, 
-      {...reservation,
-        name:reservation.name,
-      description:reservation.description,
-      date:Timestamp.fromDate(new Date(reservation.date)),
-      endTime:Timestamp.fromDate(endTime),duration:parseInt(reservation.duration, 10),
-      startTime:Timestamp.fromDate(new Date(reservation.startTime))});
-    const paymentReceivedRef = collection(db, 'Club/GeneralInformation/PaymentReceived');
-    await addDoc(paymentReceivedRef, {
-      name:reservation.name,
-      description:reservation.description,
-      date: new Date(),
-      matchRef: `Court1${id}`,
-      payment:reservation.payment,
-      price: reservation.Price,
-    });
-  await updateDoc(doc(db, 'Club/GeneralInformation'), {
-    totalRevenue: increment(reservation.Price),
-  });
-    setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:''})
-    alert('Reservation submitted successfully!');
-  setShowModal(false);
-  setI(!i)
+        // Loop through each reaccuration and add reservation
+        for (let i = 0; i < parseInt(reservation.reaccurance, 10); i++) {
+          const currentDate = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+          const starDate = new Date(startTime.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+          const endTime = new Date(starDate.getTime() + reservation.duration * 60000);
+          if (currentDate.getDay() === daysOfWeek.indexOf(selectedDayOfWeek)) {
+            // Add reservation for the selected day of the week and push the promise to the array
+            reservationPromises.push(addReservation({
+              ...reservation,
+              date: currentDate,
+              startTime: starDate,
+              endTime: endTime, // Adjust start time for each date
+            }));
+          }
+        }
+      
+        // Wait for all reservations to be added
+        await Promise.all(reservationPromises);
+        setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:'',coachname:'',reaccuring:false,players:[],reaccurance:0})
+      //   alert('Reservation submitted successfully!');
+      // setShowModal(false);
+      // setI(!i)
+      }
+   
+
 }
   } catch (error) {
     console.error('Error submitting reservation:', error);
-    alert('Failed to submit reservation. Please try again.');
+   //alert('Failed to submit reservation. Please try again.',error);
   }
 };
+
 const handleClose = () => {
-  setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:''})
+  setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',coachname:'',reaccuring:false,players:[],reaccurance:0})
   setShowModal(false);
 
 };
@@ -183,12 +235,12 @@ const handleConfirmRefund = async () => {
     await addDoc(collection(db,'Club','GeneralInformation','PaymentRefund'),{
       matchRef:reservationDetails.id,
       payment:reservation.payment,
-      price:reservation.Price,
+      price:priceMap[reservation.duration],
       date:new Date(),
 
     })
     await updateDoc(doc(db,'Club','GeneralInformation'),{
-      totalRefund:increment(reservation.Price)
+      totalRefund:increment(priceMap[reservation.duration])
     })
     const gameRef = doc(db,'Courts',reservationDetails.courtName,'Reservations',reservationDetails.id);
     await deleteDoc(gameRef);
@@ -220,6 +272,20 @@ const cancelMatch = async () => {
     // Handle errors such as permission denied or network issues
   }
 };
+const [participants, setParticipants] = useState(reservationDetails.players?reservationDetails.players:[]);
+const [newParticipant,setParticipant]=useState({name:'',payment:''})
+const addParticipant = (participant) => {
+  if (participants.length < 4) {
+    setParticipants([...participants, participant]);
+    setParticipant({name:'',payment:''})
+  }
+};
+const handleParticipantChange = (e,) => {
+  const { name, value } = e.target;
+  setParticipant((prevParticipant) =>
+({...prevParticipant,[name]:value})
+    )
+};
   return    (
     <div className="fixed inset-0 h-full flex bg-gray-600 bg-opacity-50 justify-end items-center overflow-scroll mb-10" style={{ height: '100%' }}>
       <button onClick={handleClose} className="absolute top-0 right-0 m-3 text-gray-500 hover:text-gray-700 focus:outline-none">
@@ -228,17 +294,16 @@ const cancelMatch = async () => {
         </svg>
       </button>
 
-      <div className="w-2/6 h-full bg-white border rounded-lg flex flex-col justify-start items-start">
-        <div className='flex'>
-          <h2 className="text-xl font-bold ml-4 mt-4 mb-6">Match Details</h2>
-          <div className='ml-72'/>
-          <div className="mt-4">
-        
-          </div>
-        </div>
-        {/* Form inputs */}
-        <form onSubmit={handleSubmit} className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
-          <div className="ml-4 grid grid-cols-1 gap-4">
+      <div className="w-4/12 h-full bg-white border rounded-t flex flex-col justify-start items-start">
+
+    <div className='flex'>
+        <h2 className="text-xl font-bold ml-4 mt-4 mb-6">Match Details</h2>
+     
+
+    </div>
+    {/* Form inputs */}
+    <form onSubmit={handleSubmit} className="p-6 mt-4 border h-full rounded-lg ml-4 mr-4 mb-8 overflow-y-auto" style={{ width: 'calc(100% - 24px)' }}>
+          <div className="ml-4 grid grid-cols-2 gap-4">
           <div className="flex flex-col">
               <strong>Date</strong>
 
@@ -274,6 +339,7 @@ const cancelMatch = async () => {
     ))}
   </select>
   </div>
+  
   <div className="flex flex-col">
             <strong>Duration</strong>
             <select
@@ -298,10 +364,15 @@ const cancelMatch = async () => {
       </option>
   </select>
   </div>
-  {reservation.name &&(<div className="flex flex-col">
-            <strong>Select sConsumer</strong>
-<AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation} name={reservation.name} />
-  </div>)}
+<div className="flex flex-col">
+            <strong>Select Coach</strong>
+<AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation} name={reservation.coachname} field={'coachname'}/>
+  </div>
+<div className="flex flex-col">
+            <strong>Select Consumer</strong>
+<AutosuggestComponent trainers={trainees} setReservation={setReservation} reservation={reservation} name={reservation.name} field={'name'}/>
+  </div>
+
   <div className="flex flex-col">
             <strong>Select start time</strong>
   <select
@@ -336,6 +407,23 @@ const cancelMatch = async () => {
       </option>
   </select>
   </div>
+  {/* <div className="flex flex-col">
+            <strong>Discount</strong>
+            <select
+    name="discount"
+    value={reservation.discount}
+    onChange={handleInputChange}
+    className="rounded-lg"
+    required 
+  >
+{discounts?.map((discount)=>{
+  <option value={discount.rate}>
+        {discount.name}
+      </option>
+})}
+    
+  </select>
+  </div> */}
   <div className="flex flex-col">
             <strong>Price</strong>
             <input
@@ -360,7 +448,33 @@ const cancelMatch = async () => {
         />
   
     </div>
-  <button  className="mb-3 px-4 py-2 bg-blue-500 text-white rounded-md">Submit Reservation</button>
+    <div className="flex flex-col ">
+            
+              <div className="flex flex-row justify-between">
+
+              <strong>Reaccuring</strong>
+              <Switch onChange={()=>{ setReservation(prevReservation => ({
+    ...prevReservation,
+    reaccuring: !prevReservation.reaccuring,
+    
+  }));
+  setAA(prevReservation => ({
+    ...prevReservation,
+    reaccuring: !reservation.reaccuring,
+  }));}} checked={reservation.reaccuring} />
+       </div>
+     {reservation.reaccuring &&   (<input
+          className="rounded-lg"
+          type="number"
+          name="reaccurance"
+          placeholder='Number of weeks'
+          value={reservation.reaccurance}
+          onChange={handleInputChange}
+          
+        />)}
+    </div>
+
+
 {reservation.date.seconds &&(  <button onClick={()=>  setShowRefundModal(true)} className="mb-3 px-4 py-2 bg-red-500 text-white rounded-md">Cancel a Match</button>)}
 <Modal
   isOpen={showRefundModal}
@@ -412,6 +526,88 @@ const cancelMatch = async () => {
         </div>
       </Modal>
           </div>
+          <div className="flex flex-col my-5">
+          <strong>Add Participants </strong>
+          
+
+<div class="relative overflow-x-auto my-5">
+<table className="w-full divide-y divide-gray-200 mb-5">
+          <thead className="bg-gray-50">
+            <tr>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                    Player Name
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                    Payment method
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                    Action
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+        {participants.map((participant, index) => (
+            <tr  key={index}>
+               
+
+               <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>
+             {participant.name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>
+                {participant.payment}
+                </td>
+        
+            </tr>
+              ))}
+        </tbody>
+        {participants.length < 4 &&(
+        <tr >
+               
+
+               <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>
+               <AutosuggestComponent
+                trainers={trainees}
+                setReservation={setParticipant}
+                reservation={newParticipant}
+                name={newParticipant.name}
+                field={'name'}
+              />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>
+                <select
+    name="payment"
+    value={newParticipant.payment}
+    onChange={handleParticipantChange}
+    className="px-3 py-2 border rounded-md w-full sm:w-auto w-full"
+    style={{width:'150px'}}
+    required 
+  >
+
+    <option value="full">
+        Full
+      </option>
+      <option  value="split">
+        Split
+      </option>
+  </select>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>
+                <button
+                 type="button"
+                className="mb-3 button-blue rounded-md mr-4 "
+                onClick={() => addParticipant(newParticipant)}
+
+              >
+                Add Participant
+              </button>
+              </td>
+            </tr>
+            )}
+            </table>
+</div>
+        
+            </div>
+            <button type="submit" className="mb-3 px-4 py-2 bg-blue-500 text-white rounded-md">Submit Reservation</button>
         </form>
 
       </div>
@@ -425,7 +621,7 @@ const ManageMatchesPage = () => {
   const [searchHour, setSearchHour] = useState('');
   const [showModal, setShowModal] = useState(false);
 const [originalList,setOriginalList]=useState()
-const [reservation,setReservation]=useState({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'name',description:''}) 
+const [reservation,setReservation]=useState({players:[],reaccurance:0,date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'name',description:'',coachname:'coach',reaccuring:false}) 
 const [courts, setCourts] = useState([]);
 const [i,setI]=useState(false)
 useEffect(() => {
@@ -465,14 +661,23 @@ useEffect(() => {
   fetchCourtsAndReservations();
 }, [i]);
 const [trainers,setTrainers]=useState([])
+const [trainees,setTrainees]=useState([])
 useEffect(()=>{
   const geetTrainers=async ()=>{
     const trainersRef= await getDocs(collection(db,'Trainees'))
     const trainersData= trainersRef.docs.map((doc)=>({id:doc.id,...doc.data()}))
-    setTrainers(trainersData)
+    setTrainees(trainersData)
   }
   geetTrainers()
   },[])
+  useEffect(()=>{
+    const geetTrainers=async ()=>{
+      const trainersRef= await getDocs(collection(db,'Trainers'))
+      const trainersData= trainersRef.docs.map((doc)=>({id:doc.id,...doc.data()}))
+      setTrainers(trainersData)
+    }
+    geetTrainers()
+    },[])
 const handleSearchChange = (event) => {
   setSearchHour(event.target.value);
   filterMatches(event.target.value);
@@ -577,7 +782,7 @@ const handleSetReservation = (match) => {
         </div>
         </div>
       </div>
-      {showModal && (<MatchDetails reservationDetails={reservation} setI={setI} i={i} setShowModal={setShowModal} courts={courts} setReservation={setReservation} trainers={trainers}/>
+      {showModal && (<MatchDetails reservationDetails={reservation} setI={setI} i={i} trainees={trainees} setShowModal={setShowModal} courts={courts} setReservation={setReservation} trainers={trainers}/>
       )}
     </>
   );

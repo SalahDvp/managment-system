@@ -1,10 +1,14 @@
 "use client"
 import { db } from "@/app/firebase"
-import { addDoc, arrayRemove, arrayUnion, collection, doc, getDoc, setDoc, updateDoc } from "firebase/firestore"
+import { addDoc, arrayRemove, arrayUnion, collection, doc, getDoc, getDocs, setDoc, updateDoc } from "firebase/firestore"
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react"
 import Switch from "react-switch";
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { MultiSelect } from "react-multi-select-component";
 
+import { useAuth} from '@/context/AuthContext';
 const TennisAmenitiesList = ({amenities,setAmenities}) => {
     
       const handleToggleAmenity = (amenity) => {
@@ -109,9 +113,398 @@ const LaneSchedule = ({schedule,setSchedule}) => {
       </div>
     );
   };
+  const MatchDetailsDiscount=({setShowModal,membership,setMemberships,classes})=>{
+   
+    const [discountType, setDiscountType] = useState('classes');
+    const [selectedEntities, setSelectedEntities] = useState([]);
+    console.log(selectedEntities);
+    const [options, setOptions] = useState([]);
+    const [reservation,setReservation]=useState(membership?membership: {price:0,frequency:'', name:'',description:'',firstTrainingDiscount:0,otherTrainingDiscount:0,courtBookingDiscount:0,tournamentDiscount:0,type:'membership',status:'enabled',consumers:0})
+    const getOptions = () => {
+        switch (discountType) {
+          case 'classes':
+
+            // Map through the classes array to create options array
+            return classes.map((classItem) => ({
+              label: `${classItem.className}`,
+              value: typeof classItem === 'object' ? classItem : classItem.id,
+            }));
+          case 'tournaments':
+            return [
+              { label: 'Tournament 1', value: 'Tournament 1' },
+              { label: 'Tournament 2', value: 'Tournament 2' },
+              { label: 'Tournament 3', value: 'Tournament 3' },
+            ]; // Replace with your actual tournament options
+          case 'courts':
+            return [
+              { label: 'Court 1', value: 'Court 1' },
+              { label: 'Court 2', value: 'Court 2' },
+              { label: 'Court 3', value: 'Court 3' },
+            ]; // Replace with your actual court options
+          default:
+            return [];
+        }
+      };
+    
+      // Update options when discountType changes
+      useEffect(() => {
+        setOptions(getOptions());
+        setSelectedEntities([]); // Reset selected entities when type changes
+      }, [discountType]);
+    
+    const handleInputChange = (e) => {
+      setReservation(prevReservation => ({
+        ...prevReservation,
+        [e.target.name]: e.target.value,
+      }));
+    };
+    
+    const handleSubmit = async () => {
+      try {
+       
+     await addDoc(collection(db,'Discounts'),reservation)
+        setMemberships((prev)=>[...prev,reservation])
+      
+  
+
+       
+   
+    
+      } catch (error) {
+        console.log(error);
+        console.error('Error submitting reservation:', error);
+      
+      }
+    };
+    const handleClose = () => {
+     
+      setShowModal(false);
+    
+    };
+  
+  
+  
+  
+      return    (
+        <div className="fixed inset-0 h-full flex bg-gray-600 bg-opacity-50 justify-end items-center overflow-scroll mb-10" style={{ height: '100%' }}>
+          <button onClick={handleClose} className="absolute top-0 right-0 m-3 text-gray-500 hover:text-gray-700 focus:outline-none">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+    
+          <div className="w-5/12 h-full bg-white border rounded-lg flex flex-col justify-start items-start">
+            <div className='flex'>
+              <h2 className="text-xl font-bold ml-4 mt-4 mb-6">New Membership</h2>
+              
+              <div className='ml-72'/>
+              <div className="mt-4">
+            
+              </div>
+            </div>
+            {/* Form inputs */}
+            <form onSubmit={handleSubmit} className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 overflow-y-auto" style={{ width: 'calc(100% - 24px)' }}>
+            <h2 className="text-xl font-bold ml-4 mt-4 mb-2">General Information</h2>
+              <p class="font ml-4 text-slate-600 mb-6">Configure How Discount will be shown to your players</p> 
+              <div className="ml-4 grid grid-cols-1 gap-4">
+              <div className="flex flex-col">
+                <strong>Name</strong>
+                <input
+            className="rounded-lg"
+            type="text"
+            name="name"
+            value={reservation.name}
+            onChange={handleInputChange}
+          />
+    
+      </div>
+      <div className="flex flex-col">
+                <strong>Description</strong>
+                <p class="font  text-slate-600 mb-2 mt-1">Club Discount Description</p> 
+
+                <textarea  name='description'  onChange={handleInputChange} class="w-full rounded-md border py-2 px-2 bg-gray-50 outline-none ring-blue-600 focus:ring-1 bg-white" id="description" rows="4" value={reservation.description}></textarea>
+
+    
+      </div>
+      </div>
+      <h2 className="text-xl font-bold ml-4 mt-8 mb-2">Discount Privileges</h2>
+              <p class="font ml-4 text-slate-600 mb-6">Configure Discount benefits</p> 
+              <div className="flex flex-col justify-center ">
+              <div className="self-center ">
+        <input
+          type="radio"
+          id="classes"
+          name="discountType"
+          value="classes"
+          checked={discountType === 'classes'}
+          onChange={() => setDiscountType('classes')}
+          
+        />
+                <label htmlFor="tournaments">Classes</label>
+
+        <input
+          type="radio"
+          id="tournaments"
+          name="discountType"
+          value="tournaments"
+          checked={discountType === 'tournaments'}
+          onChange={() => setDiscountType('tournaments')}
+        />
+        <label htmlFor="tournaments">Tournaments</label>
+
+        <input
+          type="radio"
+          id="courts"
+          name="discountType"
+          value="courts"
+          checked={discountType === 'courts'}
+          onChange={() => setDiscountType('courts')}
+        />
+        <label htmlFor="courts">Courts</label>
+      </div>
+
+      <div>
+        <MultiSelect
+          className="rounded-lg"
+          options={options}
+          value={selectedEntities}
+          onChange={setSelectedEntities}
+          labelledBy="Select"
+        />
+      </div>
+    </div>
+<h2 className="text-xl font-bold ml-4 mt-8 mb-2">Club Discount price</h2>
+              <p class="font ml-4 text-slate-600 mb-6">this is the price that will be charged to your club Memebers</p> 
+      <div className="ml-4 grid grid-cols-2 gap-4 mt-6">
+      <div>
+              <label htmlFor="startDate" className="font-semibold">Start Date</label>
+              <input
+                id="startDate"
+                className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
+                type="date"
+                placeholder="Enter Start Date"
+                name="startDate"
+                value={reservation.startDate}
+                onChange={handleInputChange}
+              />
+            </div>
+      <div>
+              <label htmlFor="endDate" className="font-semibold">End Date</label>
+              <input
+                id="endDate"
+                className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
+                type="date"
+                placeholder="Enter End Date"
+                name="endDate"
+                value={reservation.endDate}
+                onChange={handleInputChange}
+              />
+            </div>
+       
+            <div className="flex flex-col">
+                <strong>Price</strong>
+                <input
+className="rounded-lg"
+type="number"
+name="price"
+value={reservation.price}
+onChange={handleInputChange}
+/>
+      </div>
+   
+  <button type="submit"  className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-4">
+          Create membership
+        </button>
+              </div>
+      
+            </form>
+  
+          </div>
+  
+        </div>
+      )
+    }
+  const MatchDetails=({setShowModal,membership,setMemberships})=>{
+
+    const [reservation,setReservation]=useState(membership?membership: {price:0,frequency:'', name:'',description:'',firstTrainingDiscount:0,otherTrainingDiscount:0,courtBookingDiscount:0,tournamentDiscount:0,type:'membership',status:'enabled',consumers:0})
+  
+    
+   
+    
+    const handleInputChange = (e) => {
+      setReservation(prevReservation => ({
+        ...prevReservation,
+        [e.target.name]: e.target.value,
+      }));
+    };
+    
+    const handleSubmit = async () => {
+      try {
+       
+     await addDoc(collection(db,'Memberships'),reservation)
+        setMemberships((prev)=>[...prev,reservation])
+      
+  
+
+       
+   
+    
+      } catch (error) {
+        console.log(error);
+        console.error('Error submitting reservation:', error);
+      
+      }
+    };
+    const handleClose = () => {
+     
+      setShowModal(false);
+    
+    };
+  
+  
+  
+  
+      return    (
+        <div className="fixed inset-0 h-full flex bg-gray-600 bg-opacity-50 justify-end items-center overflow-scroll mb-10" style={{ height: '100%' }}>
+          <button onClick={handleClose} className="absolute top-0 right-0 m-3 text-gray-500 hover:text-gray-700 focus:outline-none">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+    
+          <div className="w-5/12 h-full bg-white border rounded-lg flex flex-col justify-start items-start">
+            <div className='flex'>
+              <h2 className="text-xl font-bold ml-4 mt-4 mb-6">New Membership</h2>
+              
+              <div className='ml-72'/>
+              <div className="mt-4">
+            
+              </div>
+            </div>
+            {/* Form inputs */}
+            <form onSubmit={handleSubmit} className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 overflow-y-auto" style={{ width: 'calc(100% - 24px)' }}>
+            <h2 className="text-xl font-bold ml-4 mt-4 mb-2">General Information</h2>
+              <p class="font ml-4 text-slate-600 mb-6">Configure How mebership will be shown to your players</p> 
+              <div className="ml-4 grid grid-cols-1 gap-4">
+              <div className="flex flex-col">
+                <strong>Name</strong>
+                <input
+            className="rounded-lg"
+            type="text"
+            name="name"
+            value={reservation.name}
+            onChange={handleInputChange}
+          />
+    
+      </div>
+      <div className="flex flex-col">
+                <strong>Description</strong>
+                <p class="font  text-slate-600 mb-2 mt-1">Club membership Description</p> 
+
+                <textarea  name='description'  onChange={handleInputChange} class="w-full rounded-md border py-2 px-2 bg-gray-50 outline-none ring-blue-600 focus:ring-1 bg-white" id="description" rows="4" value={reservation.description}></textarea>
+
+    
+      </div>
+      </div>
+      <h2 className="text-xl font-bold ml-4 mt-8 mb-2">Membership Privileges</h2>
+              <p class="font ml-4 text-slate-600 mb-6">Configure membership benefits</p> 
+      <div className="ml-4 grid grid-cols-2 gap-4 mt-6">
+    <div className="flex flex-col">
+
+                <strong>Discount on first training (%)</strong>
+                <input
+            className="rounded-lg"
+            type="number"
+            name="firstTrainingDiscount"
+            value={reservation.firstTrainingDiscount}
+            onChange={handleInputChange}
+          />
+    
+      </div>
+      <div className="flex flex-col">
+
+<strong>Discount on other training (%)</strong>
+<input
+className="rounded-lg"
+type="number"
+name="otherTrainingDiscount"
+value={reservation.otherTrainingDiscount}
+onChange={handleInputChange}
+/>
+
+</div>
+<div className="flex flex-col">
+
+<strong>Discount on court Booking (%)</strong>
+<input
+className="rounded-lg"
+type="number"
+name="courtBookingDiscount"
+value={reservation.courtBookingDiscount}
+onChange={handleInputChange}
+/>
+
+</div>
+<div className="flex flex-col">
+
+<strong>Discount on Tournament Booking (%)</strong>
+<input
+className="rounded-lg"
+type="number"
+name="tournamentDiscount"
+value={reservation.tournamentDiscount}
+onChange={handleInputChange}
+/>
+
+</div>
+</div>
+<h2 className="text-xl font-bold ml-4 mt-8 mb-2">Club membership price</h2>
+              <p class="font ml-4 text-slate-600 mb-6">this is the price that will be charged to your club Memebers</p> 
+      <div className="ml-4 grid grid-cols-2 gap-4 mt-6">
+      <div className="flex flex-col">
+                <strong>Price</strong>
+                <input
+className="rounded-lg"
+type="number"
+name="price"
+value={reservation.price}
+onChange={handleInputChange}
+/>
+      </div>
+      <div className="flex flex-col">
+      <strong>Payment frequency</strong>
+      <select
+        name="frequency"
+        value={reservation.frequency}
+        onChange={handleInputChange}
+        className="rounded-lg"
+      >
+    
+        <option value="monthly">
+           Monthly
+          </option>
+          <option  value="yearly">
+           Yearly
+          </option>
+      </select>
+      </div>
+
+  <button type="submit"  className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-4">
+          Create membership
+        </button>
+              </div>
+      
+            </form>
+  
+          </div>
+  
+        </div>
+      )
+    }
 const Settings=()=>{
     const [clubInformation,setClubInformation]=useState({courts:[],schedule:{},amenities:{}})
     const [clubInformationOriginal,setClubInformationOriginal]=useState({courts:[],schedule:{},amenities:{}})
+    const { exampleState, setExampleState,classes } = useAuth();
 
     useEffect(()=>{
         const getClubInfo=async()=>{
@@ -196,7 +589,31 @@ getClubInfo()
         setClubInformationOriginal(clubInformation)
         alert("Changes Commited!")
       }
+      const [selectedScreen, setSelectedScreen] = useState('Settings');
 
+      const handleScreenChange = (screen) => {
+        setSelectedScreen(screen);
+      };
+      const [showModal,setShowModal]=useState(false)
+      const [showModalDiscount,setShowModalDiscount]=useState(false)
+      const [memberships,setMemberships]=useState([])
+      useEffect(()=>{
+        const getMemberships=async()=>{
+            const ref=await getDocs(collection(db,'Memberships'))
+            const data=ref.docs.map((doc)=>({id:doc.id,...doc.data()}))
+            setMemberships(data)
+        }
+        getMemberships()
+      },[])
+      const [discounts,setDiscounts]=useState([])
+      useEffect(()=>{
+        const getMemberships=async()=>{
+            const ref=await getDocs(collection(db,'Discounts'))
+            const data=ref.docs.map((doc)=>({id:doc.id,...doc.data()}))
+            setDiscounts(data)
+        }
+        getMemberships()
+      },[])
 return(
     <>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet" />
@@ -215,14 +632,23 @@ return(
     </div>
 
     <div class="col-span-2 hidden sm:block">
-      <ul>
-        <li class="mt-5 cursor-pointer border-l-2 border-l-blue-700 px-2 py-2 font-semibold text-blue-700 transition hover:border-l-blue-700 hover:text-blue-700">Settings</li>
-        {/* <li class="mt-5 cursor-pointer border-l-2 border-transparent px-2 py-2 font-semibold transition hover:border-l-blue-700 hover:text-blue-700">Accounts</li> */}
-  
+    <ul>
+        <li
+          className={`mt-5 cursor-pointer border-l-2 ${selectedScreen === 'Settings' ? 'border-l-blue-700 text-blue-700' : 'border-transparent text-gray-700'} px-2 py-2 font-semibold transition hover:border-l-blue-700 hover:text-blue-700`}
+          onClick={() => handleScreenChange('Settings')}
+        >
+          Settings
+        </li>
+        <li
+          className={`mt-5 cursor-pointer border-l-2 ${selectedScreen === 'Memberships' ? 'border-l-blue-700 text-blue-700' : 'border-transparent text-gray-700'} px-2 py-2 font-semibold transition hover:border-l-blue-700 hover:text-blue-700`}
+          onClick={() => handleScreenChange('Memberships')}
+        >
+          Memberships & Discounts
+        </li>
       </ul>
     </div>
 
-    <div class="col-span-8 overflow-hidden rounded-xl sm:bg-gray-50 sm:px-8 sm:shadow">
+ {selectedScreen ==='Settings' && (  <div class="col-span-8 overflow-hidden rounded-xl sm:bg-gray-50 sm:px-8 sm:shadow">
       <div class="pt-4">
         <h1 class="py-2 text-2xl font-semibold">Settings</h1>
          <p class="font- text-slate-600">Court info,Description,Location,Images,Courts....</p> 
@@ -344,8 +770,109 @@ onClick={handleAddCourt}
                          </button>
                          </> )}  
 
-    </div>
+    </div>)}
+    {selectedScreen ==='Memberships' && (  <div class="col-span-8 overflow-hidden rounded-xl sm:bg-gray-50 sm:px-8 sm:shadow">
+      <div class="pt-4">
+        <h1 class="py-2 text-2xl font-semibold">Memberships & Discounts</h1>
 
+         <p class="font- text-slate-600">Add, Edit, Remove Memberships and Discounts</p> 
+  
+      </div>
+      <hr class="mt-4 mb-8" />
+      <div className="flex flex-row justify-between">
+        <p class="py-2 text-xl font-semibold">Memebership List</p>
+    
+         <button
+                 type="button"
+                className="mb-3 button-blue rounded-md mr-4 "
+            
+                onClick={()=>setShowModal(true)}
+
+              >
+                Add MemberShip
+              </button>
+              </div>
+
+
+          <table className="w-full min-w-full divide-y divide-gray-200 mt-4">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider " style={{ width: '50%' }}>
+                  Name
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                 Consumers
+                </th>
+             
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {memberships?.map(membership => (
+            
+                <tr key={membership.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">{membership.name}</td>
+               
+                  <td className="px-6 py-4 whitespace-nowrap flex-row flex ">   <div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2 self-center"></div> {membership.status}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{membership.consumers}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+
+
+      <hr class="mt-4 mb-8" />
+      <div className="flex flex-row justify-between">
+        <p class="py-2 text-xl font-semibold">Discounts List</p>
+    
+         <button
+                 type="button"
+                className="mb-3 button-blue rounded-md mr-4 "
+            
+                onClick={()=>setShowModalDiscount(true)}
+
+              >
+                AddDiscounts
+              </button>
+              </div>
+
+
+          <table className="w-full min-w-full divide-y divide-gray-200 mt-4">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider " style={{ width: '50%' }}>
+                  Name
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                 Consumers
+                </th>
+             
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {discounts?.map(discount=> (
+            
+                <tr key={discount.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">{discount.name}</td>
+               
+                  <td className="px-6 py-4 whitespace-nowrap flex-row flex ">   <div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2 self-center"></div> {discount.status}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{discount.consumers}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+      <hr class="mt-4 mb-8" />
+    {showModal &&(<MatchDetails setShowModal={setShowModal} setMemberships={setMemberships}/>)}
+    {showModalDiscount &&(<MatchDetailsDiscount setShowModal={setShowModalDiscount} setMemberships={setDiscounts} classes={classes}/>)}
+
+    </div>)}
 
   </div>
 </div>
