@@ -21,6 +21,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { X } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { useAuth } from '@/context/AuthContext';
 
 export const formatCreatedAt = (timestamp) => {
   const date = new Date(timestamp.toDate()); // Convert Firestore timestamp to JavaScript Date object
@@ -319,7 +320,7 @@ const ParticipantsHorizontalScroll = ({ participants,trainees,setClassDetails,cl
           date: currentDate,
           classRef: classDetails.id,
           payment: participant.paymentType,
-          paymentStatus:participant.paymentStatus,
+          status:participant.paymentStatus,
           paymentType:participant.paymentType,
           price: participant.Price
         });
@@ -934,7 +935,7 @@ duration: Math.floor(durationMs / (1000 * 60)),
 };
 
 
-const Item =  ({ item, onNavigate,i,setI,trainers,trainees}) => {
+const Item =  ({ item, onNavigate,i,setI,trainers,trainees,}) => {
   const [classDetails, setClassDetails]=useState(item);
   const [showDetails, setShowDetails] = useState(false);
   const courts=['Court1','Court2','Court3','Court4','Court5','Court6','Court7','Court8','Court9','Court10','Court11','Court12','Court13']
@@ -1435,12 +1436,12 @@ const Item =  ({ item, onNavigate,i,setI,trainers,trainees}) => {
 };
 
 const NewItem = ({trainers,trainees,setI,i}) => {
-  const [classes, setClasses] = useState([]);
+
   const [selectedDateTime, setSelectedDateTime] = useState([new Date()]);
   const [selectedDurations, setSelectedDurations] = useState([60]); 
   const [classDetails, setClassDetails]=useState({classTime:[{day:'Monday',startTime:'13:00',endTime:'14:00'}],participants:[],participantsuid:[]});
   const [showDetails, setShowDetails] = useState(false);
-  const courts=['Court1','Court2','Court3','Court4','Court5','Court6','Court7','Court8','Court9','Court10','Court11','Court12','Court13']
+  const {courts}=useAuth()
   const [showForm,setShowForm]=useState(false)
 const [isSubmitting,setIsSubmitting]=useState(false)
   const [showCalendar, setShowCalendar] = useState(false); // State to control calendar visibility
@@ -1616,7 +1617,7 @@ const handleSubmit = async (e) => {
     // Close modal, show success message, and update state
     handleClose();
     alert('Class Created Successfully');
-    setI(!i);
+    setI((prev)=>([...prev,classDetails]));
   } catch (error) {
     console.error('Error adding document:', error);
     alert('An error occurred. Please try again.');
@@ -1950,8 +1951,8 @@ const handlePaymentDetails = async (participants, classId) => {
                       >
                         <option value=''>choose a court</option>
                         {courts.map((court,index) => (
-                          <option key={index} value={court} >
-                            {court}
+                          <option key={index} value={court.name} >
+                            {court.name}
                           </option>
                         ))}
                       </select>
@@ -2032,130 +2033,36 @@ const handlePaymentDetails = async (participants, classId) => {
 
 
 const Dashboard = () => {
-  const [items, setItems] = useState([]);
+  const {classes,setClasses,trainers,trainees}=useAuth()
+
   const [rerender,setRerender] = useState(true);
-  const classesCollection = collection(db, "Classes");
 
-  useEffect(() => {
-    const getClasses = async () => {
-      try {
 
-        const querySnapshot = await getDocs(classesCollection);
-    
-        const promises = querySnapshot.docs.map(async (doc) => {
-          const classData = doc.data();
-          const trainerDoc = await getDoc(classData.TrainerRef);
-          const attendanceSnapshot = await getDocs(query(collection(db, `Classes/${doc.id}/attendance`),where('date','>=',(new Date()))));
-          const CanceledSnapshot = (await getDocs(collection(db, `Classes/${doc.id}/CanceledClasses`)));
-          const canceledClasses = CanceledSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          
-          const HistorySnapshot = await getDocs(query(collection(db, `Classes/${doc.id}/attendance`),where('date','<',(new Date()))));
-          const HistoryPromises = HistorySnapshot.docs.map(async (HistoryDoc) => {
-            const HistoryData = HistoryDoc.data();
-            const participants = HistoryData.Participants;
-  
-            // Merging participant details
-            const mergedParticipants = participants.map((participant) => {
-              if (Array.isArray(classData.participants)) {
-                const additionalDetail = classData.participants.find((detail) => detail.uid === participant.uid);
-                return { ...participant, ...additionalDetail };
-              } else {
-                console.error('classData.participants is not an array.');
-                return participant; // Return the participant without additional details
-              }
-            });
-       
-            return { ...HistoryData, Participants: mergedParticipants, id: HistoryDoc.id };
-          });
-   
-          const attendancePromises = attendanceSnapshot.docs.map(async (attendanceDoc) => {
-            const attendanceData = attendanceDoc.data();
-            const participants = attendanceData.Participants;
-            
-            // Merging participant details
-            const mergedParticipants = participants.map((participant) => {
-              if (Array.isArray(classData.participants)) {
-                const additionalDetail = classData.participants.find((detail) => detail.uid === participant.uid);
-                console.log("mammaia");
-                return { ...participant, ...additionalDetail };
-              } else {
-                console.error('classData.participants is not an array.');
-                return participant; // Return the participant without additional details
-              }
-            });
-       
-            return { ...attendanceData, Participants: mergedParticipants, id: attendanceDoc.id };
-          });
-  
-          const resolvedAttendance = await Promise.all(attendancePromises);
-          const resolvedHistory = await Promise.all(HistoryPromises);
-          return { ...classData, id: doc.id, trainer: trainerDoc.data(), attendance: resolvedAttendance,history:resolvedHistory,canceled:canceledClasses };
-        });
-    
-        const resolvedClasses = await Promise.all(promises);
-        console.log(resolvedClasses[0].Duration);
-        setItems(resolvedClasses);
-      } catch (error) {
-        console.error('Error fetching classes:', error);
-      }
-    };
-    getClasses()
-
-  }, [rerender]);
-  const [trainers, setTrainers] = useState([])
-  useEffect(() => {
-    const fetchTrainers = async () => {
-      const trainersCollection = collection(db, 'Trainers');
-      const querySnapshot = await getDocs(trainersCollection);
-      const trainersData = querySnapshot.docs.map((doc) => ({
-        
-        Ref: doc.ref,
-        nameandsurname: doc.data().nameandsurname,
-      }));
-     
-      setTrainers(trainersData);
-    };
-
-    fetchTrainers();
-  }, []);
-  const [trainees, setTrainees] = useState([])
-  useEffect(() => {
-    const fetchTrainers = async () => {
-      const trainersCollection = collection(db, 'Trainees');
-      const querySnapshot = await getDocs(trainersCollection);
-      const trainersData = querySnapshot.docs.map((doc) => ({
-        Ref: doc.ref,uid:doc.id,
-        ...doc.data()
-      }));
-      setTrainees(trainersData);
-    };
-
-    fetchTrainers();
-  }, []);
+ 
 
  
   const navigateToDetails = (item) => {
     // You can define your navigation logic here
     console.log("Navigate to details:", item);
   };
-console.log(items[0]);
+
   return (
     <div className="container mx-auto">
       <h1 className="text-3xl font-semibold  my-4 text-center">Class List</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
-      {items.map((item, index) => (
+      {classes.map((item, index) => (
         <Item
           key={index}
           item={item}
           onNavigate={navigateToDetails}
-          setI={setRerender}
+          setI={setClasses}
           i={rerender}
           trainers={trainers}
-          trainees={trainees}
+          trainees={trainees.map((trainee)=>({uid:trainee.id,...trainee}))}
         />
       ))}
   
-          <NewItem  trainers={trainers} trainees={trainees} setI={setRerender} i={rerender}/>
+          <NewItem  trainers={trainers}      trainees={trainees.map((trainee)=>({uid:trainee.id,...trainee}))}  setI={setClasses} i={rerender}/>
         
       </div>
     </div>

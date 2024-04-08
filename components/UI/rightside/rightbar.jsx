@@ -73,7 +73,7 @@ const Rightbar = () => {
   
         fetchData();
     }, []);
-    const [reservation,setReservation]=useState({players:[],reaccurance:0,date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'name',description:'',coachname:'coach',reaccuring:false}) 
+    const [reservation,setReservation]=useState({players:[],reaccurance:0,date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'name',description:'',coachname:'coach',reaccuring:false,discount:'0'})
 
       const [modalIsOpen, setModalIsOpen] = useState(false);
     

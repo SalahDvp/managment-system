@@ -1,6 +1,7 @@
 'use client'
 import { db } from '@/app/firebase';
 import AutosuggestComponent from '@/components/UI/Autocomplete';
+import { useAuth } from '@/context/AuthContext';
 import { Timestamp, addDoc, collection, deleteDoc, doc, getDocs, increment, query, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
@@ -8,7 +9,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import Modal from 'react-modal';
 import Switch from "react-switch";
 
-
+import { fetchCourtsAndReservations } from '@/context/AuthContext';
 export function generateRandom13DigitNumber() {
   const randomNumber = Math.floor(Math.random() * 1e13); // Generate a random 13-digit number
   return randomNumber.toString();
@@ -29,7 +30,7 @@ export const generateAvailableStartTimes = (selectedCourtName, selectedDate, mat
   }
  
   const reservations = Object.values(selectedCourt)[2];
-  console.log(reservations);
+
   // Convert selectedDate to a Date object
   const dateToCheck = new Date(selectedDate);
 
@@ -95,8 +96,10 @@ const reservedSlots = reservationsForDate.map((reservation) => {
 
   return filteredStartTimes;
 };
-export const MatchDetails=({reservationDetails,setI,i,courts,setShowModal,setReservation,trainers,trainees})=>{
+export const MatchDetails=({reservationDetails,setI,i,courts,setShowModal,setReservation,trainers,trainees,setCourts})=>{
 
+const data=useAuth()
+const discounts=data.discounts.filter((discount)=>discount.discountType==='courts')
 
 const reservation=reservationDetails?reservationDetails:{coachname:'coach',name:'name',description:'',date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],reaccuring:false,players:[],reaccurance:0} 
 const [aa,setAA]=useState()
@@ -113,7 +116,6 @@ const handleInputChange = (e) => {
     [e.target.name]: e.target.value,
   }));
 };
-
 useEffect(()=>{
   if(reservation.date && reservation.duration && reservation.courtName){
 
@@ -127,58 +129,104 @@ useEffect(()=>{
 
 },[reservation.date,reservation.duration,reservation.courtName])
 const addReservation = async (reservation, participants) => {
-  const batch = writeBatch(db);
+  try {
+    const discount = reservation.discount ? JSON.parse(reservation.discount) : null;
+    const id = generateRandom13DigitNumber();
+    const startTime = new Date(reservation.startTime);
+    const endTime = new Date(startTime.getTime() + reservation.duration * 60000);
 
-  const id = generateRandom13DigitNumber();
-  const startTime = new Date(reservation.startTime);
-  const endTime = new Date(startTime.getTime() + reservation.duration * 60000);
+    const courtRef = doc(db, 'Courts', reservation.courtName, 'Reservations', `Court1${id}`);
+    const paymentReceivedRef = collection(db, 'Club/GeneralInformation/PaymentReceived');
+    const paymentReceivedDoc = doc(paymentReceivedRef, `Court1${id}`);
 
-  const courtRef = doc(db, 'Courts', reservation.courtName, 'Reservations', `Court1${id}`);
-  batch.set(courtRef, {
-    ...reservation,
-    name: reservation.name,
-    description: reservation.description,
-    date: Timestamp.fromDate(new Date(reservation.date)),
-    endTime: Timestamp.fromDate(endTime),
-    duration: parseInt(reservation.duration, 10),
-    startTime: Timestamp.fromDate(new Date(reservation.startTime)),
-    players: participants ? participants:[],
-    status: 'not paid',
-  });
+    const batchUpdate = {
+      ...reservation,
+      name: reservation.name,
+      description: reservation.description,
+      date: Timestamp.fromDate(new Date(reservation.date)),
+      endTime: Timestamp.fromDate(endTime),
+      duration: parseInt(reservation.duration, 10),
+      startTime: Timestamp.fromDate(new Date(reservation.startTime)),
+      players: participants ? participants : [],
+      status: 'not paid',
+      price: priceMap[reservation.duration] - (priceMap[reservation.duration] * parseInt(discount?.rate || 0, 10) / 100),
+    };
 
-  const paymentReceivedRef = collection(db, 'Club/GeneralInformation/PaymentReceived');
-  const paymentReceivedDoc = doc(paymentReceivedRef, `Court1${id}`);
-  batch.set(paymentReceivedDoc, {
-    name: reservation.name,
-    description: reservation.description,
-    date: Timestamp.fromDate(new Date(reservation.date)),
-    matchRef: `Court1${id}`,
-    payment: reservation.payment,
-    price: priceMap[reservation.duration],
-    status: 'not paid',
-  });
-const a=priceMap[reservation.duration]
-  const clubInfoRef = doc(db, 'Club/GeneralInformation');
-  batch.update(clubInfoRef, {
-    totalRevenue: increment(a),
-  });
+    // Prepare batched writes
+    await setDoc(courtRef, batchUpdate);
 
-  // Commit the batched write
-  await batch.commit();
+    // Handle discounts
+    if (reservation.discount) {
+      console.log("Discount times");
+      const discountId = discount.id;
+      await updateDoc(doc(db, "Discounts", discountId), {
+        consumers: increment(1),
+      });
+    } else {
+      console.log("Discount object is missing or incomplete.");
+    }
+
+    // Handle coach payout
+    if (reservation.coachPayout) {
+      const trainerId = trainers.find((train) => train.nameandsurname === reservation.coachname)?.id;
+      if (trainerId) {
+        const trainerRef = doc(db, 'Trainers', trainerId, 'Payouts', `Court1${id}`);
+        await setDoc(doc(db, 'Club', 'GeneralInformation', 'Payouts', `Court1${id}`), {
+          amount: parseInt(reservation.coachPaid, 10),
+          date: Timestamp.fromDate(new Date(reservation.date)),
+          payment: 'unknown',
+          payoutType: 'match',
+          status: "not paid",
+          traineruid: trainerId,
+        });
+        await setDoc(trainerRef, {
+          Ref: doc(db, 'Club', 'GeneralInformation', 'Payouts', `Court1${id}`),
+          amount: parseInt(reservation.coachPaid, 10),
+          date: Timestamp.fromDate(new Date(reservation.date)),
+          payment: 'unknown',
+          description: 'match',
+          status: "not paid",
+          traineruid: trainerId,
+          type: 'match',
+        });
+      }
+    }
+
+    await setDoc(paymentReceivedDoc, {
+      name: reservation.name,
+      description: reservation.description,
+      date: Timestamp.fromDate(new Date(reservation.date)),
+      matchRef: `Court1${id}`,
+      payment: reservation.payment,
+      price: batchUpdate.price,
+      status: 'not paid',
+    });
+
+    // Update total revenue in club info
+    await updateDoc(doc(db, 'Club/GeneralInformation'), {
+      totalRevenue: increment(batchUpdate.price),
+    });
+  } catch (error) {
+    console.error("Error adding reservation:", error);
+    // Handle error or show user notification
+  }
 };
-const handleSubmit = async () => {
+const handleSubmit = async (event) => {
+  event.preventDefault();
   try {
     if(aa!=reservation){
       if (!reservation.reaccuring) {
+        
         // Execute once for non-reaccuring reservation
-        await addReservation(reservation);
-        setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:'',coachname:'',reaccuring:false,players:[],reaccurance:0})
-      //   alert('Reservation submitted successfully!');
-      // setShowModal(false);
-      // setI(!i)
+         await addReservation(reservation);
+     setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:'',coachname:'',reaccuring:false,players:[],reaccurance:0,discount:{rate:'0'}})
+       alert('Reservation submitted successfully!');
+     setShowModal(false);
+   
       }else {
 
-        // Execute for each time of reaccuration
+       
+             //   // Execute for each time of reaccuration
         const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const startDate = new Date(reservation.date);
         const selectedDayOfWeek = daysOfWeek[startDate.getDay()];
@@ -192,33 +240,33 @@ const handleSubmit = async () => {
           const endTime = new Date(starDate.getTime() + reservation.duration * 60000);
           if (currentDate.getDay() === daysOfWeek.indexOf(selectedDayOfWeek)) {
             // Add reservation for the selected day of the week and push the promise to the array
-            reservationPromises.push(addReservation({
-              ...reservation,
-              date: currentDate,
-              startTime: starDate,
-              endTime: endTime, // Adjust start time for each date
-            }));
-          }
+      console.log( parseInt(reservation.reaccurance, 10));  
+      reservationPromises.push( await addReservation({
+        ...reservation,
+        date: currentDate,
+        startTime: starDate,
+        endTime: endTime,
+      }))    
+           }
         }
       
-        // Wait for all reservations to be added
-        await Promise.all(reservationPromises);
-        setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:'',coachname:'',reaccuring:false,players:[],reaccurance:0})
-      //   alert('Reservation submitted successfully!');
-      // setShowModal(false);
-      // setI(!i)
+      //   // Wait for all reservations to be added
+ await Promise.all(reservationPromises);
+       setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:'',coachname:'',reaccuring:false,players:[],reaccurance:0,discount:{rate:'0'}})
+          alert('Reservation submitted successfully!');
+       setShowModal(false);
       }
    
 
 }
   } catch (error) {
     console.error('Error submitting reservation:', error);
-   //alert('Failed to submit reservation. Please try again.',error);
+   alert('Failed to submit reservation. Please try again.',error);
   }
 };
 
 const handleClose = () => {
-  setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',coachname:'',reaccuring:false,players:[],reaccurance:0})
+  setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',coachname:'',reaccuring:false,players:[],reaccurance:0,discount:{rate:'0'}})
   setShowModal(false);
 
 };
@@ -244,6 +292,23 @@ const handleConfirmRefund = async () => {
     })
     const gameRef = doc(db,'Courts',reservationDetails.courtName,'Reservations',reservationDetails.id);
     await deleteDoc(gameRef);
+    setCourts((prevCourts) => {
+      const updatedCourts = prevCourts.map((court) => {
+        // Check if the court's name matches the reservation's courtName
+        if (court.name === reservation.courtName) {
+          // Filter out the reservation from the court's reservations array
+          const updatedReservations = court.reservations.filter(
+            (res) => res.id !== reservation.id
+          );
+          // Update the reservations array for the current court
+          return { ...court, reservations: updatedReservations };
+        }
+        // Return the court unchanged if it's not the one we're looking for
+        return court;
+      });
+    
+      return updatedCourts;
+    });
     console.log('Game canceled successfully!');
     setShowRefundModal(false);
     setI(!i)
@@ -257,12 +322,67 @@ const handleConfirmRefund = async () => {
   // setShowRefundModal(false);
 };
 
+useEffect(() => {
+  if (reservation.discount) {
+    try {
+      const discount = JSON.parse(reservation.discount);
+      const discountedPrice =
+        priceMap[reservation.duration] -
+        (priceMap[reservation.duration] * parseInt(discount.rate, 10)) / 100;
 
+      setReservation((prevReservation) => ({
+        ...prevReservation,
+        price: discountedPrice,
+      }));
+
+      setAA((prevAA) => ({
+        ...prevAA,
+        price: discountedPrice,
+      }));
+    } catch (error) {
+      console.error('Error parsing discount JSON:', error);
+      // Handle the error as needed, e.g., set price to default value
+      setReservation((prevReservation) => ({
+        ...prevReservation,
+        price: priceMap[reservation.duration],
+      }));
+      setAA((prevAA) => ({
+        ...prevAA,
+        price: priceMap[reservation.duration],
+      }));
+    }
+  } else {
+    setReservation((prevReservation) => ({
+      ...prevReservation,
+      price: priceMap[reservation.duration],
+    }));
+    setAA((prevAA) => ({
+      ...prevAA,
+      price: priceMap[reservation.duration],
+    }));
+  }
+}, [reservation.duration,reservation.discount]);
 const cancelMatch = async () => {
   try {
     const gameRef = doc(db,'Courts',reservationDetails.courtName,'Reservations',reservationDetails.id);
     await deleteDoc(gameRef);
-    console.log('Game canceled successfully!');
+    setCourts((prevCourts) => {
+      const updatedCourts = prevCourts.map((court) => {
+        // Check if the court's name matches the reservation's courtName
+        if (court.name === reservation.courtName) {
+          // Filter out the reservation from the court's reservations array
+          const updatedReservations = court.reservations.filter(
+            (res) => res.id !== reservation.id
+          );
+          // Update the reservations array for the current court
+          return { ...court, reservations: updatedReservations };
+        }
+        // Return the court unchanged if it's not the one we're looking for
+        return court;
+      });
+    
+      return updatedCourts;
+    });
     setShowRefundModal(false);
     setI(!i)
           setShowModal(false);
@@ -302,7 +422,7 @@ const handleParticipantChange = (e,) => {
 
     </div>
     {/* Form inputs */}
-    <form onSubmit={handleSubmit} className="p-6 mt-4 border h-full rounded-lg ml-4 mr-4 mb-8 overflow-y-auto" style={{ width: 'calc(100% - 24px)' }}>
+    <div  className="p-6 mt-4 border h-full rounded-lg ml-4 mr-4 mb-8 overflow-y-auto" style={{ width: 'calc(100% - 24px)' }}>
           <div className="ml-4 grid grid-cols-2 gap-4">
           <div className="flex flex-col">
               <strong>Date</strong>
@@ -368,6 +488,31 @@ const handleParticipantChange = (e,) => {
             <strong>Select Coach</strong>
 <AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation} name={reservation.coachname} field={'coachname'}/>
   </div>
+  {reservation.coachname !== "coach" && reservation.coachname !== "" && ( <div className="flex flex-col ">
+            
+ <div className="flex flex-row justify-between">
+
+            <strong>Coach payout (per match)</strong>
+            <Switch onChange={()=>{ setReservation(prevReservation => ({
+  ...prevReservation,
+  coachPaid: !prevReservation.coachPaid,
+  
+}));
+setAA(prevReservation => ({
+  ...prevReservation,
+  coachPaid: !reservation.coachPaid,
+}));}} checked={reservation.coachPaid} />
+     </div>
+   {reservation.coachPaid &&   (<input
+        className="rounded-lg"
+        type="number"
+        name="coachPayout"
+        
+        value={reservation.coachPayout}
+        onChange={handleInputChange}
+        
+      />)}
+  </div>)}
 <div className="flex flex-col">
             <strong>Select Consumer</strong>
 <AutosuggestComponent trainers={trainees} setReservation={setReservation} reservation={reservation} name={reservation.name} field={'name'}/>
@@ -407,30 +552,33 @@ const handleParticipantChange = (e,) => {
       </option>
   </select>
   </div>
-  {/* <div className="flex flex-col">
+  <div className="flex flex-col">
             <strong>Discount</strong>
             <select
     name="discount"
-    value={reservation.discount}
+
     onChange={handleInputChange}
     className="rounded-lg"
-    required 
+   
   >
-{discounts?.map((discount)=>{
-  <option value={discount.rate}>
+      <option value="">
+        No discount
+      </option>
+{discounts.map((discount)=>(
+  <option value={JSON.stringify(discount)}>
         {discount.name}
       </option>
-})}
+))}
     
   </select>
-  </div> */}
+  </div> 
   <div className="flex flex-col">
             <strong>Price</strong>
             <input
         className="rounded-lg"
         type="text"
         name="Price"
-        value={priceMap[reservation.duration]}
+        value={reservation.price}
         readOnly
 
       />
@@ -607,77 +755,66 @@ const handleParticipantChange = (e,) => {
 </div>
         
             </div>
-            <button type="submit" className="mb-3 px-4 py-2 bg-blue-500 text-white rounded-md">Submit Reservation</button>
-        </form>
+            <button type="submit" onClick={handleSubmit} className="mb-3 px-4 py-2 bg-blue-500 text-white rounded-md">Submit Reservation</button>
+        </div>
 
       </div>
     </div>
   )
 }
 const ManageMatchesPage = () => {
+  const today = new Date();
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(today.getDate() - 30);
+
+  const [startDate, setStartDate] = useState(thirtyDaysAgo);
+  const [endDate, setEndDate] = useState(today);
 
 
   const [matches, setMatches] = useState();
   const [searchHour, setSearchHour] = useState('');
   const [showModal, setShowModal] = useState(false);
 const [originalList,setOriginalList]=useState()
-const [reservation,setReservation]=useState({players:[],reaccurance:0,date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'name',description:'',coachname:'coach',reaccuring:false}) 
-const [courts, setCourts] = useState([]);
+const [reservation,setReservation]=useState({players:[],reaccurance:0,date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'name',description:'',coachname:'coach',reaccuring:false,coachPaid:false})
+const {courts,setCourts,trainees,trainers}=useAuth()
 const [i,setI]=useState(false)
 useEffect(() => {
   const fetchCourtsAndReservations = async () => {
     try {
-      const courtsQuerySnapshot = await getDocs(collection(db, 'Courts'));
       const matches = [];
-  
-      const courtsData = await Promise.all(
-        courtsQuerySnapshot.docs.map(async (courtDoc) => {
-          const courtData = courtDoc.data();
-          const reservationsQuerySnapshot = await getDocs(collection(courtDoc.ref, 'Reservations'));
-  
-          const reservationsData = reservationsQuerySnapshot.docs.map((resDoc) => ({
-            id: resDoc.id,
-            ...resDoc.data()
-          }));
-  
-          matches.push(reservationsData);
-          return {
-            name: courtData.name,
-            reservations: reservationsData,
-          };
-        })
-      );
-  
-      // Flatten the array of arrays into a single array
+
+      courts.map(async (courtDoc) => {
+        const reservationsData = courtDoc.reservations.filter((reservation) => {
+          let reservationDate;
+          if (reservation.date instanceof Date) {
+            // Date object, no conversion needed
+            reservationDate = reservation.date;
+          } else if (reservation.date instanceof Timestamp) {
+            // Firebase Timestamp, convert to Date object
+            reservationDate = reservation.date.toDate();
+          } else {
+            // Handle other types of date representations as needed
+            reservationDate = new Date(reservation.date);
+          }
+
+          // Compare reservationDate with startDate and endDate
+          return reservationDate >= startDate && reservationDate <= endDate;
+        });
+
+        matches.push(reservationsData);
+      });
+
       const flattenedMatches = matches.flat();
-      setOriginalList(flattenedMatches)
+      setOriginalList(flattenedMatches);
       setMatches(flattenedMatches);
-      setCourts(courtsData);
     } catch (error) {
       console.error('Error fetching courts and reservations:', error);
     }
   };
 
   fetchCourtsAndReservations();
-}, [i]);
-const [trainers,setTrainers]=useState([])
-const [trainees,setTrainees]=useState([])
-useEffect(()=>{
-  const geetTrainers=async ()=>{
-    const trainersRef= await getDocs(collection(db,'Trainees'))
-    const trainersData= trainersRef.docs.map((doc)=>({id:doc.id,...doc.data()}))
-    setTrainees(trainersData)
-  }
-  geetTrainers()
-  },[])
-  useEffect(()=>{
-    const geetTrainers=async ()=>{
-      const trainersRef= await getDocs(collection(db,'Trainers'))
-      const trainersData= trainersRef.docs.map((doc)=>({id:doc.id,...doc.data()}))
-      setTrainers(trainersData)
-    }
-    geetTrainers()
-    },[])
+}, [startDate, endDate]);
+console.log(matches);
 const handleSearchChange = (event) => {
   setSearchHour(event.target.value);
   filterMatches(event.target.value);
@@ -705,7 +842,7 @@ useEffect(() => {
 
   if (reservation.date.seconds) {
     setShowModal(true); 
-    return// Set showModal to true when reservation is set
+    return
   }
 }, [reservation]); // Dependency array ensures this effect runs when reservation changes
 
@@ -718,7 +855,39 @@ const handleSetReservation = (match) => {
   return (
     <>
     <div className="container mx-auto  h-full mt-10 ">
-        <h1 className="text-3xl font-bold mb-5">Matches</h1>
+    <div className="flex items-center justify-between mb-5">
+        <h1 className="text-3xl font-bold ">Matches</h1>
+        <div className='flex flex-row self-end px-4'>
+  <div>
+   <strong className='mr-2 mt-4 mb-6'>from : </strong>
+        <DatePicker
+selected={startDate}
+onChange={(date) => setStartDate(date)}
+selectsStart
+startDate={startDate}
+endDate={endDate}
+maxDate={endDate}
+className="rounded-lg" 
+dateFormat="dd/MM/yyyy"
+/>
+  </div>
+
+  <div>
+   <strong className='ml-2 mt-4 mb-6'>to :</strong>
+<DatePicker
+selected={endDate}
+onChange={(date) => setEndDate(date)}
+selectsEnd
+startDate={startDate}
+endDate={endDate}
+minDate={startDate}
+
+className="rounded-lg ml-5" 
+dateFormat="dd/MM/yyyy"
+/>
+</div>
+</div>
+</div>
         <div className='bg-white pt-4 border rounded-lg '>
 
         
@@ -782,7 +951,7 @@ const handleSetReservation = (match) => {
         </div>
         </div>
       </div>
-      {showModal && (<MatchDetails reservationDetails={reservation} setI={setI} i={i} trainees={trainees} setShowModal={setShowModal} courts={courts} setReservation={setReservation} trainers={trainers}/>
+      {showModal && (<MatchDetails reservationDetails={reservation} setI={setI} i={i} trainees={trainees} setShowModal={setShowModal} courts={courts} setReservation={setReservation} trainers={trainers} setCourts={setCourts}/>
       )}
     </>
   );

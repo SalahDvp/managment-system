@@ -303,6 +303,7 @@ const ManageSalaryPage = () => {
 
   const [startDate, setStartDate] = useState(thirtyDaysAgo);
   const [endDate, setEndDate] = useState(today);
+  
   const [trainers,setTrainers]=useState([])
   const [status, setStatus] = useState({
     overallBalance: 0,

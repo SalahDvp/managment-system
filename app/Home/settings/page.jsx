@@ -7,7 +7,6 @@ import Switch from "react-switch";
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { MultiSelect } from "react-multi-select-component";
-
 import { useAuth} from '@/context/AuthContext';
 const TennisAmenitiesList = ({amenities,setAmenities}) => {
     
@@ -164,7 +163,8 @@ const LaneSchedule = ({schedule,setSchedule}) => {
        const discountData={
         ...reservation,
         discountType: discountType,
-        uid: selectedEntities.map((doc) => doc.value.id), // Extract only the 'id' values
+        uid: selectedEntities.map((doc) => doc.value.id),
+        rate:parseInt(reservation.rate,10) // Extract only the 'id' values
       }
         await addDoc(collection(db, 'Discounts'),discountData);
         setMemberships((prev)=>[...prev,discountData])
@@ -198,7 +198,7 @@ const LaneSchedule = ({schedule,setSchedule}) => {
     
           <div className="w-5/12 h-full bg-white border rounded-lg flex flex-col justify-start items-start">
             <div className='flex'>
-              <h2 className="text-xl font-bold ml-4 mt-4 mb-6">New Membership</h2>
+              <h2 className="text-xl font-bold ml-4 mt-4 mb-6">New Discount</h2>
               
               <div className='ml-72'/>
               <div className="mt-4">
@@ -274,6 +274,16 @@ const LaneSchedule = ({schedule,setSchedule}) => {
           onChange={setSelectedEntities}
           labelledBy="Select"
         />
+      </div>
+      <div className="flex flex-col">
+                <strong>discount rate</strong>
+                <input
+className="rounded-lg"
+type="number"
+name="discount"
+value={reservation.discount}
+onChange={handleInputChange}
+/>
       </div>
     </div>
 <h2 className="text-xl font-bold ml-4 mt-8 mb-2">Club Discount price</h2>
@@ -377,7 +387,8 @@ onChange={handleInputChange}
     
     };
   
-  
+
+
   
   
       return    (
@@ -537,7 +548,7 @@ const sortedSchedule = Object.fromEntries(
   );
   
   // Update clubInformation with the sorted schedule and other data
-  setClubInformation({ ...clubinfoData.data(), schedule: sortedSchedule });
+  setClubInformation({ ...clubinfoData.data(), schedule: sortedSchedule, });
           setClubInformationOriginal({ ...clubinfoData.data(), schedule: sortedSchedule });
         }
 getClubInfo()
@@ -587,6 +598,29 @@ getClubInfo()
           [e.target.name]: e.target.value,
         }));
       };
+      const writeAmenitiesToFirestore = async (amenitiesList) => {
+        try {
+          const amenitiesRef = doc(db, 'Club','GeneralInformation');
+      
+          const schedule = {
+            Mon: { open: true, from: "07:00", to: "20:00" },
+            Tue: { open: true, from: "07:00", to: "20:00" },
+            Wed: { open: true, from: "07:00", to: "20:00" },
+            Thu: { open: true, from: "07:00", to: "20:00" },
+            Fri: { open: true, from: "07:00", to: "20:00" },
+            Sat: { open: true, from: "07:00", to: "20:00" },
+            Sun: { open: true, from: "07:00", to: "20:00" },
+          };
+      
+          // Write the amenities data to Firestore
+          await updateDoc(amenitiesRef, {schedule:schedule});
+      
+          console.log('Amenities successfully written to Firestore!');
+        } catch (error) {
+          console.error('Error writing amenities to Firestore:', error);
+        }
+      };
+      
       const amenities = {
         "Outdoor tennis courts": { selected: true },
         "Indoor tennis courts": { selected: false },
@@ -613,7 +647,7 @@ getClubInfo()
 
       const [showModal,setShowModal]=useState(false)
       const [showModalDiscount,setShowModalDiscount]=useState(false)
- 
+ console.log();
 return(
     <>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet" />

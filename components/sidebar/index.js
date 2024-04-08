@@ -80,7 +80,7 @@ const Sidebar = () => {
 
     <div className="fixed top-0 left-0 min-h-screen w-64 bg-white shadow-lg  p-4">
       <div className="flex flex-col space-y-10 w-full">
-        <img className="h-50 w-fit" src="/logo-expanded.png" alt="Logo" />
+     <img className="h-50 w-fit" src="/logo-expanded.png" alt="Logo" /> 
         <div className="flex flex-col space-y-2">
           {items.map((item, index) => (
             <SidebarItem key={index} item={item} />
