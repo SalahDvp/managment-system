@@ -100,7 +100,7 @@ export const MatchDetails=({reservationDetails,setI,i,courts,setShowModal,setRes
 
 const data=useAuth()
 const discounts=data.discounts.filter((discount)=>discount.discountType==='courts')
-
+const memberships=data.memberships
 const reservation=reservationDetails?reservationDetails:{coachname:'coach',name:'name',description:'',date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],reaccuring:false,players:[],reaccurance:0} 
 const [aa,setAA]=useState()
 
@@ -128,6 +128,7 @@ useEffect(()=>{
   }
 
 },[reservation.date,reservation.duration,reservation.courtName])
+
 const addReservation = async (reservation, participants) => {
   try {
     const discount = reservation.discount ? JSON.parse(reservation.discount) : null;
@@ -150,6 +151,7 @@ const addReservation = async (reservation, participants) => {
       players: participants ? participants : [],
       status: 'not paid',
       price: priceMap[reservation.duration] - (priceMap[reservation.duration] * parseInt(discount?.rate || 0, 10) / 100),
+      discount:discount!= null? discount.name:false
     };
 
     // Prepare batched writes
@@ -196,7 +198,7 @@ const addReservation = async (reservation, participants) => {
       name: reservation.name,
       description: reservation.description,
       date: Timestamp.fromDate(new Date(reservation.date)),
-      matchRef: `Court1${id}`,
+      matchRef: courtRef,
       payment: reservation.payment,
       price: batchUpdate.price,
       status: 'not paid',
@@ -321,47 +323,46 @@ const handleConfirmRefund = async () => {
 
   // setShowRefundModal(false);
 };
-
 useEffect(() => {
-  if (reservation.discount) {
-    try {
-      const discount = JSON.parse(reservation.discount);
-      const discountedPrice =
-        priceMap[reservation.duration] -
-        (priceMap[reservation.duration] * parseInt(discount.rate, 10)) / 100;
+  const priceBeforeDiscount =priceMap[reservation.duration]
+  const discountRate = reservation.discount?parseInt(JSON.parse(reservation.discount).rate , 10) : 0; // Assuming a 20% discount
 
-      setReservation((prevReservation) => ({
-        ...prevReservation,
-        price: discountedPrice,
-      }));
+  // Calculate the discount amount
+  const discountAmount = (priceBeforeDiscount * discountRate) / 100;
 
-      setAA((prevAA) => ({
-        ...prevAA,
-        price: discountedPrice,
-      }));
-    } catch (error) {
-      console.error('Error parsing discount JSON:', error);
-      // Handle the error as needed, e.g., set price to default value
-      setReservation((prevReservation) => ({
-        ...prevReservation,
-        price: priceMap[reservation.duration],
-      }));
-      setAA((prevAA) => ({
-        ...prevAA,
-        price: priceMap[reservation.duration],
-      }));
+  // Apply the discount to get the final price
+  let finalPrice = priceBeforeDiscount - discountAmount;
+
+  // Check if the user is a member
+
+    // Find the membership with the same ID as membership.id
+    const traineeName = reservation.name;
+    const matchingTrainee = trainees.find((trainee) => trainee.nameandsurname === traineeName);
+    console.log("wqeewewqqwename",matchingTrainee);
+    if (matchingTrainee && matchingTrainee.membership) {
+    const membershipId = matchingTrainee?.membership?.membershipId;
+    const membership = memberships.find((m) => m.id === membershipId);
+
+    if (membership) {
+      // Check if the user's classes array is empty
+        const firstClassDiscountRate = parseInt(membership.courtBookingDiscount,10);
+        const firstClassDiscountAmount = (finalPrice * firstClassDiscountRate) / 100;
+        finalPrice -= firstClassDiscountAmount;
+      
     }
-  } else {
-    setReservation((prevReservation) => ({
-      ...prevReservation,
-      price: priceMap[reservation.duration],
-    }));
-    setAA((prevAA) => ({
-      ...prevAA,
-      price: priceMap[reservation.duration],
-    }));
   }
-}, [reservation.duration,reservation.discount]);
+
+  setReservation((prevReservation) => ({
+    ...prevReservation,
+    price: finalPrice,
+  }));
+
+  setAA((prevAA) => ({
+    ...prevAA,
+    price: finalPrice,
+  }));
+}, [reservation.duration,reservation.discount,reservation.name]);
+
 const cancelMatch = async () => {
   try {
     const gameRef = doc(db,'Courts',reservationDetails.courtName,'Reservations',reservationDetails.id);

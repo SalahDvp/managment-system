@@ -5,7 +5,8 @@ import {
   collection,
   getDocs,
   addDoc,
-  updateDoc, doc,query,where, arrayUnion,orderBy,onSnapshot, Timestamp, setDoc, writeBatch, getDoc
+  updateDoc, doc,query,where, arrayUnion,orderBy,onSnapshot, Timestamp, setDoc, writeBatch, getDoc,
+  increment
   
 } from 'firebase/firestore';7
 import { auth } from '@/app/firebase';
@@ -23,6 +24,23 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import AttendanceRateChart from './AttendanceChart';
 import { getFunctions,httpsCallable } from 'firebase/functions';
 import { formatCreatedAt } from '../classes/page';
+import { useAuth } from '@/context/AuthContext';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+const getStatusColorClass = (status) => {
+  switch (status) {
+    case "paid":
+      return "bg-green-200 text-green-800";
+    case "not paid":
+      return "bg-orange-200 text-orange-800";
+  
+    default:
+      return "bg-gray-200 text-gray-800";
+  }
+
+};
+
+
 const ChatScreen = ({coachDetails}) => {
  
   const [messages, setMessages] = useState([]);
@@ -177,9 +195,287 @@ const ChatScreen = ({coachDetails}) => {
   
     );
   };
-  const NewCoach=({toggleDetailsmake,setI,i})=>{
+  const ParticipantsHorizontalScroll = ({memberships,setCoachDetails,traineeMemberships}) => {
+  const [showModal,setShowModal]=useState(false)
+  const [newMembership,setNewMembership]=useState({startDate:new Date(),endDate:new Date(),frequency:'monthly',quantity:1,price:0})
+  const [selectedMemberships,setSelectedMemberships]=useState(traineeMemberships?traineeMemberships:[])
+ const handlesave=()=>{
+  setSelectedMemberships((prev)=>[...prev,newMembership])
+  setCoachDetails((prevDetails) => ({
+    ...prevDetails,
+    memberships: [...prevDetails.memberships, newMembership],
+  }));
+  setNewMembership({startDate:new Date(),endDate:new Date(),frequency:'monthly',quantity:1,price:0})
+  setShowModal(false)
+ }
+ const calculateEndDate = (startDate, frequency, quantity) => {
+  if (quantity === 0) {
+    return new Date(startDate); // Return the start date if quantity is 0
+  }
 
-  const [coachDetails,setCoachDetails]=useState()
+  let endDate = new Date(startDate); // Create a new date object from the start date
+
+  if (frequency === 'monthly') {
+    endDate.setMonth(endDate.getMonth() + parseInt(quantity,10))
+  }
+   else if (frequency === 'yearly') {
+    endDate.setFullYear(endDate.getFullYear() + parseInt(quantity,10)); // Add the specified number of years
+ }
+
+  return endDate;
+};
+
+
+useEffect(()=>{
+  setNewMembership((prev) => 
+  ({ ...prev,
+  endDate:calculateEndDate(newMembership.startDate, newMembership.frequency, newMembership.quantity)}))
+  console.log(calculateEndDate(newMembership.startDate, newMembership.frequency, newMembership.quantity));
+},[newMembership.startDate,newMembership.quantity,newMembership.price])
+
+    return (          
+      
+      <div className='p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 w-full relative' style={{ width: 'calc(100% - 24px)' }}>
+          <h3 className="text-lg font-bold ml-4 mb-2">Memberships</h3>
+ 
+  {!showModal && (<button
+  className="absolute top-2 right-2 button-white px-2 py-2 rounded" 
+    onClick={() => setShowModal(true)}
+  >
+    Add Membership
+  </button>)
+  }
+  
+            <table className="w-full divide-y divide-gray-200 ">
+            <thead className="bg-gray-50">
+              <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                  name
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                type
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                  quantity
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                 status
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                 Total Amount
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                 payment
+                </th>
+               
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                  start Date
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                  Expiry Date
+                </th>
+            
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+            {selectedMemberships.map((participant,index) => (
+                <tr key={participant.id}>
+                  <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.frequency}</td>
+                  <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.quantity}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center ">  
+           <select
+      name="status"
+      value={participant.status}
+      onChange={(e) => {
+        const { name, value } = e.target;
+        setSelectedMemberships((prev) =>
+          prev.map((part, idx) =>
+            idx === index ? { ...part, [name]: value } : part
+          )
+        );
+      }}
+      id='cssassas'
+      className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(participant.status)}`}
+    >
+      <option value="">Status</option>
+      <option value="paid">Paid</option>
+      <option value="not paud">Not Paid</option>
+  
+    </select></td>
+                  <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.quantity*participant.price}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center ">  
+           <select
+      name="payment"
+      value={participant.payment}
+      onChange={(e) => {
+        const { name, value } = e.target;
+        setSelectedMemberships((prev) =>
+          prev.map((part, idx) =>
+            idx === index ? { ...part, [name]: value } : part
+          )
+        );
+      }}
+      id='cssassas'
+      className={`rounded-lg w-full px-3 py-2 border`}
+      disabled={!participant.status==="paid"}
+    >
+      <option value="">unknown</option>
+      <option value="bank">Bank</option>
+      <option value="cash">Cash</option>
+  
+  
+    </select></td>
+                  <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>
+         
+                {participant.startDate.toDate ? participant.startDate.toDate().toLocaleDateString() : participant.startDate.toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>     {participant.endDate.toDate ? participant.endDate.toDate().toLocaleDateString() : participant.endDate.toLocaleDateString()}</td>
+         
+
+                </tr>
+              ))}
+            </tbody>
+            {showModal && (
+      <tr className="">
+        < td className="px-3 py-4 whitespace-nowrap">
+     <select
+      className="px-3 py-2 border rounded-md w-full sm:w-auto"
+      style={{ width: '70px' }} 
+      value={newMembership.name}
+      onChange={(e) => { 
+        const selectedParticipant = JSON.parse(e.target.value);
+        console.log(newMembership);
+        setNewMembership((prev) => ({
+          ...prev,
+          name: selectedParticipant.name,
+          id: selectedParticipant.id,
+       frequency:selectedParticipant.frequency,
+       price:parseInt(selectedParticipant.price,10)
+        }));
+      }}
+  
+  
+    >
+            <option value="">Select Membership</option>
+  {memberships.map((participant)=>(
+      
+  <option value={JSON.stringify(participant)}>{participant.name}</option>
+  
+  ))}
+    
+    </select>
+    </ td>
+    < td className="px-3 py-4 whitespace-nowrap">{newMembership.frequency}</td>
+    < td className="px-3 py-4 whitespace-nowrap"> 
+     <input
+      type="number"
+      placeholder="1"
+      name="quantity"
+      className="px-3 py-2 border rounded-md w-full sm:w-auto"
+      style={{ width: '70px' }} 
+      onChange={(e) => { 
+        setNewMembership((prev) => ({
+          ...prev,
+          [e.target.name]:e.target.value
+        }));
+      }}
+  
+      value={newMembership.quantity}
+    /></ td>
+    <td className="px-6 py-4 whitespace-nowrap text-center ">  
+           <select
+      name="status"
+      onChange={(e) => { 
+        setNewMembership((prev) => ({
+          ...prev,
+          [e.target.name]:e.target.value
+        }));
+      }}
+      id='cssassas'
+      className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(newMembership.status)}`}
+    >
+      <option value="">Status</option>
+      <option value="paid">Paid</option>
+      <option value="not paud">Not Paid</option>
+  
+    </select></td>
+    <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{newMembership.price*newMembership.quantity}</td>
+    < td className="px-3 py-4 whitespace-nowrap">
+        <select
+    className="px-3 py-2 border rounded-md w-full sm:w-auto"
+    style={{ width: '70px' }} 
+  
+    name='payment'
+    onChange={(e) => { 
+      setNewMembership((prev) => ({
+        ...prev,
+        [e.target.name]:e.target.value
+      }));
+    }}
+  
+      disabled={newMembership.status!='paid'}
+    >
+      <option value="" disabled hidden>Select Payemnt</option>
+      <option value="bank">Bank</option>
+      <option value="cash">Cash</option>
+      {/* Add more options as needed */}
+    </select></ td>
+    <td className="px-3 py-4 whitespace-nowrap">
+          <DatePicker
+          id="date"
+          selected={newMembership.startDate}
+          onChange={(date) => setNewMembership((prev) => ({ ...prev, startDate: date,}))} // Update the 'date' field in newPlayerDetails
+      
+          dateFormat="dd-MM-yyyy" // Specify the date format
+          className="rounded-lg w-full px-3 py-2 border-none"
+          
+          placeholderText="Date"
+        />
+          </td>
+          <td className="px-3 py-4 whitespace-nowrap">
+          <DatePicker
+          id="date"
+          selected={newMembership.endDate}
+// Update the 'date' field in newPlayerDetails
+      disabled={true}
+          dateFormat="dd-MM-yyyy" // Specify the date format
+          className="rounded-lg w-full px-3 py-2 border-none"
+          
+          placeholderText="Date"
+        />
+          </td>
+          
+  </tr>
+  )}        </table>   
+     {showModal && (
+
+    <div className='flex flex-row'>
+     <button
+     onClick={handlesave}
+  className="button-blue mr-2"
+  >
+  Save
+  </button>
+  <button
+  onClick={() => {
+    setShowModal(!showModal);
+    console.log("gwefwe");
+  }}
+  className="button-red"
+>
+  Cancel
+</button>
+  
+  </div>
+  )}
+       
+      </div>
+    );
+  };
+  const NewCoach=({toggleDetailsmake,setI,i,memberships})=>{
+
+  const [coachDetails,setCoachDetails]=useState({memberships:[]})
 const[classes,setClasses]=useState()
   const [documents,setDocuments]=useState([])
   const [image,setImage]=useState([])
@@ -258,7 +554,58 @@ console.log(name);
   
 
   };
+  const createMembershipsSubcollection = async (docRef) => {
+    try {
 
+  if(coachDetails.memberships.length>0){
+    for (const membership of coachDetails.memberships) {
+
+  
+       
+      const membershipRef = collection(docRef, 'Memberships');
+      await addDoc(membershipRef, membership);
+await updateDoc(doc(db,'Memberships',membership.id),{
+  consumers:increment(1)
+})
+
+if(membership.status==="paid"){
+  await addDoc(collection(db,'Club','GeneralInformation','PaymentReceived'), {
+    name: coachDetails.nameandsurname,
+    description:`Membership`,
+    date: Timestamp.fromDate(new Date()),
+    membershipRef: membership.id,
+    payment: membership.payment,
+    price: parseInt(membership.price*membership.quantity,10),
+    status: 'not paid',
+  });
+
+  // Update total revenue in club info
+  await updateDoc(doc(db, 'Club/GeneralInformation'), {
+    totalRevenue: increment(parseInt(membership.price*membership.quantity,10)),
+  });
+}
+    }
+    
+      
+    await updateDoc(docRef,{
+        membership:{active:true,membershipId:coachDetails.memberships[coachDetails.memberships.length-1].id}
+      })
+    
+
+
+  }else{
+    
+    await updateDoc(docRef,{
+      membership:{active:false,membershipId:coachDetails.memberships[coachDetails.memberships.length-1].id}
+    })
+  }
+      // Loop through coachDetails.memberships
+  
+    } catch (error) {
+      console.error('Error creating memberships subcollection:', error);
+    }
+  };
+  console.log("memer",coachDetails.memberships);
   const createAccountAndSaveData = async () => {
 
     try {
@@ -286,11 +633,13 @@ console.log(name);
           const downloadURL = await getDownloadURL(ref(storage, `Trainees/${authUser.uid}/documents/${file.name}`));
           urls.push({ name: file.name, pdf: downloadURL });
         }
-    
+        const updatedetails={...coachDetails}
+        delete updatedetails.memberships
         const docRef = doc(db, 'Trainees', authUser.uid);
-        await setDoc(docRef, coachDetails);
+        await setDoc(docRef, updatedetails);
         await updateDoc(docRef, { Documents: urls, uid: authUser.uid });
         await addUserToClasses(selectedClasses,authUser.uid,coachDetails.nameandsurname)
+        await createMembershipsSubcollection(docRef)
         setI(!i)
         toggleDetailsmake()
         console.log('Account created and data saved successfully.');
@@ -332,7 +681,8 @@ console.log(name);
     // Set the updated fees array
     setSelectedClasses(prevFees);
   };
-  console.log(selectedClasses);
+
+  
   return (
     <div className={`flex bg-white p-1 mb-1 rounded-lg items-center border-b border-gray-400`}>
 <div className="fixed inset-0 flex bg-gray-600 bg-opacity-50 justify-end items-center h-full overflow-auto" style={{ height: 'calc(100% )' }}>
@@ -503,6 +853,8 @@ console.log(name);
   </div>
   </div>
 
+<ParticipantsHorizontalScroll memberships={memberships} setCoachDetails={setCoachDetails}/>
+
   <h3 className="text-lg font-bold ml-4 mb-2">Documents</h3>
   <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 w-full"style={{ width: 'calc(100% - 24px)' }}>
   {documents.length===0?(
@@ -577,7 +929,7 @@ console.log(name);
     </div>
   );
   }
-const CoachItem = ({ coach,setI,i }) => {
+const CoachItem = ({ coach,setI,i,memberships }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showDetailsedit, setShowDetailsedit] = useState(false);
   const [coachDetails,setCoachDetails]=useState(coach)
@@ -713,13 +1065,70 @@ const handleInputChange = (e)=> {
     setIsSubmitting(true);
     if (previous !== coachDetails) {
       try {
-        // Update the document in Firebase with classDetails
-        await updateDoc(doc(db, 'Trainees', coachDetails.id), coachDetails);
+        const aa={...coachDetails}
+      delete aa.memberships
+        await updateDoc(doc(db, 'Trainees', coachDetails.id), aa);
         // If the update is successful, setIsSubmitting(false);
-        alert('Changes Submitted.');
+      
+        if(previous.memberships !== coachDetails.memberships){
+     console.log(previous.memberships);
+        // Find memberships in coachDetails that are not in previous.memberships
+        const newMemberships = coachDetails.memberships.filter((newMembership) => {
+          // Check if the new membership is not in previous.memberships
+          return !previous.memberships.some((prevMembership) => {
+            // Compare memberships based on unique identifier (e.g., id)
+            return newMembership.id === prevMembership.id;
+          });
+        });
+
+        console.log("new",newMemberships);
+      
+        if(newMemberships.length>0){
+          for (const membership of newMemberships ) {
+      
+        
+             
+            const membershipRef = collection(doc(db, 'Trainees', coachDetails.id), 'Memberships');
+            await addDoc(membershipRef, membership);
+      await updateDoc(doc(db,'Memberships',membership.id),{
+        consumers:increment(1)
+      })
+      
+      if(membership.status==="paid"){
+        await addDoc(collection(db,'Club','GeneralInformation','PaymentReceived'), {
+          name: coachDetails.nameandsurname,
+          description:`Membership`,
+          date: Timestamp.fromDate(new Date()),
+          membershipRef: membership.id,
+          payment: membership.payment,
+          price: parseInt(membership.price*membership.quantity,10),
+          status: 'not paid',
+        });
+      
+        // Update total revenue in club info
+        await updateDoc(doc(db, 'Club/GeneralInformation'), {
+          totalRevenue: increment(parseInt(membership.price*membership.quantity,10)),
+        });
+      }
+          }
+          
+            
+          await updateDoc(docRef,{
+              membership:{active:true,membershipId:coachDetails.memberships[coachDetails.memberships.length-1].id}
+            })
+        }else{
+await updateDoc(docRef,{
+            membership:{active:false,membershipId:coachDetails.memberships[coachDetails.memberships.length-1].id}
+          })
+        }
+      
+        
+         
+      }
         setIsSubmitting(false);
         setI(!i)
         toggleDetailsedit()
+        alert('Changes Submitted.');
       } catch (error) {
         console.error('Error updating document:', error);
         setIsSubmitting(false);
@@ -897,6 +1306,8 @@ const handleInputChange = (e)=> {
     </div>
   </div>
   </div>
+  <ParticipantsHorizontalScroll memberships={memberships} setCoachDetails={setCoachDetails} traineeMemberships={coachDetails.memberships}/>
+
   <h3 className="text-lg font-bold ml-4 mb-2">Documents</h3>
     <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 w-full"style={{ width: 'calc(100% - 24px)' }}>
           
@@ -1018,15 +1429,28 @@ const IndexPage = () => {
       const coachesCollectionRef = collection(db, 'Trainees');
       try {
         const querySnapshot = await getDocs(coachesCollectionRef);
-        const coachesData = querySnapshot.docs.map(doc => {return{...doc.data(),id:doc.id,Ref:doc.ref}});
+        const coachesData = await Promise.all(querySnapshot.docs.map(async (doc) => {
+          const membershipsCollectionRef = collection(doc.ref, 'Memberships');
+          const membershipsQuerySnapshot = await getDocs(membershipsCollectionRef);
+          const membershipsData = membershipsQuerySnapshot.docs.map(membershipDoc => ({
+            id: membershipDoc.id,
+            ...membershipDoc.data()
+          }));
+          return {
+            ...doc.data(),
+            id: doc.id,
+            Ref: doc.ref,
+            memberships: membershipsData
+          };
+        }));
         setCoaches(coachesData);
       } catch (error) {
         console.error('Error fetching coaches:', error);
       }
     };
-
+  
     fetchCoaches();
-  }, [i]);
+  }, []);
 
   
   useEffect(() => {
@@ -1118,6 +1542,7 @@ const [makeCoash, setmakeCoash] = useState(false);
       setmakeCoash(!makeCoash);
     };
 
+const {memberships}=useAuth()
 
 
 
@@ -1183,7 +1608,7 @@ const [makeCoash, setmakeCoash] = useState(false);
 
 
 
- {makeCoash &&(<NewCoach toggleDetailsmake={toggleDetailsmake} setI={setI} i={i}/>)}
+ {makeCoash &&(<NewCoach toggleDetailsmake={toggleDetailsmake} setI={setI} i={i} memberships={memberships}/>)}
 
  
       {/* Coach list */}
@@ -1199,7 +1624,7 @@ const [makeCoash, setmakeCoash] = useState(false);
        {/* Coach list */}
        {/* Iterate over coaches and render each */}
        {filteredCoaches2.map(coach => (
-  <CoachItem key={coach.uid} coach={coach} setI={setI} i={i}/> // Pass coach data to CoachItem
+  <CoachItem key={coach.uid} coach={coach} setI={setI} i={i} memberships={memberships}/> // Pass coach data to CoachItem
 ))}
       
      </div> 

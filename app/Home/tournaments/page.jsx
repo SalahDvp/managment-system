@@ -3,12 +3,14 @@
 import { v4 as uuidv4 } from 'uuid';
 import React, { useState,useEffect, useRef } from 'react';
 import { db } from '@/app/firebase';
-import { Timestamp, addDoc, collection, doc, getDocs, onSnapshot, orderBy, query, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { Timestamp, addDoc, collection, doc, getDocs, increment, onSnapshot, orderBy, query, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useAuth } from '@/context/AuthContext';
+import AutosuggestComponent from '@/components/UI/Autocomplete';
 // Function to create teams based on tournament type
 function createTeams(players, tournamentType) {
   if (tournamentType === 'single') {
@@ -883,9 +885,12 @@ export function getStatusColorClass(status) {
     }
   }
 
-const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetails }) => {
+const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetails,price,ID }) => {
     const [searchTerm, setSearchTerm] = useState('');
-
+    const data=useAuth()
+    const discounts=data.discounts.filter((discount)=>discount.discountType==='tournaments')
+    const memberships=data.memberships
+    const trainees=data.trainees.filter((trainee)=>trainee.id!=playersData.uid)
     const [showAddRow, setShowAddRow] = useState(false);
     const [newPlayerDetails, setNewPlayerDetails] = useState({
       name: '',
@@ -896,7 +901,8 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
       enrollmentTime: '',
       uid:generateRandomUid(20)
     });
-
+    const [selectedPlayers,setSelectedPlayers]=useState(playersData)
+  
   
     const handleAddRow = () => {
       setShowAddRow(true);
@@ -916,7 +922,7 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
     };
   
     const handleSavePlayer = () => {
-      handleAddPlayer(newPlayerDetails);
+ setSelectedPlayers((prev)=>([...prev,newPlayerDetails]))
       setShowAddRow(false);
       setNewPlayerDetails({
         name: '',
@@ -928,7 +934,44 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
         uid:generateRandomUid(20)
       });
     };
+
+    useEffect(() => {
+      const priceBeforeDiscount =parseInt(price,10)
+      const discountRate = newPlayerDetails.discount?parseInt(newPlayerDetails.discount.rate , 10) : 0; // Assuming a 20% discount
+    
+      // Calculate the discount amount
+      const discountAmount = (priceBeforeDiscount * discountRate) / 100;
+    
+      // Apply the discount to get the final price
+      let finalPrice = priceBeforeDiscount - discountAmount;
+    
+      // Check if the user is a member
+    
+        // Find the membership with the same ID as membership.id
+        const traineeName = newPlayerDetails.name;
+        const matchingTrainee = trainees.find((trainee) => trainee.nameandsurname === traineeName);
+        
+        if (matchingTrainee && matchingTrainee.membership) {
+        const membershipId = matchingTrainee?.membership?.membershipId;
+        const membership = memberships.find((m) => m.id === membershipId);
+    
+        if (membership) {
+          // Check if the user's classes array is empty
+            const firstClassDiscountRate = parseInt(membership.tournamentDiscount,10);
+            const firstClassDiscountAmount = (finalPrice * firstClassDiscountRate) / 100;
+            finalPrice -= firstClassDiscountAmount;
+          
+        }
+      }
   
+      setNewPlayerDetails((prevReservation) => ({
+        ...prevReservation,
+        price: finalPrice,
+        ...(matchingTrainee && { uid: matchingTrainee.id }),
+        ...(matchingTrainee && matchingTrainee.membership && {  membership:matchingTrainee.membership, }),  // Add uid only if matchingTrainee exists
+      }));
+
+    }, [newPlayerDetails.discount,newPlayerDetails.name]);
     const handleChange = (e) => {
       const { name, value } = e.target;
       setNewPlayerDetails((prevDetails) => ({
@@ -936,9 +979,89 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
         [name]: value,
       }));
     };
-  
+    async function updateOthers() {
+
+
+      // Check for new participants
+      const newParticipants = selectedPlayers.filter(
+        (participant) =>
+          !playersData.some(
+            (prevParticipant) => prevParticipant.uid === participant.uid
+          )
+      );
+      if (newParticipants.length > 0) {
+        const currentDate = new Date();
+        let total = 0;
+        const paymentReceivedPromises = [];
+      
+         newParticipants.forEach((participant) => {
+    
+          const paymentReceivedRef = collection(
+            db,
+            "Club/GeneralInformation/PaymentReceived"
+          ); // Generate a new document ID
+      
+          const paymentReceivedPromise = addDoc(paymentReceivedRef, {
+            uid: participant.uid,
+            date: currentDate,
+            tournamentRef: doc(db, "Classes", ID),
+            payment: participant.payment,
+            status: participant.status,
+            paymentType: participant.payment,
+            price: participant.price, 
+            description: null,
+          });
+      
+          paymentReceivedPromises.push(paymentReceivedPromise);
+      
+          total += participant.Price;
+      
+          if (participant.discount) {
+            const discountId = participant.discount.id;
+            paymentReceivedPromises.push(
+              updateDoc(doc(db, "Discounts", discountId), {
+                consumers: increment(1),
+              })
+            );
+          } else {
+            console.log("Discount object is missing or incomplete.");
+          }
+          handleAddPlayer(participant)
+        });
+      
+        await Promise.all(paymentReceivedPromises);
+      
+        await updateDoc(doc(db, "Club", "GeneralInformation"), {
+          totalRevenue: increment(total),
+        });
+   
+      }
+      
+   
+      
+      await updateDoc(doc(db, "Competitions", ID), {
+        participants: selectedPlayers.map((player) => ({
+          ...player,
+          discount: player.discount != null
+            ? { name: player.discount.name, rate: player.discount.rate }
+            : null,
+        })),
+        participantsuid: selectedPlayers.map((p) => p.uid),
+      });
+      
+
+    }
     return (
         <div className="border rounded-lg p-4 w-full mb-8 relative">
+           {!showAddRow && (
+        <button
+          className="absolute top-0 right-0 button-white px-2 py-2 rounded"
+          style={{ top: "-50px", right: "-10px" }}
+          onClick={() => setShowAddRow(true)}
+        >
+          Add Player
+        </button>
+      )}
         <h2 className="text-lg font-semibold mb-2">List of Players</h2>
  
         <table className="w-full min-w-full divide-y divide-gray-200">
@@ -948,7 +1071,8 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
-
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Type</th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discount</th>
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enrollment Time</th>
          
           </tr>
@@ -956,15 +1080,15 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
         <tbody className="bg-white divide-y divide-gray-200">
                       
                  
-          {playersData.map((player,index) => (
+          {selectedPlayers.map((player,index) => (
             <tr key={player.id} >
          <td className="px-6 py-4 whitespace-nowrap">{player.name}</td>
          <td className="px-6 py-4 whitespace-nowrap">{player.level}</td>
          <td className="px-6 py-4 whitespace-nowrap">{player.gender}</td>
          <td className="px-3 py-4 whitespace-nowrap">
   <select
-    name="payment"
-    value={player.payment}
+    name="status"
+    value={player.status}
     onChange={(e) => {
         const { name, value } = e.target;
         setTournamentDetails((prev) => ({
@@ -983,9 +1107,17 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
     <option value="unknown">Unknown</option>
 
   </select>
-</td>
 
-  
+</td>
+    <td className="px-6 py-4 whitespace-nowrap">{player.payment}</td>
+    <td
+                className="px-6 py-4 whitespace-nowrap"
+                style={{ color: "#737373" }}
+              >
+                {player.discount
+                  ? player.discount.name
+                  : "No discount"}
+              </td>
   {player.date   && (<td className="px-6 py-4 whitespace-nowrap">{player.date.toDate ? player.date.toDate().toLocaleDateString(): player.date.toLocaleDateString()}</td>)    }
        
             </tr>
@@ -995,15 +1127,9 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
          {/* Add Player row */}
          {showAddRow && (
      <tr >
-    <td className="px-3 py-4 whitespace-nowrap">
-    <input
-  type="text"
-  name="name"
-  value={newPlayerDetails.name}
-  onChange={handleChange}
-  placeholder="Enter Name"
-  className="rounded-lg w-full py-2 border-none "
-/>
+     <td className="px-3 py-4 whitespace-nowrap">
+     <AutosuggestComponent trainers={trainees} setReservation={setNewPlayerDetails} reservation={newPlayerDetails} name={newPlayerDetails.name} field={'name'}/>
+
             </td>
                 <td className="px-3 py-4 whitespace-nowrap"><input
                 type="text"
@@ -1027,11 +1153,11 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
 </td>
 <td className="px-3 py-4 whitespace-nowrap">
   <select
-    name="payment"
-    value={newPlayerDetails.payment}
+    name="status"
+
     onChange={handleChange}
     
-    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(newPlayerDetails.payment)}`}
+    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(newPlayerDetails.status)}`}
   >
     <option value="">Select Status</option>
     <option value="paid">Paid</option>
@@ -1040,7 +1166,41 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
 
   </select>
 </td>
+<td className="px-3 py-4 whitespace-nowrap">
+  <select
+    name="payment"
 
+    onChange={handleChange}
+    disabled={newPlayerDetails.status != "paid"}
+    className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none`}
+  >
+    <option value="">Select paymentType</option>
+    <option value="bank">Bank</option>
+    <option value="cash">Cash</option>
+
+  </select>
+</td>
+<td className="px-6 py-4 whitespace-nowrap">
+              <select
+                name="discount"
+                onChange={(e) => {
+                  const selectedDicount = JSON.parse(e.target.value);
+                  setNewPlayerDetails((prev) => ({
+                    ...prev,
+                    discount: selectedDicount,
+                  }));
+                }}
+                className="rounded-lg"
+                style={{ width: "90px" }}
+              >
+                <option value={0}>No discount</option>
+                {discounts.map((discount, index) => (
+                  <option key={index} value={JSON.stringify(discount)}>
+                    {discount.name}
+                  </option>
+                ))}
+              </select>
+            </td>
         <div className="px-3 py-4 whitespace-nowrap">
         <DatePicker
         id="date"
@@ -1058,28 +1218,32 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
       </table>
                     
             
-                      {!showAddRow ? (
-                        <button
-                          onClick={handleAddRow}
-                          className="button-white  mt-5"
-                        >
-                          Add Player
-                        </button>
-                      ):(
-                        <>
-                         <button
-                onClick={handleSavePlayer}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
-              >
-                Save
+      {!showAddRow ? (
+        <>
+          {JSON.stringify(playersData) != JSON.stringify(selectedPlayers)&& (
+            <>
+              <button onClick={updateOthers} className="button-blue  mt-5">
+                submit Changes
               </button>
               <button
-                onClick={handleCancelAddRow}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+                onClick={() => setSelectedPlayers(playersData)}
+                className="bg-gray-500 text-black-500  font-bold mt-5 ml-5 border rounded-lg px-5 py-2"
               >
-                Cancel
-              </button></>
-                      )}
+                Cancel Changes
+              </button>
+            </>
+          )}
+        </>
+      ) : (
+        <div className="flex flex-row">
+          <button onClick={handleSavePlayer} className="button-blue mr-2">
+            Save
+          </button>
+          <button onClick={handleCancelAddRow} className="button-red">
+            Cancel
+          </button>
+        </div>
+      )}
       </div> 
     );
   };
@@ -1152,26 +1316,7 @@ const EditItem=({setI,i,setShowModal,courts,selectedTournament})=>{
         alert('Please fill in all required fields.');
         return;
       }
-    console.log( {
-        date:Timestamp.fromDate(new Date(tournamentDetails.startDate)),
-        details:{description:tournamentDetails.description,
-                    gender:tournamentDetails.gender,
-                    lastRegistrationDate:Timestamp.fromDate(new Date(tournamentDetails.registrationDeadline)),
-                level:tournamentDetails.level,
-                price:tournamentDetails.price,
-            prizes:tournamentDetails.prizes,
-        type:tournamentDetails.type,},
-        end:Timestamp.fromDate(new Date(tournamentDetails.endDate)),
-        image:"https://img.freepik.com/free-vector/abstract-basketball-watercolor-style-background_1017-39243.jpg?size=626&ext=jpg&ga=GA1.1.632798143.1706054400&semt=sph",
-        name:tournamentDetails.name,
-        participants:[],
-        participantsuid:[],
-        requirement:tournamentDetails.restrictions,
-        sport:tournamentDetails.sport,
-        totalParticipants:tournamentDetails.maximumNumber,
-        type:tournamentDetails.type
-    
-    });
+
       try {
 
      await addDoc(collection(db, 'Competitions'), {
@@ -1186,8 +1331,8 @@ const EditItem=({setI,i,setShowModal,courts,selectedTournament})=>{
       end:Timestamp.fromDate(new Date(tournamentDetails.endDate)),
       image:"https://img.freepik.com/free-vector/abstract-basketball-watercolor-style-background_1017-39243.jpg?size=626&ext=jpg&ga=GA1.1.632798143.1706054400&semt=sph",
       name:tournamentDetails.name,
-      participants:[],
-      participantsuid:[],
+      participants:tournamentDetails.participants,
+      participantsuid:tournamentDetails.participantsuid,
       requirement:tournamentDetails.restrictions,
       sport:tournamentDetails.sport,
       totalParticipants:tournamentDetails.maximumNumber,
@@ -1514,7 +1659,7 @@ const EditItem=({setI,i,setShowModal,courts,selectedTournament})=>{
 
 
 <>
-    <TournamentPlayersTable playersData={tournamentDetails.participants} handleAddPlayer={handleAddPlayer} setTournamentDetails={setTournamentDetails}/>
+    <TournamentPlayersTable playersData={tournamentDetails.participants} handleAddPlayer={handleAddPlayer} setTournamentDetails={setTournamentDetails} ID={tournamentDetails.id} price={tournamentDetails.details.price}/>
     <button
     onClick={()=>onConfirm()}
         disabled={tournamentDetails.participants===selectedTournament.participants}

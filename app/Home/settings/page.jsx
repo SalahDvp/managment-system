@@ -534,6 +534,7 @@ const Settings=()=>{
     const {classes,tournaments,courts,discounts,memberships,setDiscounts,setMemberships } = useAuth();
 
     useEffect(()=>{
+      console.log("afesfsdfsdfsdffsd");
         const getClubInfo=async()=>{
             const clubInfoRef=doc(db,'Club','GeneralInformation')
             const clubinfoData=await getDoc(clubInfoRef)
@@ -647,7 +648,7 @@ getClubInfo()
 
       const [showModal,setShowModal]=useState(false)
       const [showModalDiscount,setShowModalDiscount]=useState(false)
- console.log();
+
 return(
     <>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet" />
