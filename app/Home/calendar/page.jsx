@@ -4,8 +4,9 @@ import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
-import { collection, getDocs, query, where, getFirestore, Timestamp, updateDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, query, where, getFirestore, Timestamp, updateDoc, doc ,getDoc ,addDoc} from 'firebase/firestore';
 import { db } from '@/app/firebase';
+import { arrayUnion } from 'firebase/firestore';
 import { X } from 'lucide-react';
 
     // Function to calculate the difference in days based on the given day string
@@ -188,14 +189,28 @@ const DemoApp = () => {
     fetchNotes();
 }, []);
 
-  const addNote = async (newNote) => {
-      const docRef = doc(db, "admin", 'E6YY9KA0rTTbp9DeIGZk');
-      await updateDoc(docRef, {
-          notes: arrayUnion(newNote)
-      });
+const addNote = async (newNote) => {
+  try {
+      // Check if the user document exists
+      const userDocRef = doc(db, 'admin', 'E6YY9KA0rTTbp9DeIGZk');
+      const userDocSnap = await getDoc(userDocRef);
+      
+      if (userDocSnap.exists()) {
+          // If the user document exists, add the note to the user's subcollection
+          const notesCollectionRef = collection(userDocRef, 'notes');
+          await addDoc(notesCollectionRef, newNote);
 
-      setNoteList([...noteList, newNote]);
-  };
+          // Update state if needed
+          setNoteList([...noteList, newNote]);
+      } else {
+          // Handle the case where the user document doesn't exist
+          console.error('User document does not exist');
+      }
+  } catch (error) {
+      // Handle errors
+      console.error('Error adding note:', error);
+  }
+};
 
   const handleSubmit = (e) => {
       e.preventDefault();
