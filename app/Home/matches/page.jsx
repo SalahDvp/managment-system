@@ -174,7 +174,7 @@ const addReservation = async (reservation, participants) => {
       if (trainerId) {
         const trainerRef = doc(db, 'Trainers', trainerId, 'Payouts', `Court1${id}`);
         await setDoc(doc(db, 'Club', 'GeneralInformation', 'Payouts', `Court1${id}`), {
-          amount: parseInt(reservation.coachPaid, 10),
+          amount: parseInt(reservation.coachPayout, 10),
           date: Timestamp.fromDate(new Date(reservation.date)),
           payment: 'unknown',
           payoutType: 'match',
@@ -183,7 +183,7 @@ const addReservation = async (reservation, participants) => {
         });
         await setDoc(trainerRef, {
           Ref: doc(db, 'Club', 'GeneralInformation', 'Payouts', `Court1${id}`),
-          amount: parseInt(reservation.coachPaid, 10),
+          amount: parseInt(reservation.coachPayout, 10),
           date: Timestamp.fromDate(new Date(reservation.date)),
           payment: 'unknown',
           description: 'match',

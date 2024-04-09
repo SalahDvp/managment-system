@@ -1157,7 +1157,7 @@ onChange={(e) => {
 
             </div>
             <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 relative" style={{ width: 'calc(100% - 24px)' }}>
-              <h3 className="text-lg font-bold mb-4">Other Payouts</h3>
+              <h3 className="text-lg font-bold mb-4">Other Activities</h3>
               <div className="table-container " style={{ overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
                 <table className="w-full min-w-full divide-y divide-gray-200" id='payouts'>
                   <thead className="bg-gray-50">
