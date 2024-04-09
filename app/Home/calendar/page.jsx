@@ -8,6 +8,8 @@ import { collection, getDocs, query, where, getFirestore, Timestamp, updateDoc, 
 import { db } from '@/app/firebase';
 
 import dayGridPlugin from '@fullcalendar/daygrid';
+import { useAuth } from '@/context/AuthContext';
+import { MatchDetails } from '../matches/page';
     // Function to calculate the difference in days based on the given day string
     const dayDiff = (day) => {
       const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -241,7 +243,7 @@ const DemoApp = () => {
   };
 
   const [notes, setNotes] = useState('');
-
+  const [render,setRender]=useState(false)
   const handleNoteChange = (event) => {
     setNotes(event.target.value);
   };
@@ -260,6 +262,11 @@ const DemoApp = () => {
     { id: 2, title: 'Court 2' },
     // Add more courts as needed
 ];
+const [reservation,setReservation]=useState({players:[],reaccurance:0,date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'name',description:'',coachname:'coach',reaccuring:false})
+
+const [modalIsOpen, setModalIsOpen] = useState(false);
+
+const {courts,trainers,trainees}=useAuth() 
   return (
     <div className="container mx-auto  h-full mt-10 ">
       <div className='flex items-center justify-between'>
@@ -332,8 +339,23 @@ console.error('Error updating Firestore event:', error);
 }}
 slotMinTime="09:00:00" // Set minimum time to 9 AM
 slotMaxTime="22:00:00" // Set maximum time to 9 PM
-slotDuration="00:30:00" // Set slot duration to 15 minutes (adjust as needed)
+slotDuration="00:30:00" 
+selectable={true} // Allow selecting time slots
+        select={(info) => {
+          // When a time slot is selected, set the start time in the reservation and open the modal
+          setReservation((prevReservation) => ({
+            ...prevReservation,
+            startTime: new Date(info.start),
+            date:new Date(info.start)
+          }));
+          setModalIsOpen(true);
+        }}// Set slot duration to 15 minutes (adjust as needed)
 /> 
+
+
+  {modalIsOpen && (
+        <MatchDetails  setI={setRender}i={render} courts={courts} setShowModal={setModalIsOpen} setReservation={setReservation} reservationDetails={reservation} trainees={trainees} trainers={trainers}/>
+      )}
       </div>
       <div style={{ flex: '1', padding: '0 20px', display: 'flex', flexDirection: 'column' }}>
 

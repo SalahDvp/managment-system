@@ -221,7 +221,7 @@ const handleSubmit = async (event) => {
         
         // Execute once for non-reaccuring reservation
          await addReservation(reservation);
-     setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:'',coachname:'',reaccuring:false,players:[],reaccurance:0,discount:{rate:'0'}})
+     setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:'',coachname:'',reaccuring:false,players:[],reaccurance:0})
        alert('Reservation submitted successfully!');
      setShowModal(false);
    
@@ -254,7 +254,7 @@ const handleSubmit = async (event) => {
       
       //   // Wait for all reservations to be added
  await Promise.all(reservationPromises);
-       setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:'',coachname:'',reaccuring:false,players:[],reaccurance:0,discount:{rate:'0'}})
+       setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:'',coachname:'',reaccuring:false,players:[],reaccurance:0,})
           alert('Reservation submitted successfully!');
        setShowModal(false);
       }
@@ -268,7 +268,7 @@ const handleSubmit = async (event) => {
 };
 
 const handleClose = () => {
-  setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',coachname:'',reaccuring:false,players:[],reaccurance:0,discount:{rate:'0'}})
+  setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',coachname:'',reaccuring:false,players:[],reaccurance:0})
   setShowModal(false);
 
 };
