@@ -308,7 +308,7 @@ const {courts,trainers,trainees}=useAuth()
     const event = args.event;
     const resource = courtss.find((dr) => dr.id === event.resource);
     const time = formatDate('hh:mm A', new Date(event.start)) + ' - ' + formatDate('hh:mm A', new Date(event.end));
-
+    console.log(event);
   
     setCurrentEvent(event);
 
@@ -323,10 +323,10 @@ const {courts,trainers,trainees}=useAuth()
     }
 
     setBgColor("red");
-    setInfo(event.title + ', Age: ' + event.age);
+    setInfo(event.title);
     setTime(time);
-    setReason(event.reason);
-    setLocation(event.location);
+    setReason(event.type);
+    setLocation(resource.name);
 
     if (timerRef.current) {
       clearTimeout(timerRef.current);
@@ -572,17 +572,17 @@ setReservation((prev)=>({...prev,date:startDate,startTime:startTimeString,durati
               </Button>
             </div>
             <div className="md-tooltip-title">
-              Reason for visit: <span className="md-tooltip-reason md-tooltip-text">{reason}</span>
+              Event: <span className="md-tooltip-reason md-tooltip-text">{reason}</span>
             </div>
             <div className="md-tooltip-title">
-              Location: <span className="md-tooltip-location md-tooltip-text">{location}</span>
+              Court: <span className="md-tooltip-location md-tooltip-text">{location}</span>
             </div>
-            <Button color="secondary" className="md-tooltip-view-button" onClick={viewFile}>
+            {/* <Button color="secondary" className="md-tooltip-view-button" onClick={viewFile}>
               View patient file
             </Button>
             <Button color="danger" variant="outline" className="md-tooltip-delete-button" onClick={deleteApp}>
               Delete appointment
-            </Button>
+            </Button> */}
           </div>
         </div>
       </Popup>
