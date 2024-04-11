@@ -21,90 +21,48 @@ export const timestampToHourString=(time)=>{
   const date = new Date(timestampInMillis);
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
-export const generateAvailableStartTimes = (selectedCourtName, selectedDate, matchDuration,courts) => {
-  const selectedCourt = courts.find((court) => Object.values(court)[1] === selectedCourtName);
+export const findAvailableCourts = (selectedDate, startTimeString, duration, courts) => {
+  // Convert start time string to Date object
+  const startTime = new Date(selectedDate);
+  const [hours, minutes] = startTimeString.split(':');
+  startTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
 
-  if (!selectedCourt) {
-    console.error('Court not found!');
-    return [];
-  }
- 
-  const reservations = Object.values(selectedCourt)[2];
+  // Calculate end time based on start time and duration
+  const endTime = new Date(startTime);
+  endTime.setMinutes(endTime.getMinutes() + duration);
 
-  // Convert selectedDate to a Date object
-  const dateToCheck = new Date(selectedDate);
+  // Filter courts to find available ones for the given time slot
+  const availableCourts = courts.filter((court) => {
+    const reservations = Object.values(court)[2];
+    const isAvailable = reservations.every((reservation) => {
+      const reservationStartTime = new Date(reservation.startTime.toDate());
+      reservationStartTime.setSeconds(0);
+      reservationStartTime.setMilliseconds(0); // Set seconds and milliseconds to 0
+      const reservationEndTime = new Date(reservation.startTime.toDate());
+      reservationEndTime.setSeconds(0);
+      reservationEndTime.setMilliseconds(0); // Set seconds and milliseconds to 0
+      reservationEndTime.setMinutes(reservationEndTime.getMinutes() + reservation.duration);
+      return (
+        (startTime >= reservationEndTime || endTime <= reservationStartTime) ||
+        (startTime === reservationEndTime || endTime === reservationStartTime) // Include exact start/end time check
+      );
+    });
 
-  dateToCheck.setHours(0, 0, 0, 0); // Set time to 00:00:00
-
-  // Filter reservations for the selected court and date
-  const reservationsForDate = reservations.filter((reservation) => {
-
-    const reservationDate = new Date(reservation.startTime.toDate());
-    reservationDate.setHours(0, 0, 0, 0);
-// Set time to 00:00:00
-    return reservationDate.getTime() === dateToCheck.getTime();
+    return isAvailable;
   });
 
-  // Convert reservations to an array of reserved time slots
-const reservedSlots = reservationsForDate.map((reservation) => {
-  const reservationStart = new Date(reservation.startTime.toDate());
-  const reservationEnd = new Date(reservation.startTime.toDate());
-  
-  // Add buffer equal to the match duration to the start time
-  reservationStart.setMinutes(reservationStart.getMinutes() - matchDuration);
-
-  reservationEnd.setMinutes(reservationEnd.getMinutes() + reservation.duration);
-  return { start: reservationStart, end: reservationEnd };
-});
-
-  // Generate available start times in 15-minute intervals
-  const startTime = new Date();
-  startTime.setHours(9, 0, 0); // Start at 09:00 AM
-  const endTime = new Date();
-  endTime.setHours(21, 0, 0); // End at 09:00 PM
-
-  const availableStartTimes = [];
-  let currentTime = new Date(startTime);
-
-  while (currentTime <= endTime) {
-    let isAvailable = true;
-
-    // Check if the current time slot overlaps with any reserved slot
-    for (const slot of reservedSlots) {
-      if (currentTime >= slot.start && currentTime <= slot.end) {
-  
-        isAvailable = false;
-        break;
-      }
-    }
-
-    // If the current time slot is available, add it to the available start times array
-    if (isAvailable) {
-      availableStartTimes.push(new Date(currentTime));
-    }
-
-    // Move to the next 15-minute interval
-    currentTime.setMinutes(currentTime.getMinutes() + 15);
-  }
-
-  // Filter available start times based on match duration
-  const filteredStartTimes = availableStartTimes.filter((time) => {
-    const endTime = new Date(time);
-    endTime.setMinutes(endTime.getMinutes() + matchDuration);
-    return endTime <= endTime; // Change this line to include equal sign: endTime <= endTime;
-  });
-
-  return filteredStartTimes;
+  return availableCourts;
 };
-export const MatchDetails=({reservationDetails,setI,i,courts,setShowModal,setReservation,trainers,trainees,setCourts})=>{
+
+export const MatchDetails=({reservationDetails,setI,i,courts,setShowModal,setReservation,trainers,trainees,setCourts,removeEvent,saveEvent})=>{
 
 const data=useAuth()
 const discounts=data.discounts.filter((discount)=>discount.discountType==='courts')
 const memberships=data.memberships
-const reservation=reservationDetails?reservationDetails:{coachname:'coach',name:'name',description:'',date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],reaccuring:false,players:[],reaccurance:0} 
+const reservation=reservationDetails?reservationDetails:{players:[],reaccurance:0,date:new Date(),courtName:'',duration:60,startTime:"07:00",duration:60,payment:'cash',team1:[],team2:[],name:'name',description:'',coachname:'coach',reaccuring:false} 
 const [aa,setAA]=useState()
 
-const [availableStartTimes,setAvailableStartTimes]=useState()
+const [availableCourts,setAvailableCourts]=useState([courts])
 
 const handleInputChange = (e) => {
   setReservation(prevReservation => ({
@@ -117,17 +75,17 @@ const handleInputChange = (e) => {
   }));
 };
 useEffect(()=>{
-  if(reservation.date && reservation.duration && reservation.courtName){
+  if(reservation.date && reservation.startTime && reservation.duration){
 
 
 
 
-    const availableStartTimes = generateAvailableStartTimes(reservation.courtName,reservation.date, reservation.duration,courts);
-    setAvailableStartTimes(availableStartTimes)
+    const availableCourts = findAvailableCourts(reservation.date,reservation.startTime,reservation.duration,courts);
+    setAvailableCourts(availableCourts)
     //console.log(availableStartTimes);
   }
 
-},[reservation.date,reservation.duration,reservation.courtName])
+},[reservation.date,reservation.duration,reservation.startTime])
 
 const addReservation = async (reservation, participants) => {
   try {
@@ -156,7 +114,8 @@ const addReservation = async (reservation, participants) => {
 
     // Prepare batched writes
     await setDoc(courtRef, batchUpdate);
-
+    console.log(id);
+   saveEvent(id,startTime,endTime,parseInt(reservation.courtName.match(/\d+/)[0]))
     // Handle discounts
     if (reservation.discount) {
       console.log("Discount times");
@@ -219,9 +178,13 @@ const handleSubmit = async (event) => {
     if(aa!=reservation){
       if (!reservation.reaccuring) {
         
-        // Execute once for non-reaccuring reservation
-         await addReservation(reservation);
-     setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:'',coachname:'',reaccuring:false,players:[],reaccurance:0})
+        const [hours, minutes] = reservation.startTime.split(':').map(Number);
+        const newDate = new Date(reservation.date);
+        newDate.setHours(hours);
+        newDate.setMinutes(minutes);
+        const startTime = new Date(newDate);
+         await addReservation({...reservation,startTime:startTime});
+     setReservation({players:[],reaccurance:0,date:new Date(),courtName:'',duration:60,startTime:"07:00",duration:60,payment:'cash',team1:[],team2:[],name:'name',description:'',coachname:'coach',reaccuring:false})
        alert('Reservation submitted successfully!');
      setShowModal(false);
    
@@ -232,7 +195,11 @@ const handleSubmit = async (event) => {
         const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const startDate = new Date(reservation.date);
         const selectedDayOfWeek = daysOfWeek[startDate.getDay()];
-        const startTime = new Date(reservation.startTime);
+        const [hours, minutes] = reservation.startTime.split(':').map(Number);
+        const newDate = new Date(startDate);
+        newDate.setHours(hours);
+        newDate.setMinutes(minutes);
+        const startTime = new Date(newDate);
         const reservationPromises = [];
 
         // Loop through each reaccuration and add reservation
@@ -242,7 +209,7 @@ const handleSubmit = async (event) => {
           const endTime = new Date(starDate.getTime() + reservation.duration * 60000);
           if (currentDate.getDay() === daysOfWeek.indexOf(selectedDayOfWeek)) {
             // Add reservation for the selected day of the week and push the promise to the array
-      console.log( parseInt(reservation.reaccurance, 10));  
+ 
       reservationPromises.push( await addReservation({
         ...reservation,
         date: currentDate,
@@ -254,7 +221,7 @@ const handleSubmit = async (event) => {
       
       //   // Wait for all reservations to be added
  await Promise.all(reservationPromises);
-       setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',description:'',coachname:'',reaccuring:false,players:[],reaccurance:0,})
+       setReservation({players:[],reaccurance:0,date:new Date(),courtName:'',duration:60,startTime:"07:00",duration:60,payment:'cash',team1:[],team2:[],name:'name',description:'',coachname:'coach',reaccuring:false})
           alert('Reservation submitted successfully!');
        setShowModal(false);
       }
@@ -268,7 +235,7 @@ const handleSubmit = async (event) => {
 };
 
 const handleClose = () => {
-  setReservation({date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'',coachname:'',reaccuring:false,players:[],reaccurance:0})
+  setReservation({players:[],reaccurance:0,date:new Date(),courtName:'',duration:60,startTime:"07:00",duration:60,payment:'cash',team1:[],team2:[],name:'name',description:'',coachname:'coach',reaccuring:false})
   setShowModal(false);
 
 };
@@ -338,7 +305,7 @@ useEffect(() => {
     // Find the membership with the same ID as membership.id
     const traineeName = reservation.name;
     const matchingTrainee = trainees.find((trainee) => trainee.nameandsurname === traineeName);
-    console.log("wqeewewqqwename",matchingTrainee);
+
     if (matchingTrainee && matchingTrainee.membership) {
     const membershipId = matchingTrainee?.membership?.membershipId;
     const membership = memberships.find((m) => m.id === membershipId);
@@ -407,9 +374,36 @@ const handleParticipantChange = (e,) => {
 ({...prevParticipant,[name]:value})
     )
 };
+function generateTimeArrayFromDate() {
+  const now = new Date();
+  const startTime = new Date(reservation.date);
+  const endDate = new Date(reservation.date);
+  endDate.setHours(22, 0, 0);
+
+  const timeArray = [];
+
+  let currentTime = now;
+  if (currentTime.getDate() === startTime.getDate() && currentTime.getMonth() === startTime.getMonth() && currentTime.getFullYear() === startTime.getFullYear()) {
+ 
+    currentTime = startTime;
+  } else {
+    // Otherwise, start from 07:00 on the selected date
+    startTime.setHours(7, 0, 0);
+    currentTime = startTime;
+  }
+
+  for (let time = currentTime; time <= endDate; time.setMinutes(time.getMinutes() + 30)) {
+    const hours = String(time.getHours()).padStart(2, '0');
+    const minutes = String(time.getMinutes()).padStart(2, '0');
+    const timeString = `${hours}:${minutes}`;
+    timeArray.push(timeString);
+  }
+
+  return timeArray;
+}
   return    (
     <div className="fixed inset-0 h-full flex bg-gray-600 bg-opacity-50 justify-end items-center overflow-scroll mb-10 z-50" style={{ height: '100%' }}>
-      <button onClick={handleClose} className="absolute top-0 right-0 m-3 text-gray-500 hover:text-gray-700 focus:outline-none">
+      <button onClick={()=>{handleClose();removeEvent()}} className="absolute top-0 right-0 m-3 text-gray-500 hover:text-gray-700 focus:outline-none">
         <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
@@ -443,22 +437,25 @@ const handleParticipantChange = (e,) => {
   
             </div>
         
+ 
             <div className="flex flex-col">
-            <strong>Court</strong>
+            <strong>Select start time</strong>
             <select
-    name="courtName"
-    value={reservation.courtName}
-    onChange={handleInputChange}
-    className="rounded-lg"
-    required 
-  >
-    <option value="">Select Court</option>
-    {courts.map((court, index) => (
-      <option key={index} value={court.name}>
-        {court.name}
-      </option>
-    ))}
-  </select>
+  id="startTime"
+  name="startTime"
+  value={reservation.startTime}
+  onChange={handleInputChange}
+  className='rounded-lg'
+  required 
+>
+{generateTimeArrayFromDate().map((time,index) => (
+      <option key={index} value={time}>{time}</option> 
+)
+
+
+    )
+  }
+</select>
   </div>
   
   <div className="flex flex-col">
@@ -483,6 +480,22 @@ const handleParticipantChange = (e,) => {
       <option   value={120}>
         120 Minutes
       </option>
+  </select>
+  </div>
+  <div className="flex flex-col">
+            <strong>Court</strong>
+            <select
+    name="courtName"
+    value={reservation.courtName}
+    onChange={handleInputChange}
+    className="rounded-lg"
+    required 
+  >
+    {availableCourts.map((court, index) => (
+      <option key={index} value={court.name}>
+        {court.name}
+      </option>
+    ))}
   </select>
   </div>
 <div className="flex flex-col">
@@ -519,22 +532,7 @@ setAA(prevReservation => ({
 <AutosuggestComponent trainers={trainees} setReservation={setReservation} reservation={reservation} name={reservation.name} field={'name'}/>
   </div>
 
-  <div className="flex flex-col">
-            <strong>Select start time</strong>
-  <select
-    id="startTime"
-    name="startTime"
-    value={reservation.startTime}
-    onChange={handleInputChange}
-    className='rounded-lg'
-    required 
-  >
-    <option value="">{reservation.startTime.seconds?`${new Date(reservation.startTime.toDate()).getHours().toString().padStart(2, '0')}:${new Date(reservation.startTime.toDate()).getMinutes().toString().padStart(2, '0')}`:' Select Start Time'}</option>
-    {availableStartTimes?.map((time) => (
-      <option key={time.getTime()} value={time.toISOString()}>{`${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}`}</option>
-    ))}
-  </select>
-  </div>
+
 <div className="flex flex-col">
             <strong>Payment</strong>
             <select
@@ -776,7 +774,7 @@ const ManageMatchesPage = () => {
   const [searchHour, setSearchHour] = useState('');
   const [showModal, setShowModal] = useState(false);
 const [originalList,setOriginalList]=useState()
-const [reservation,setReservation]=useState({players:[],reaccurance:0,date:new Date(),courtName:'',duration:60,startTime:new Date().toISOString(),payment:'cash',team1:[],team2:[],name:'name',description:'',coachname:'coach',reaccuring:false,coachPaid:false})
+const [reservation,setReservation]=useState({players:[],reaccurance:0,date:new Date(),courtName:'',duration:60,startTime:"07:00",duration:60,payment:'cash',team1:[],team2:[],name:'name',description:'',coachname:'coach',reaccuring:false})
 const {courts,setCourts,trainees,trainers}=useAuth()
 const [i,setI]=useState(false)
 useEffect(() => {
@@ -815,7 +813,7 @@ useEffect(() => {
 
   fetchCourtsAndReservations();
 }, [startDate, endDate]);
-console.log(matches);
+
 const handleSearchChange = (event) => {
   setSearchHour(event.target.value);
   filterMatches(event.target.value);

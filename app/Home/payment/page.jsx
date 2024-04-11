@@ -113,7 +113,7 @@ name:'',description:''})
   
         <div className="w-2/6 h-full bg-white border rounded-lg flex flex-col justify-start items-start">
           <div className='flex'>
-            <h2 className="text-xl font-bold ml-4 mt-4 mb-6">Receipt Billing</h2>
+            <h2 className="text-xl font-bold ml-4 mt-4 mb-6">Invoices Billing</h2>
             <div className='ml-72'/>
             <div className="mt-4">
           
@@ -142,7 +142,7 @@ name:'',description:''})
           
               <div className="flex flex-col">
                 <strong>Consumer</strong>   
-                <AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation}
+                <AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation} name={reservation.name} field={"name"}
          />
       </div>
   <div className="flex flex-col">
@@ -274,7 +274,7 @@ const StraightAnglePieChart = ({data}) => (
 
 
     <div className='flex flex-col w-full self-center justify-center'>
-    <h2 className="text-3xl font-bold mb-10 ml-2">Receipts Types</h2>
+    <h2 className="text-3xl font-bold mb-10 ml-2">Invoicess Types</h2>
     <ResponsiveContainer width="40%" height={400} className='flex flex-col w-full self-center justify-center'>
     <BarChart data={data} >
  
@@ -337,12 +337,30 @@ useEffect(()=>{
       orderBy("date", "desc")
   );
     const transactionsRef = await getDocs( q1)
+    const transactionsData = transactionsRef.docs.map((doc) => {
+      const { classRef, matchRef, otherRef, tournamentRef, description } = doc.data();
+      let key = null;
+    
+      if (classRef !== undefined) {
+        key = 'class';
 
-    const transactionsData = transactionsRef.docs.map((doc) => ({
-      id: doc.id,
-      type: 'payment',
-      ...doc.data(), 
-    }));
+      } else if (matchRef !== undefined) {
+        key = 'match';
+
+      } else if (tournamentRef !== undefined) {
+        key = 'tournament';
+      
+      } else if (otherRef !== undefined) {
+        key = description;
+
+      }
+      return {
+        id: doc.id,
+        type: 'payment',
+        ref: key,
+     ...doc.data()
+      };
+    });
    
     const q2=query(collection(db, 'Club', 'GeneralInformation', 'PaymentRefund'),where("date",">",startDate), where("date", "<", endDate),orderBy("date","desc"))
     const refundRef = await getDocs(q2);
@@ -355,7 +373,7 @@ useEffect(()=>{
 
     // Combine transactions and refund data into one array
     const combinedData = [transactionsData, refundData].flatMap(array => array);
-    console.log(combinedData);
+
     // Sort the combined data array from newest to oldest based on the date field (assuming there's a 'date' field in the data)
     combinedData.sort((a, b) => new Date(b.date.toDate()) - new Date(a.date.toDate()));
 
@@ -421,7 +439,28 @@ geetTrainers()
     setShowDetails(true);
   };
 
-
+const updateStatus=async (e,index,transaction)=>{
+  const { name, value } = e.target;
+  const prevStatus = transaction.status;
+  const transactionAmount = transaction.price;
+  setTransactions((prev) =>
+    prev.map((part, idx) =>
+      idx === index ? { ...part, [name]: value } : part
+    )
+  );
+  await updateDoc(doc(db,'Club','GeneralInformation','PaymentReceived',transaction.id),{
+    status:value
+  })
+  if (prevStatus === 'not paid' && value === 'paid') {
+    await updateDoc(doc(db,'Club','GeneralInformation'),{
+      totalRevenue:increment(transactionAmount)
+    })
+  } else if (prevStatus === 'paid' && value === 'not paid') {
+    await updateDoc(doc(db,'Club','GeneralInformation'),{
+      totalRevenue:increment(-transactionAmount)
+    })
+  }
+}
 
   const dateFormat=(Datte)=>{
     const currentDate= new Date(Datte)
@@ -600,7 +639,7 @@ const exportToExcelSalary = (from,to,tableName) => {
     <div className="container mx-auto h-full mt-10">
 <div className="flex items-center justify-between">
   <div>
-    <h2 className="text-3xl font-bold mb-10 ml-2">Receipts</h2>
+    <h2 className="text-3xl font-bold mb-10 ml-2">Invoicess</h2>
   </div>
   <div className='flex flex-row'>
   <div className='flex flex-row self-end px-4'>
@@ -633,7 +672,7 @@ const exportToExcelSalary = (from,to,tableName) => {
       />
       </div>
     </div>
-    <button className="text-blue-500 text-2xl" onClick={addNewMatch}>Add Receipt</button>
+    <button className="text-blue-500 text-2xl" onClick={addNewMatch}>Add Invoices</button>
   </div>
 </div>
 
@@ -659,7 +698,10 @@ const exportToExcelSalary = (from,to,tableName) => {
                 #
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-              Receipt Date
+              Invoices Date
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                name
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
                 Amout
@@ -668,7 +710,10 @@ const exportToExcelSalary = (from,to,tableName) => {
                Status
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                Download Receipt
+              type
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
+                Download Invoices
               </th>
             </tr>
           </thead>
@@ -677,6 +722,7 @@ const exportToExcelSalary = (from,to,tableName) => {
               <tr key={transaction.id}>
                 <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{transaction.id}</td>
                 <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{dateFormat(transaction.date.toDate())}</td>
+                <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{transaction.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>
       {transaction.type === 'refund' ? '-₺' : '+₺'}
       {Math.abs(transaction.price)}
@@ -685,14 +731,7 @@ const exportToExcelSalary = (from,to,tableName) => {
          <select
     name="status"
     value={transaction.status}
-    onChange={(e) => {
-      const { name, value } = e.target;
-      setTransactions((prev) =>
-        prev.map((part, idx) =>
-          idx === index ? { ...part, [name]: value } : part
-        )
-      );
-    }}
+    onChange={(e) =>updateStatus(e,index,transaction)}
     id='cssassas'
     className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(transaction.status)}`}
   >
@@ -702,6 +741,7 @@ const exportToExcelSalary = (from,to,tableName) => {
    
 
   </select></td> 
+  <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{transaction.ref}</td>
     <td className="px-6 py-4 whitespace-nowrap">
            <button onClick={()=>generatePDF(transaction)}>
                  <Download color='#737373'/>

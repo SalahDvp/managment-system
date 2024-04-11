@@ -194,3 +194,86 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   z-index: 1100; /* Ensure the modal is above the overlay */
 }
+.resource-template-content {
+  position: relative;
+  padding-left: 0px;
+  text-align: left;
+  flex-direction: row;
+  flex: 1;
+}
+
+.resource-avatar {
+
+}
+
+.resource-name {
+  font-size: 20px;
+}
+.md-col-tick-border.mbsc-schedule-all-day-item,
+.md-col-tick-border.mbsc-schedule-column,
+.md-col-tick-border.mbsc-schedule-resource.mbsc-schedule-col-width {
+
+  width: 150px;
+}
+.md-switching-view-cont .mbsc-segmented {
+  max-width: 350px;
+  margin: 0 auto;
+}
+
+.md-switching-view-cont .mbsc-calendar-grid-item {
+  height: 490px;
+  box-sizing: border-box;
+}
+
+.cal-header-picker {
+  flex: 1 0 auto;
+}
+
+.cal-header-nav {
+  width: 200px;
+}
+
+/* material header order */
+
+.mbsc-material.cal-header-prev {
+  order: 1;
+}
+
+.mbsc-material.cal-header-next {
+  order: 2;
+}
+
+.mbsc-material.cal-header-nav {
+  order: 3;
+}
+
+.mbsc-material .cal-header-picker {
+  order: 4;
+}
+
+.mbsc-material .cal-header-today {
+  order: 5;
+}
+
+/* windows header order */
+
+.mbsc-windows.cal-header-nav {
+  order: 1;
+}
+
+.mbsc-windows.cal-header-prev {
+  order: 2;
+}
+
+.mbsc-windows.cal-header-next {
+  order: 3;
+}
+
+.mbsc-windows .cal-header-picker {
+  order: 4;
+}
+
+.mbsc-windows .cal-header-today {
+  order: 5;
+}
+

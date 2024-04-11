@@ -11,6 +11,7 @@ import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useAuth } from '@/context/AuthContext';
 import AutosuggestComponent from '@/components/UI/Autocomplete';
+import Switch from "react-switch";
 // Function to create teams based on tournament type
 function createTeams(players, tournamentType) {
   if (tournamentType === 'single') {
@@ -514,8 +515,10 @@ const NewItem=({setI,i,setShowModal,courts})=>{
       organizer: '',
       numRounds: 0,
       numTeams: 0,
-      prizes:['']
+      prizes:[''],
+      coachname:'',
     });
+    const {trainers}=useAuth()
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         setTournamentDetails(prevDetails => ({
@@ -576,7 +579,7 @@ const NewItem=({setI,i,setShowModal,courts})=>{
     });
       try {
 
-     await addDoc(collection(db, 'Competitions'), {
+     const tournamentId=await addDoc(collection(db, 'Competitions'), {
       date:Timestamp.fromDate(new Date(tournamentDetails.startDate)),
       details:{description:tournamentDetails.description,
                   gender:tournamentDetails.gender,
@@ -596,8 +599,31 @@ const NewItem=({setI,i,setShowModal,courts})=>{
       type:tournamentDetails.type
   
   });
-  
-  
+
+   if (tournamentDetails.coachPayout) {
+    const trainerId = trainers.find((train) => train.nameandsurname === tournamentDetails.coachname)?.id;
+    if (trainerId) {
+      const trainerRef = doc(db, 'Trainers', trainerId, 'Payouts', tournamentId);
+      await setDoc(doc(db, 'Club', 'GeneralInformation', 'Payouts', tournamentId), {
+        amount: parseInt(tournamentDetails.coachPayout, 10),
+        date: Timestamp.fromDate(new Date(tournamentDetails.date)),
+        payment: 'unknown',
+        payoutType: 'tournament',
+        status: "not paid",
+        traineruid: trainerId,
+      });
+      await setDoc(trainerRef, {
+        Ref: doc(db, 'Club', 'GeneralInformation', 'Payouts', tournamentId),
+        amount: parseInt(tournamentDetails.coachPayout, 10),
+        date: Timestamp.fromDate(new Date(tournamentDetails.date)),
+        payment: 'unknown',
+        description: 'tournament',
+        status: "not paid",
+        traineruid: trainerId,
+        type: 'tournament',
+      });
+    }
+  }
     
 
         alert('Tournament Created Successfully');
@@ -791,6 +817,32 @@ const NewItem=({setI,i,setShowModal,courts})=>{
                 <strong>Max. Players</strong> <br />
                 <input   id='maximumNumber'  className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300" type="number" name='maximumNumber' onChange={handleInputChange}  value={tournamentDetails.maximumNumber} />
               </div>
+              <div className="flex flex-col">
+            <strong>Select Coach</strong>
+<AutosuggestComponent trainers={trainers} setReservation={setTournamentDetails} reservation={tournamentDetails} name={tournamentDetails.coachname} field={'coachname'}/>
+  </div>
+  {tournamentDetails.coachname !== "coach" && tournamentDetails.coachname !== "" && ( <div className="flex flex-col ">
+  
+ <div className="flex flex-row justify-between">
+
+            <strong>Coach payout (per match)</strong>
+            <Switch onChange={()=>{  setTournamentDetails(prevReservation => ({
+  ...prevReservation,
+  coachPaid: !prevReservation.coachPaid,
+  
+}));
+}} checked={tournamentDetails.coachPaid} />
+     </div>
+   {tournamentDetails.coachPaid &&   (<input
+        className="rounded-lg"
+        type="number"
+        name="coachPayout"
+        
+        value={tournamentDetails.coachPayout}
+        onChange={handleInputChange}
+        
+      />)}
+  </div>)}
           </div>
           <h3 className="text-lg font-bold ml-4 mb-2 mt-4">Description</h3>
           <div className="p-6 mt-4 border rounded-lg  mb-8 w-full" >
@@ -1362,17 +1414,79 @@ const EditItem=({setI,i,setShowModal,courts,selectedTournament})=>{
           }));
       
     };
-    const onConfirm=async ()=>{
-        await updateDoc(doc(db,'Competitions',tournamentDetails.id),{
-            participants:tournamentDetails.participants,
-            participantsuid:tournamentDetails.participantsuid,
-        })
-        alert("List Updated!")
-        setI(!i)
+
+    async function onConfirm() {
+
+
+      // Check for new participants
+      const newParticipants = tournamentDetails.participants.filter(
+        (participant) =>
+          !selectedTournament.participants.some(
+            (prevParticipant) => prevParticipant.uid === participant.uid
+          )
+      );
+      if (newParticipants.length > 0) {
+        const currentDate = new Date();
+        let total = 0;
+        const paymentReceivedPromises = [];
+      
+        newParticipants.forEach((participant) => {
+          const paymentReceivedRef = collection(
+            db,
+            "Club/GeneralInformation/PaymentReceived"
+          ); // Generate a new document ID
+      
+          const paymentReceivedPromise = addDoc(paymentReceivedRef, {
+            uid: participant.uid,
+            date: currentDate,
+            tournamentRefRef:doc(db,'Competitions',tournamentDetails.id),
+            payment: participant.payment,
+            status: participant.status,
+            paymentType: participant.payment,
+            price: participant.price,
+            description: null,
+          });
+      
+          paymentReceivedPromises.push(paymentReceivedPromise);
+      
+          total += participant.Price;
+      
+          if (participant.discount) {
+            const discountId = participant.discount.id;
+            paymentReceivedPromises.push(
+              updateDoc(doc(db, "Discounts", discountId), {
+                consumers: increment(1),
+              })
+            );
+          } else {
+            console.log("Discount object is missing or incomplete.");
+          }
+        });
+      
+        await Promise.all(paymentReceivedPromises);
+      
+        await updateDoc(doc(db, "Club", "GeneralInformation"), {
+          totalRevenue: increment(total),
+        });
+      }
+            
+      await updateDoc(doc(db,'Competitions',tournamentDetails.id),{
+        participants: tournamentDetails.participants.map((player) => ({
+          ...player,
+          discount: player.discount != null
+            ? { name: player.discount.name, rate: player.discount.rate }
+            : null,
+        })),
+        participantsuid:tournamentDetails.participantsuid,
+      });
+      
+      setShowModal(false);
+      alert("List Updated!")
+      setI(!i)
     }
 
 
-
+const {trainers}=useAuth()
   
     return(
 
@@ -1565,6 +1679,32 @@ const EditItem=({setI,i,setShowModal,courts,selectedTournament})=>{
                   <strong>Max. Players</strong> <br />
                   <input   id='maximumNumber'  className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300" type="number" name='maximumNumber' onChange={handleInputChange}  value={tournamentDetails.maximumNumber} />
                 </div>
+                <div className="flex flex-col">
+            <strong>Select Coach</strong>
+            {tournamentDetails.coachname  && (<AutosuggestComponent trainers={trainers} setReservation={setTournamentDetails} reservation={tournamentDetails} name={tournamentDetails.coachname} field={'coachname'}/>)}
+  </div>
+  {tournamentDetails.coachname !== "coach" && tournamentDetails.coachname !== "" && ( <div className="flex flex-col ">
+  
+ <div className="flex flex-row justify-between">
+
+            <strong>Coach payout (per match)</strong>
+            <Switch onChange={()=>{  setTournamentDetails(prevReservation => ({
+  ...prevReservation,
+  coachPaid: !prevReservation.coachPaid,
+  
+}));
+}} checked={tournamentDetails.coachPaid} />
+     </div>
+   {tournamentDetails.coachPaid &&   (<input
+        className="rounded-lg"
+        type="number"
+        name="coachPayout"
+        
+        value={tournamentDetails.coachPayout}
+        onChange={handleInputChange}
+        
+      />)}
+  </div>)}
             </div>
             <h3 className="text-lg font-bold ml-4 mb-2 mt-4">Description</h3>
             <div className="p-6 mt-4 border rounded-lg  mb-8 w-full" >
@@ -1662,7 +1802,7 @@ const EditItem=({setI,i,setShowModal,courts,selectedTournament})=>{
     <TournamentPlayersTable playersData={tournamentDetails.participants} handleAddPlayer={handleAddPlayer} setTournamentDetails={setTournamentDetails} ID={tournamentDetails.id} price={tournamentDetails.details.price}/>
     <button
     onClick={()=>onConfirm()}
-        disabled={tournamentDetails.participants===selectedTournament.participants}
+        disabled={JSON.stringify(tournamentDetails.participants)==JSON.stringify(selectedTournament.participants)}
                           className="button-blue mt-5"
                         >
                           Confirm

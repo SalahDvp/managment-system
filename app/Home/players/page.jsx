@@ -14,7 +14,7 @@ import { createUserWithEmailAndPassword, deleteUser, getAuth, onAuthStateChanged
 import { getStorage, ref, uploadBytes, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 import {CoinsIcon, Eye, HandCoins, Search,  UserCheck2, Users2, X,School, Star, } from "lucide-react";
 import React ,{useState, useEffect, useRef} from "react";
-import { formatTimestampToDate} from '../classes/page';
+import { formatTimestampToDate} from '../classes/dateFormat';
 import DateTimePicker from 'react-datetime-picker';
 import { Router } from 'react-router-dom';
 import Image from 'next/image';
@@ -23,7 +23,7 @@ import { useRouter } from 'next/navigation'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import AttendanceRateChart from './AttendanceChart';
 import { getFunctions,httpsCallable } from 'firebase/functions';
-import { formatCreatedAt } from '../classes/page';
+import { formatCreatedAt } from '../classes/dateFormat';
 import { useAuth } from '@/context/AuthContext';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -761,7 +761,7 @@ if(membership.status==="paid"){
               </div>
          
             </div>
-            <div className="bg-white w-full">
+            {/* <div className="bg-white w-full">
               <h1 className="text-lg font-bold ml-4 mb-2">Classes:</h1>
              
               <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 flex flex-col" style={{ width: 'calc(100% - 24px)' }}>
@@ -795,9 +795,8 @@ if(membership.status==="paid"){
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
           <div className="bg-white p-4 rounded-lg">
             <h2 className="text-lg font-bold mb-4">Select a Class</h2>
-            {/* List of players */}
-            {/* Replace this with your actual list of players */}
-            <table>
+
+            {/* <table>
         <tbody>
           {classes.map((cls,index) => (
             <tr key={index}  className="hover:bg-blue-100 cursor-pointer">
@@ -829,29 +828,29 @@ if(membership.status==="paid"){
                       <option value="1">1 time/week</option>
                       <option value="2">2 times/week</option>
                       <option value="3">3 times/week</option>
-                      {/* Add more options as needed */}
+                
                     </select>
                   </div>
                 </div>
               </td>
             </tr>
-          ))}
-        </tbody>
-      </table>
-            {/* Button to add the selected player */}
+          //))}
+       // </tbody> 
+      //*/}
+      {/* </table>
+          
             <button className="bg-blue-500 text-white px-2 py-1 rounded" onClick={handleAddPlayer}>
               Add Players to Class
             </button>
 
-            {/* Close button */}
             <button className="ml-2 text-gray-600" onClick={() => setShowModal(false)}>
               Close
             </button>
           </div>
         </div>
-      )}
+      
   </div>
-  </div>
+  </div>  */}
 
 <ParticipantsHorizontalScroll memberships={memberships} setCoachDetails={setCoachDetails}/>
 
@@ -1278,7 +1277,7 @@ await updateDoc(docRef,{
          
             </div>
 
-            <div className="bg-white w-full">
+            {/* <div className="bg-white w-full">
               <h1 className="text-lg font-bold ml-4 mb-2">Classes:</h1>
 
               <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
@@ -1305,7 +1304,7 @@ await updateDoc(docRef,{
       ))}
     </div>
   </div>
-  </div>
+  </div> */}
   <ParticipantsHorizontalScroll memberships={memberships} setCoachDetails={setCoachDetails} traineeMemberships={coachDetails.memberships}/>
 
   <h3 className="text-lg font-bold ml-4 mb-2">Documents</h3>

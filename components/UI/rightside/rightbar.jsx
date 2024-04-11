@@ -7,7 +7,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import { User2 } from "lucide-react";
-import { fetchFirestoreData } from "@/app/Home/calendar/page";
+import { fetchFirestoreData } from "@/app/Home/calendar/fetchData";
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Modal from 'react-modal';
@@ -25,7 +25,7 @@ const Rightbar = () => {
     const [events, setEvents] = useState([]);
 
     const [render,setRender]=useState(false)
-    const {courts,trainers,trainees}=useAuth()
+ 
 
 
     const [noteList, setNoteList] = useState([
@@ -77,7 +77,7 @@ const Rightbar = () => {
 
       const [modalIsOpen, setModalIsOpen] = useState(false);
     
-     
+      const {courts,trainers,trainees}=useAuth() 
   return (
     <div className={styles.container}>
               <div className={styles.item}>
