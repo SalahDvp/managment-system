@@ -15,7 +15,7 @@ import fr from '@/app/languages/fr.json'
 import tr from '@/app/languages/tr.json'
 // choose language
 
-const selectedLanguage =en;
+const selectedLanguage = en;
 
 const TennisAmenitiesList = ({amenities,setAmenities}) => {
     
@@ -443,11 +443,11 @@ onChange={handleInputChange}
       </div>
       </div>
       <h2 className="text-xl font-bold ml-4 mt-8 mb-2">{selectedLanguage.membership_rivileges}</h2>
-              <p class="font ml-4 text-slate-600 mb-6">Configure membership benefits</p> 
+              <p class="font ml-4 text-slate-600 mb-6">{selectedLanguage.configure_membership_benefits}</p> 
       <div className="ml-4 grid grid-cols-2 gap-4 mt-6">
     <div className="flex flex-col">
 
-                <strong>Discount on first training (%)</strong>
+                <strong>{selectedLanguage.discount_on_first_training}(%)</strong>
                 <input
             className="rounded-lg"
             type="number"
@@ -459,7 +459,7 @@ onChange={handleInputChange}
       </div>
       <div className="flex flex-col">
 
-<strong>Discount on other training (%)</strong>
+<strong>{selectedLanguage.discount_on_other_training}(%)</strong>
 <input
 className="rounded-lg"
 type="number"
@@ -471,7 +471,7 @@ onChange={handleInputChange}
 </div>
 <div className="flex flex-col">
 
-<strong>Discount on court Booking (%)</strong>
+<strong>{selectedLanguage.discount_on_court_booking} (%)</strong>
 <input
 className="rounded-lg"
 type="number"
@@ -483,7 +483,7 @@ onChange={handleInputChange}
 </div>
 <div className="flex flex-col">
 
-<strong>Discount on Tournament Booking (%)</strong>
+<strong>{selectedLanguage.discount_on_tournament_booking} (%)</strong>
 <input
 className="rounded-lg"
 type="number"
@@ -494,11 +494,11 @@ onChange={handleInputChange}
 
 </div>
 </div>
-<h2 className="text-xl font-bold ml-4 mt-8 mb-2">Club membership price</h2>
-              <p class="font ml-4 text-slate-600 mb-6">this is the price that will be charged to your club Memebers</p> 
+<h2 className="text-xl font-bold ml-4 mt-8 mb-2">{selectedLanguage.club_membership_price}</h2>
+              <p class="font ml-4 text-slate-600 mb-6">{selectedLanguage.this_is_the_price_that_will_be_charged_to_your_club_memebers}</p> 
       <div className="ml-4 grid grid-cols-2 gap-4 mt-6">
       <div className="flex flex-col">
-                <strong>Price</strong>
+                <strong>{selectedLanguage.price}</strong>
                 <input
 className="rounded-lg"
 type="number"
@@ -508,7 +508,7 @@ onChange={handleInputChange}
 />
       </div>
       <div className="flex flex-col">
-      <strong>Payment frequency</strong>
+      <strong>{selectedLanguage.payment_frequency}</strong>
       <select
         name="frequency"
         value={reservation.frequency}
@@ -517,16 +517,16 @@ onChange={handleInputChange}
       >
     
         <option value="monthly">
-           Monthly
+           {selectedLanguage.monthly}
           </option>
           <option  value="yearly">
-           Yearly
+           {selectedLanguage.yearly}
           </option>
       </select>
       </div>
 
   <button type="submit"  className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-4">
-          Create membership
+          {selectedLanguage.create_membership}
         </button>
               </div>
       
@@ -664,11 +664,11 @@ return(
 
 
 <div class="mx-4 max-w-screen-xl sm:mx-8 xl:mx-auto">
-  <h1 class="border-b py-6 text-4xl font-semibold">Settings</h1>
+  <h1 class="border-b py-6 text-4xl font-semibold">{selectedLanguage.settings}</h1>
   <div class="grid grid-cols-8 pt-3 pb-10 sm:grid-cols-10">
     <div class="relative my-4 w-56 sm:hidden">
       <input class="peer hidden" type="checkbox" name="select-1" id="select-1" />
-      <label for="select-1" class="flex w-full cursor-pointer select-none rounded-lg border p-2 px-3 text-sm text-gray-700 ring-blue-700 peer-checked:ring">Teams </label>
+      <label for="select-1" class="flex w-full cursor-pointer select-none rounded-lg border p-2 px-3 text-sm text-gray-700 ring-blue-700 peer-checked:ring">{selectedLanguage.teams}</label>
       <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-0 top-3 ml-auto mr-5 h-4 text-slate-700 transition peer-checked:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
       </svg>
@@ -681,40 +681,40 @@ return(
           className={`mt-5 cursor-pointer border-l-2 ${selectedScreen === 'Settings' ? 'border-l-blue-700 text-blue-700' : 'border-transparent text-gray-700'} px-2 py-2 font-semibold transition hover:border-l-blue-700 hover:text-blue-700`}
           onClick={() => handleScreenChange('Settings')}
         >
-          Settings
+          {selectedLanguage.settings}
         </li>
         <li
           className={`mt-5 cursor-pointer border-l-2 ${selectedScreen === 'Memberships' ? 'border-l-blue-700 text-blue-700' : 'border-transparent text-gray-700'} px-2 py-2 font-semibold transition hover:border-l-blue-700 hover:text-blue-700`}
           onClick={() => handleScreenChange('Memberships')}
         >
-          Memberships & Discounts
+          {selectedLanguage.memberships_discounts}
         </li>
       </ul>
     </div>
 
  {selectedScreen ==='Settings' && (  <div class="col-span-8 overflow-hidden rounded-xl sm:bg-gray-50 sm:px-8 sm:shadow">
       <div class="pt-4">
-        <h1 class="py-2 text-2xl font-semibold">Settings</h1>
-         <p class="font- text-slate-600">Court info,Description,Location,Images,Courts....</p> 
+        <h1 class="py-2 text-2xl font-semibold">{selectedLanguage.settings}</h1>
+         <p class="font- text-slate-600">{selectedLanguage.info_Description}</p> 
       </div>
       <hr class="mt-4 mb-8" />
-      <p class="py-2 text-xl font-semibold">Court Info</p>
+      <p class="py-2 text-xl font-semibold">{selectedLanguage.court_info}</p>
 
       <div class="grid grid-cols-3 gap-3 flex items-center">
           <label for="club-name">
-            <span class="text-sm text-gray-500">Club Name</span>
+            <span class="text-sm text-gray-500">{selectedLanguage.club_name}</span>
             <div class="relative flex overflow-hidden rounded-md border-2 transition focus-within:border-blue-600">
               <input onChange={handleInputChange} type="text" name='name' id="club-name" class="w-full flex-shrink appearance-none border-gray-300 bg-white py-2 px-4 text-base text-gray-700 placeholder-gray-400 focus:outline-none" value={clubInformation?.name} />
             </div>
           </label>
           <label for="club-website">
-            <span class="text-sm text-gray-500">Website</span>
+            <span class="text-sm text-gray-500">{selectedLanguage.website}</span>
             <div class="relative flex overflow-hidden rounded-md border-2 transition focus-within:border-blue-600">
               <input  onChange={handleInputChange} name="website" type="website" id="club-website" class="w-full flex-shrink appearance-none border-gray-300 bg-white py-2 px-4 text-base text-gray-700 placeholder-gray-400 focus:outline-none"  />
             </div>
           </label>
           <label for="club-phone">
-            <span class="text-sm text-gray-500">Phone</span>
+            <span class="text-sm text-gray-500">{selectedLanguage.phone_number}</span>
             <div class="relative flex overflow-hidden rounded-md border-2 transition focus-within:border-blue-600">
               <input type="number"  onChange={handleInputChange} name="phone" id="club-phone" class="w-full flex-shrink appearance-none border-gray-300 bg-white py-2 px-4 text-base text-gray-700 placeholder-gray-400 focus:outline-none"  />
             </div>
@@ -724,13 +724,13 @@ return(
 
 
       <hr class="mt-4 mb-8" />
-      <p class="py-2 text-xl font-semibold">Location</p>
+      <p class="py-2 text-xl font-semibold">{selectedLanguage.location}</p>
       <div class="space-y-1">
         <div class="rounded-md border ">
  
           <div class="flex flex-col space-y-3 px-4 py-6 sm:px-10">
             <label class="block" for="address">
-              <p class="text-sm">Address</p>
+              <p class="text-sm">{selectedLanguage.address}</p>
               <input   onChange={handleInputChange} name='address' class="w-full rounded-md border py-2 px-2 bg-gray-50 outline-none ring-blue-600 focus:ring-1 bg-white" type="text" value={clubInformation?.address} />
             </label>
            
@@ -739,13 +739,13 @@ return(
       </div>
 
       <hr class="mt-4 mb-8" />
-      <p class="py-2 text-xl font-semibold">Description</p>
+      <p class="py-2 text-xl font-semibold">{selectedLanguage.description}</p>
       <div class="space-y-1">
         <div class="rounded-md border ">
  
         <div class="flex flex-col space-y-3 px-4 py-6 sm:px-10">
   <label class="block" for="description">
-    <p class="text-sm">Description</p>
+    <p class="text-sm">{selectedLanguage.description}</p>
     <textarea  name='description'  onChange={handleInputChange} class="w-full rounded-md border py-2 px-2 bg-gray-50 outline-none ring-blue-600 focus:ring-1 bg-white" id="description" rows="4" value={clubInformation?.description}></textarea>
   </label>
 </div>
@@ -754,7 +754,7 @@ return(
       
       <hr class="mt-4 mb-8" />
       <div >
-      <p class="text-sm">Courts</p>
+      <p class="text-sm">{selectedLanguage.courts}</p>
   <svg xmlns="http://www.w3.org/2000/svg" class="absolute top-0 right-0 m-5 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
     <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
@@ -774,24 +774,24 @@ return(
         className="flex h-12 w-16 cursor-pointer items-center justify-center rounded-md bg-red-200 font-bold text-red-900 hover:bg-red-300 align-center flex text-center"
         onClick={handleRemoveCourt}
       >
-        remove court
+        {selectedLanguage.remove_court}
       </div>
           <div
         className="flex h-12 w-16 cursor-pointer items-center justify-center rounded-md bg-sky-200 font-bold text-blue-900 hover:bg-blue-300 text-center"
 onClick={handleAddCourt}
       >
-        add court
+        {selectedLanguage.add_court}
       </div>
   </div>
   </div>
   <hr class="mt-4 mb-8" />
-  <p class="py-2 text-xl font-semibold">Opening hours</p>
-  <p class="py-2 text-xl font-semibold">weekdays</p>
+  <p class="py-2 text-xl font-semibold">{selectedLanguage.opening_hours}</p>
+  <p class="py-2 text-xl font-semibold">{selectedLanguage.weekdays}</p>
 
 {clubInformation.schedule &&(<LaneSchedule schedule={clubInformation.schedule} setSchedule={setClubInformation}/>)}
 
 <hr class="mt-4 mb-8" />
-  <p class="py-2 text-xl font-semibold">Amenities</p>
+  <p class="py-2 text-xl font-semibold">{selectedLanguage.amenities}</p>
 
 
 <TennisAmenitiesList amenities={clubInformation.amenities} setAmenities={setClubInformation}/>
@@ -803,28 +803,28 @@ onClick={handleAddCourt}
                      onClick={submitChanges}
                          className="button-blue  mt-5 mb-8"
                        >
-                        submit Changes
+                        {selectedLanguage.submit_changes}
                        </button>
                          <button
                            onClick={()=> setClubInformation(clubInformationOriginal)}
                      
                            className="button-red font-bold mt-5 ml-5 border rounded-lg px-5 py-2 mt-8"
                          >
-                          Cancel Changes
+                          {selectedLanguage.cancel_changes}
                          </button>
                          </> )}  
 
     </div>)}
     {selectedScreen ==='Memberships' && (  <div class="col-span-8 overflow-hidden rounded-xl sm:bg-gray-50 sm:px-8 sm:shadow">
       <div class="pt-4">
-        <h1 class="py-2 text-2xl font-semibold">Memberships & Discounts</h1>
+        <h1 class="py-2 text-2xl font-semibold">{selectedLanguage.memberships_discounts}</h1>
 
-         <p class="font- text-slate-600">Add, Edit, Remove Memberships and Discounts</p> 
+         <p class="font- text-slate-600">{selectedLanguage.add_edit_remove_memberships_and_discounts}</p> 
   
       </div>
       <hr class="mt-4 mb-8" />
       <div className="flex flex-row justify-between">
-        <p class="py-2 text-xl font-semibold">Memebership List</p>
+        <p class="py-2 text-xl font-semibold">{selectedLanguage.memebership_list}</p>
     
          <button
                  type="button"
@@ -833,7 +833,7 @@ onClick={handleAddCourt}
                 onClick={()=>setShowModal(true)}
 
               >
-                Add MemberShip
+                {selectedLanguage.add_membership}
               </button>
               </div>
 
@@ -842,13 +842,13 @@ onClick={handleAddCourt}
             <thead className="bg-gray-50">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider " style={{ width: '50%' }}>
-                  Name
+                  {selectedLanguage.name}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  {selectedLanguage.status}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                 Consumers
+                 {selectedLanguage.consumers}
                 </th>
              
               </tr>
@@ -870,7 +870,7 @@ onClick={handleAddCourt}
 
       <hr class="mt-4 mb-8" />
       <div className="flex flex-row justify-between">
-        <p class="py-2 text-xl font-semibold">Discounts List</p>
+        <p class="py-2 text-xl font-semibold">{selectedLanguage.discounts_list}</p>
     
          <button
                  type="button"
@@ -879,7 +879,7 @@ onClick={handleAddCourt}
                 onClick={()=>setShowModalDiscount(true)}
 
               >
-                Add Discounts
+               {selectedLanguage.add_discounts}
               </button>
               </div>
 
@@ -888,13 +888,13 @@ onClick={handleAddCourt}
             <thead className="bg-gray-50">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider " style={{ width: '50%' }}>
-                  Name
+                  {selectedLanguage.name}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  {selectedLanguage.status}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                 Consumers
+                 {selectedLanguage.consumers}
                 </th>
              
               </tr>
