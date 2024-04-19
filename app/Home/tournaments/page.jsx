@@ -12,6 +12,15 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useAuth } from '@/context/AuthContext';
 import AutosuggestComponent from '@/components/UI/Autocomplete';
 import Switch from "react-switch";
+
+import en from '@/app/languages/en.json'
+import ar from '@/app/languages/ar.json'
+import fr from '@/app/languages/fr.json'
+import tr from '@/app/languages/tr.json'
+// choose language
+
+const selectedLanguage = en;
+
 // Function to create teams based on tournament type
 function createTeams(players, tournamentType) {
   if (tournamentType === 'single') {
@@ -222,7 +231,7 @@ console.log(matches);
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="container mx-auto py-8 relative">
-        <h1 className="text-2xl font-bold mb-4">Tournament Teams</h1>
+        <h1 className="text-2xl font-bold mb-4">{selectedLanguage.tournament_teams}</h1>
         <div className="flex flex-wrap gap-2">
           {players.map((player, index) => (
             <Player key={index} name={player.name} />
@@ -234,14 +243,14 @@ console.log(matches);
           ))}
         </div>
        {!Object.keys(matches).length>0 &&(<div className="mt-4 absolute top-2 right-4">
-        <button onClick={handleRandomize} className="button-white mr-4">Randomize</button>
-          <button onClick={handleReset} className="button-red ">Reset</button>
+        <button onClick={handleRandomize} className="button-white mr-4">{selectedLanguage.randomize}</button>
+          <button onClick={handleReset} className="button-red ">{selectedLanguage.reset}</button>
 
         </div>)}
       </div>
       {JSON.stringify(teams) !== JSON.stringify(teamso) && (
   <button onClick={confirmTeams} className="button-white mr-4">
-    Confirm Teams
+    {selectedLanguage.confirm_teams}
   </button>
 )}
 {Object.keys(matches).length > 0 && (
@@ -253,7 +262,7 @@ console.log(matches);
 )} 
 { teamso.every(team => team.members.length >=1) && Object.keys(matches).length == 0  && (
   <button className='button-blue' onClick={generateFirstRoundMatches}>
-    Generate First Round Matches
+    {selectedLanguage.generate_first_round_matches}
   </button>
 )}
     </DndProvider>
@@ -329,7 +338,7 @@ const updated=await generateNextRoundMatches(matches)
         </div>
       ))}
     {matches[`Round ${maxRound}`].length>1 && (<button className="button-blue" onClick={handleGenerateMatches}>
-        Generate Next Round Matches
+        {selectedLanguage.generate_next_round_matches}
       </button>) }
     </div>
   );
@@ -492,7 +501,7 @@ const handleKeyDown = (event) => {
         className="w-full p-2 border border-gray-300 rounded"
         rows="3"
       />
-      <button onClick={sendMessage} className="ml-2 px-4 py-2 button-white">Send</button>
+      <button onClick={sendMessage} className="ml-2 px-4 py-2 button-white">{selectedLanguage.send}</button>
     </div>
   </div>
 </div>
@@ -647,11 +656,11 @@ const NewItem=({setI,i,setShowModal,courts})=>{
         
       
         <div className="w-3/6  h-full bg-white border rounded-t  border rounded-lg p-4 pt-5  overflow-auto">
-        <h2 className="text-xl font-bold ml-4 mt-4 mb-6">New Tournament</h2>
+        <h2 className="text-xl font-bold ml-4 mt-4 mb-6">{selectedLanguage.new_tournaments}</h2>
        <div className='ml-72'/>
         <div className=" grid grid-cols-2 gap-2">
           <div>
-            <label htmlFor="name" className="font-semibold">Name</label>
+            <label htmlFor="name" className="font-semibold">{selectedLanguage.name}</label>
             <input
               id="name"
               className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -663,7 +672,7 @@ const NewItem=({setI,i,setShowModal,courts})=>{
             />
           </div>
           <div>
-            <label htmlFor="sport" className="font-semibold">Sport</label>
+            <label htmlFor="sport" className="font-semibold">{selectedLanguage.sport}</label>
             <input
               id="sport"
               className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -675,7 +684,7 @@ const NewItem=({setI,i,setShowModal,courts})=>{
             />
           </div>
           <div>
-            <label htmlFor="price" className="font-semibold">price</label>
+            <label htmlFor="price" className="font-semibold">{selectedLanguage.price}</label>
             <input
               id="price"
               className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -687,7 +696,7 @@ const NewItem=({setI,i,setShowModal,courts})=>{
             />
           </div>
           <div>
-            <label htmlFor="type" className="font-semibold">Tournament Type</label>
+            <label htmlFor="type" className="font-semibold">{selectedLanguage.tournaments_type}</label>
             <select
         id="type"
         className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -698,13 +707,13 @@ const NewItem=({setI,i,setShowModal,courts})=>{
         onChange={handleInputChange}
       >
        
-        <option value="single">Single</option>
-        <option value="Couple">Couple</option>
+        <option value="single">{selectedLanguage.single}</option>
+        <option value="Couple">{selectedLanguage.couple}</option>
       </select>
 
           </div>
           <div>
-          <label htmlFor="level" className="font-semibold">Level</label>
+          <label htmlFor="level" className="font-semibold">{selectedLanguage.level}</label>
                 <select
                 id='level'
                 name='level'
@@ -713,9 +722,9 @@ const NewItem=({setI,i,setShowModal,courts})=>{
         onChange={handleInputChange}
       >
        
-        <option value="Beginner">Beginner</option>
-        <option value="Intermediate">Intermediate</option>
-        <option value="Advanced">Advanced</option>
+        <option value="Beginner">{selectedLanguage.beginner}</option>
+        <option value="Intermediate">{selectedLanguage.intermediate}</option>
+        <option value="Advanced">{selectedLanguage.advanced}</option>
       </select>
               </div>
               <div>
@@ -738,7 +747,7 @@ const NewItem=({setI,i,setShowModal,courts})=>{
           </div>
       
           <div>
-            <label htmlFor="endDate" className="font-semibold">End Date</label>
+            <label htmlFor="endDate" className="font-semibold">{selectedLanguage.end_date}</label>
             <input
               id="endDate"
               className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -750,7 +759,7 @@ const NewItem=({setI,i,setShowModal,courts})=>{
             />
           </div>
           <div>
-            <label htmlFor="startDate" className="font-semibold">Start Date</label>
+            <label htmlFor="startDate" className="font-semibold">{selectedLanguage.start_date}</label>
             <input
               id="startDate"
               className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -762,7 +771,7 @@ const NewItem=({setI,i,setShowModal,courts})=>{
             />
           </div>
           <div>
-            <label htmlFor="organizer" className="font-semibold">Organizer</label>
+            <label htmlFor="organizer" className="font-semibold">{selectedLanguage.organizer}</label>
             <input
               id="organizer"
               className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -774,7 +783,7 @@ const NewItem=({setI,i,setShowModal,courts})=>{
             />
           </div>
           <div>
-            <label htmlFor="registrationDeadline" className="font-semibold">Registration Deadline</label>
+            <label htmlFor="registrationDeadline" className="font-semibold">{selectedLanguage.registration_deadline}</label>
             <input
               id="registrationDeadline"
               className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -786,7 +795,7 @@ const NewItem=({setI,i,setShowModal,courts})=>{
             />
           </div>
           <div>
-            <label htmlFor="gender" className="font-semibold">Gender</label>
+            <label htmlFor="gender" className="font-semibold">{selectedLanguage.gender}</label>
             <select
               id="gender"
               className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -796,12 +805,12 @@ const NewItem=({setI,i,setShowModal,courts})=>{
               value={tournamentDetails.gender}
               onChange={handleInputChange}
             >
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
+              <option value="Male">{selectedLanguage.male}</option>
+              <option value="Female">{selectedLanguage.female}</option>
             </select>
           </div>
           <div>
-            <label htmlFor="visibility" className="font-semibold">Visibility</label>
+            <label htmlFor="visibility" className="font-semibold">{selectedLanguage.visibility}</label>
             <select
               id="visibility"
               className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -809,16 +818,16 @@ const NewItem=({setI,i,setShowModal,courts})=>{
               value={tournamentDetails.visibility}
               onChange={handleInputChange}
             >
-              <option value="public">Public</option>
-              <option value="private">Private</option>
+              <option value="public">{selectedLanguage.public}</option>
+              <option value="private">{selectedLanguage.private}</option>
             </select>
           </div>
           <div>
-                <strong>Max. Players</strong> <br />
+                <strong>{selectedLanguage.max_players}</strong> <br />
                 <input   id='maximumNumber'  className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300" type="number" name='maximumNumber' onChange={handleInputChange}  value={tournamentDetails.maximumNumber} />
               </div>
               <div className="flex flex-col">
-            <strong>Select Coach</strong>
+            <strong>{selectedLanguage.select_a_coach}</strong>
 <AutosuggestComponent trainers={trainers} setReservation={setTournamentDetails} reservation={tournamentDetails} name={tournamentDetails.coachname} field={'coachname'}/>
   </div>
   {tournamentDetails.coachname !== "coach" && tournamentDetails.coachname !== "" && ( <div className="flex flex-col ">
@@ -844,7 +853,7 @@ const NewItem=({setI,i,setShowModal,courts})=>{
       />)}
   </div>)}
           </div>
-          <h3 className="text-lg font-bold ml-4 mb-2 mt-4">Description</h3>
+          <h3 className="text-lg font-bold ml-4 mb-2 mt-4">{selectedLanguage.description}</h3>
           <div className="p-6 mt-4 border rounded-lg  mb-8 w-full" >
       
                 <input
@@ -860,10 +869,10 @@ const NewItem=({setI,i,setShowModal,courts})=>{
                 
                 
               </div>
-              <h3 className="text-lg font-bold ml-4 mb-2">Prizes</h3>
+              <h3 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.prizes}</h3>
               <div className="p-6 mt-4 border rounded-lg  mb-8 w-full relative" >
          
-              <button className="absolute top-2 right-2 bg-blue-500 text-white px-4 py-2 rounded" onClick={handleAddTime}>Add Prize</button>
+              <button className="absolute top-2 right-2 bg-blue-500 text-white px-4 py-2 rounded" onClick={handleAddTime}>{selectedLanguage.add_prize}</button>
           <div className="grid grid-cols-3 gap-4">
       {    tournamentDetails.prizes.map((prize, index) => (
           <div key={index} className='flex flex-col justify-start '>
@@ -888,13 +897,13 @@ const NewItem=({setI,i,setShowModal,courts})=>{
       
       
       
-          <button onClick={() => handleRemoveTime(index)} className='self-start'>Remove</button>
+          <button onClick={() => handleRemoveTime(index)} className='self-start'>{selectedLanguage.remove}</button>
           </div>
         ))}
                 
               </div>
               </div>
-              <h3 className="text-lg font-bold ml-4 mb-2 mt-4">Restrictions</h3>
+              <h3 className="text-lg font-bold ml-4 mb-2 mt-4">{selectedLanguage.restrictions}</h3>
           <div className="p-6 mt-4 border rounded-lg  mb-8 w-full" >
       
                 <input
@@ -916,7 +925,7 @@ const NewItem=({setI,i,setShowModal,courts})=>{
                 onClick={handleSubmit}
                 disabled={isSubmitting}
               >
-                Submit
+                {selectedLanguage.submit}
               </button>
       </div>
       
@@ -1111,21 +1120,21 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
           style={{ top: "-50px", right: "-10px" }}
           onClick={() => setShowAddRow(true)}
         >
-          Add Player
+          {selectedLanguage.add_player}
         </button>
       )}
-        <h2 className="text-lg font-semibold mb-2">List of Players</h2>
+        <h2 className="text-lg font-semibold mb-2">{selectedLanguage.list_of_players}</h2>
  
         <table className="w-full min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr >
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Type</th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discount</th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enrollment Time</th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.name}</th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.level}</th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.gender}</th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.payment_status}</th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.payment_type}</th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.discount}</th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.enrollmen_time}</th>
          
           </tr>
         </thead>
@@ -1153,10 +1162,10 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
     
     className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(player.payment)}`}
   >
-    <option value="">Select Status</option>
-    <option value="paid">Paid</option>
-    <option value="not paid">Not Paid</option>
-    <option value="unknown">Unknown</option>
+    <option value="">{selectedLanguage.select_status}</option>
+    <option value="paid">{selectedLanguage.paid}</option>
+    <option value="not paid">{selectedLanguage.not_paid}</option>
+    <option value="unknown">{selectedLanguage.unknown}</option>
 
   </select>
 
@@ -1198,9 +1207,9 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
     onChange={handleChange}
     className="rounded-lg w-full px-3 py-2 border-none focus:outline-none"
   >
-    <option value="">Gender</option>
-    <option value="male">Male</option>
-    <option value="female">Female</option>
+    <option value="">{selectedLanguage.gender}</option>
+    <option value="male">{selectedLanguage.male}</option>
+    <option value="female">{selectedLanguage.female}</option>
   </select>
 </td>
 <td className="px-3 py-4 whitespace-nowrap">
@@ -1211,10 +1220,10 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
     
     className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(newPlayerDetails.status)}`}
   >
-    <option value="">Select Status</option>
-    <option value="paid">Paid</option>
-    <option value="not paid">Not Paid</option>
-    <option value="unknown">Unknown</option>
+    <option value="">{selectedLanguage.select_status}</option>
+    <option value="paid">{selectedLanguage.paid}</option>
+    <option value="not paid">{selectedLanguage.not_paid}</option>
+    <option value="unknown">{selectedLanguage.unknown}</option>
 
   </select>
 </td>
@@ -1226,9 +1235,9 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
     disabled={newPlayerDetails.status != "paid"}
     className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none`}
   >
-    <option value="">Select paymentType</option>
-    <option value="bank">Bank</option>
-    <option value="cash">Cash</option>
+    <option value="">{selectedLanguage.select_payment_type}</option>
+    <option value="bank">{selectedLanguage.bank}</option>
+    <option value="cash">{selectedLanguage.cash}</option>
 
   </select>
 </td>
@@ -1245,7 +1254,7 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
                 className="rounded-lg"
                 style={{ width: "90px" }}
               >
-                <option value={0}>No discount</option>
+                <option value={0}>{selectedLanguage.no_discount}</option>
                 {discounts.map((discount, index) => (
                   <option key={index} value={JSON.stringify(discount)}>
                     {discount.name}
@@ -1275,13 +1284,13 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
           {JSON.stringify(playersData) != JSON.stringify(selectedPlayers)&& (
             <>
               <button onClick={updateOthers} className="button-blue  mt-5">
-                submit Changes
+                {selectedLanguage.submit_changes}
               </button>
               <button
                 onClick={() => setSelectedPlayers(playersData)}
                 className="bg-gray-500 text-black-500  font-bold mt-5 ml-5 border rounded-lg px-5 py-2"
               >
-                Cancel Changes
+               {selectedLanguage.cancel_changes}
               </button>
             </>
           )}
@@ -1289,10 +1298,10 @@ const TournamentPlayersTable = ({ playersData,handleAddPlayer,setTournamentDetai
       ) : (
         <div className="flex flex-row">
           <button onClick={handleSavePlayer} className="button-blue mr-2">
-            Save
+            {selectedLanguage.save}
           </button>
           <button onClick={handleCancelAddRow} className="button-red">
-            Cancel
+          {selectedLanguage.cancel}
           </button>
         </div>
       )}
@@ -1502,15 +1511,15 @@ const {trainers}=useAuth()
         
       
         <div className="w-3/6  h-full bg-white border rounded-t  border rounded-lg p-4 pt-5  overflow-auto">
-        <h2 className="text-xl font-semibold text-gray-600 ml-4 mt-4 mb-6">Edit Tournament</h2>
+        <h2 className="text-xl font-semibold text-gray-600 ml-4 mt-4 mb-6">{selectedLanguage.edit_tournament}</h2>
        <div className='ml-72'/>
        <div className='flex justify-between items-center w-full mb-6'>
         
         <div className="flex justify-center mb-6">
-        <button onClick={() => handleSectionChange('general')} className={`px-4 py-2 font-semibold rounded-lg focus:outline-none ${activeSection === 'general' ? 'text-indigo-600 hover:bg-indigo-100' : 'text-gray-600 hover:bg-gray-100'}`}>General Information</button>
-          <button onClick={() => handleSectionChange('additional')} className={`px-4 py-2 font-semibold rounded-lg focus:outline-none ${activeSection === 'additional' ? 'text-indigo-600 hover:bg-indigo-100' : 'text-gray-600 hover:bg-gray-100'}`}>Matches & Rounds</button>
-          <button onClick={() => handleSectionChange('players')} className={`px-4 py-2 font-semibold rounded-lg focus:outline-none ${activeSection === 'players' ? 'text-indigo-600 hover:bg-indigo-100' : 'text-gray-600 hover:bg-gray-100'}`}>Players</button>
-          <button onClick={() => handleSectionChange('chat')} className={`px-4 py-2 font-semibold rounded-lg focus:outline-none ${activeSection === 'chat' ? 'text-indigo-600 hover:bg-indigo-100' : 'text-gray-600 hover:bg-gray-100'}`}>Chat</button>
+        <button onClick={() => handleSectionChange('general')} className={`px-4 py-2 font-semibold rounded-lg focus:outline-none ${activeSection === 'general' ? 'text-indigo-600 hover:bg-indigo-100' : 'text-gray-600 hover:bg-gray-100'}`}>{selectedLanguage.general_infomration}</button>
+          <button onClick={() => handleSectionChange('additional')} className={`px-4 py-2 font-semibold rounded-lg focus:outline-none ${activeSection === 'additional' ? 'text-indigo-600 hover:bg-indigo-100' : 'text-gray-600 hover:bg-gray-100'}`}>{selectedLanguage.matches_rounds}</button>
+          <button onClick={() => handleSectionChange('players')} className={`px-4 py-2 font-semibold rounded-lg focus:outline-none ${activeSection === 'players' ? 'text-indigo-600 hover:bg-indigo-100' : 'text-gray-600 hover:bg-gray-100'}`}>{selectedLanguage.players}</button>
+          <button onClick={() => handleSectionChange('chat')} className={`px-4 py-2 font-semibold rounded-lg focus:outline-none ${activeSection === 'chat' ? 'text-indigo-600 hover:bg-indigo-100' : 'text-gray-600 hover:bg-gray-100'}`}>{selectedLanguage.chat}</button>
       </div>
 
       </div>
@@ -1518,7 +1527,7 @@ const {trainers}=useAuth()
             <>
             <div className=" grid grid-cols-2 gap-2">
             <div>
-              <label htmlFor="name" className="font-semibold">Name</label>
+              <label htmlFor="name" className="font-semibold">{selectedLanguage.name}</label>
               <input
                 id="name"
                 className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -1530,7 +1539,7 @@ const {trainers}=useAuth()
               />
             </div>
             <div>
-              <label htmlFor="sport" className="font-semibold">Sport</label>
+              <label htmlFor="sport" className="font-semibold">{selectedLanguage.sport}</label>
               <input
                 id="sport"
                 className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -1542,7 +1551,7 @@ const {trainers}=useAuth()
               />
             </div>
             <div>
-              <label htmlFor="price" className="font-semibold">price</label>
+              <label htmlFor="price" className="font-semibold">{selectedLanguage.price}</label>
               <input
                 id="price"
                 className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -1554,7 +1563,7 @@ const {trainers}=useAuth()
               />
             </div>
             <div>
-              <label htmlFor="type" className="font-semibold">Tournament Type</label>
+              <label htmlFor="type" className="font-semibold">{selectedLanguage.tournaments_type}</label>
               <input
                 id="type"
                 className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -1566,7 +1575,7 @@ const {trainers}=useAuth()
               />
             </div>
             <div>
-            <label htmlFor="level" className="font-semibold">Level</label>
+            <label htmlFor="level" className="font-semibold">{selectedLanguage.tournaments_type}</label>
                   <select
                   id='level'
                   name='level'
@@ -1575,13 +1584,13 @@ const {trainers}=useAuth()
           onChange={handleInputChange}
         >
          
-          <option value="Beginner">Beginner</option>
-          <option value="Intermediate">Intermediate</option>
-          <option value="Advanced">Advanced</option>
+          <option value="Beginner">{selectedLanguage.beginner}</option>
+          <option value="Intermediate">{selectedLanguage.intermediate}</option>
+          <option value="Advanced">{selectedLanguage.advanced}</option>
         </select>
                 </div>
                 <div>
-              <label htmlFor="location" className="font-semibold">Court</label>
+              <label htmlFor="location" className="font-semibold">{selectedLanguage.court}</label>
               <select
                         className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
                           name="location"
@@ -1590,7 +1599,7 @@ const {trainers}=useAuth()
                           id="location"
                           onChange={handleInputChange}
                         >
-                          <option value=''>choose a court</option>
+                          <option value=''>{selectedLanguage.choose_a_court}</option>
                           {courts.map((court,index) => (
                             <option key={index} value={court} >
                               {court}
@@ -1600,7 +1609,7 @@ const {trainers}=useAuth()
             </div>
         
             <div>
-              <label htmlFor="endDate" className="font-semibold">End Date</label>
+              <label htmlFor="endDate" className="font-semibold">{selectedLanguage.end_date}</label>
               <input
                 id="endDate"
                 className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -1612,7 +1621,7 @@ const {trainers}=useAuth()
               />
             </div>
             <div>
-              <label htmlFor="startDate" className="font-semibold">Start Date</label>
+              <label htmlFor="startDate" className="font-semibold">{selectedLanguage.start_date}</label>
               <input
                 id="startDate"
                 className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -1624,7 +1633,7 @@ const {trainers}=useAuth()
               />
             </div>
             <div>
-              <label htmlFor="organizer" className="font-semibold">Organizer</label>
+              <label htmlFor="organizer" className="font-semibold">{selectedLanguage.organizer}</label>
               <input
                 id="organizer"
                 className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -1636,7 +1645,7 @@ const {trainers}=useAuth()
               />
             </div>
             <div>
-              <label htmlFor="registrationDeadline" className="font-semibold">Registration Deadline</label>
+              <label htmlFor="registrationDeadline" className="font-semibold">{selectedLanguage.registration_deadline}</label>
               <input
                 id="registrationDeadline"
                 className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -1648,7 +1657,7 @@ const {trainers}=useAuth()
               />
             </div>
             <div>
-              <label htmlFor="gender" className="font-semibold">Gender</label>
+              <label htmlFor="gender" className="font-semibold">{selectedLanguage.gender}</label>
               <select
                 id="gender"
                 className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -1663,7 +1672,7 @@ const {trainers}=useAuth()
               </select>
             </div>
             <div>
-              <label htmlFor="visibility" className="font-semibold">Visibility</label>
+              <label htmlFor="visibility" className="font-semibold">{selectedLanguage.visibility}</label>
               <select
                 id="visibility"
                 className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300"
@@ -1671,16 +1680,16 @@ const {trainers}=useAuth()
                 value={tournamentDetails.visibility}
                 onChange={handleInputChange}
               >
-                <option value="public">Public</option>
-                <option value="private">Private</option>
+                <option value="public">{selectedLanguage.public}</option>
+                <option value="private">{selectedLanguage.private}</option>
               </select>
             </div>
             <div>
-                  <strong>Max. Players</strong> <br />
+                  <strong>{selectedLanguage.max_players}</strong> <br />
                   <input   id='maximumNumber'  className="rounded-lg w-full py-2 px-3 border focus:outline-none focus:ring focus:border-blue-300" type="number" name='maximumNumber' onChange={handleInputChange}  value={tournamentDetails.maximumNumber} />
                 </div>
                 <div className="flex flex-col">
-            <strong>Select Coach</strong>
+            <strong>{selectedLanguage.select_a_coach}</strong>
             {tournamentDetails.coachname  && (<AutosuggestComponent trainers={trainers} setReservation={setTournamentDetails} reservation={tournamentDetails} name={tournamentDetails.coachname} field={'coachname'}/>)}
   </div>
   {tournamentDetails.coachname !== "coach" && tournamentDetails.coachname !== "" && ( <div className="flex flex-col ">
@@ -1706,7 +1715,7 @@ const {trainers}=useAuth()
       />)}
   </div>)}
             </div>
-            <h3 className="text-lg font-bold ml-4 mb-2 mt-4">Description</h3>
+            <h3 className="text-lg font-bold ml-4 mb-2 mt-4">{selectedLanguage.description}</h3>
             <div className="p-6 mt-4 border rounded-lg  mb-8 w-full" >
         
                   <input
@@ -1722,10 +1731,10 @@ const {trainers}=useAuth()
                   
                   
                 </div>
-                <h3 className="text-lg font-bold ml-4 mb-2">Prizes</h3>
+                <h3 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.prizes}</h3>
                 <div className="p-6 mt-4 border rounded-lg  mb-8 w-full relative" >
            
-                <button className="absolute top-2 right-2  button-white " onClick={handleAddTime}>Add Prize</button>
+                <button className="absolute top-2 right-2  button-white " onClick={handleAddTime}>{selectedLanguage.add_prize}</button>
             <div className="grid grid-cols-3 gap-4">
         {    tournamentDetails.prizes.map((prize, index) => (
             <div key={index} className='flex flex-col justify-start '>
@@ -1750,13 +1759,13 @@ const {trainers}=useAuth()
         
         
         
-            <button onClick={() => handleRemoveTime(index)} className='self-start'>Remove</button>
+            <button onClick={() => handleRemoveTime(index)} className='self-start'>{selectedLanguage.remove}</button>
             </div>
           ))}
                   
                 </div>
                 </div>
-                <h3 className="text-lg font-bold ml-4 mb-2 mt-4">Restrictions</h3>
+                <h3 className="text-lg font-bold ml-4 mb-2 mt-4">{selectedLanguage.restrictions}</h3>
             <div className="p-6 mt-4 border rounded-lg  mb-8 w-full" >
         
                   <input
@@ -1777,7 +1786,7 @@ const {trainers}=useAuth()
   onClick={handleSubmit}
   disabled={isSubmitting}
 >
-  Submit
+  {selectedLanguage.submit}
 </button>
             </>
 )}
@@ -1805,7 +1814,7 @@ const {trainers}=useAuth()
         disabled={JSON.stringify(tournamentDetails.participants)==JSON.stringify(selectedTournament.participants)}
                           className="button-blue mt-5"
                         >
-                          Confirm
+                         {selectedLanguage.confirm}
                         </button>
     </>
 )}
@@ -1908,7 +1917,7 @@ const [Original,setOriginal]=useState([])
     <div className="container mx-auto  h-full mt-10 ">
   <div className='flex flex-row justify-between w-full'>
   <h1 className="text-3xl font-bold mb-5">Tournaments</h1>
-  <button onClick={addNewTournament} className="mb-3 px-4 py-2 button-white ml-auto " >Add New Tournament</button>
+  <button onClick={addNewTournament} className="mb-3 px-4 py-2 button-white ml-auto " >{selectedLanguage.add_new_tournament}</button>
         </div>
 
         <div className="flex flex-col items-start w-full h-screen border rounded-lg p-5 bg-white">
@@ -1933,26 +1942,26 @@ const [Original,setOriginal]=useState([])
                          #
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Name
+                          {selectedLanguage.name}
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Sport
+                         {selectedLanguage.sport}
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Location
+                          {selectedLanguage.location}
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Start Date
+                          {selectedLanguage.start_date}
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          End Date
+                          {selectedLanguage.end_date}
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Price
+                          {selectedLanguage.price}
                         </th>
 
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Action
+                          {selectedLanguage.action}
                         </th>
                       </tr>
                     </thead>

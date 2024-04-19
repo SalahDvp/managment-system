@@ -18,11 +18,18 @@ import DateTimePicker from 'react-datetime-picker';
 import { Router } from 'react-router-dom';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation'
-// Importing an SVG file
+// Importing an SVG fileF
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import AttendanceRateChart from './AttendanceChart';
 import { getFunctions,httpsCallable } from 'firebase/functions';
 import { formatCreatedAt } from '../classes/page';
+import en from '@/app/languages/en.json'
+import ar from '@/app/languages/ar.json'
+import fr from '@/app/languages/fr.json'
+import tr from '@/app/languages/tr.json'
+// choose language
+
+const selectedLanguage = en;
 const ChatScreen = ({coachDetails}) => {
  
   const [messages, setMessages] = useState([]);
@@ -165,7 +172,7 @@ const ChatScreen = ({coachDetails}) => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type your message..."
+          placeholder={selectedLanguage.type_your_message}
           className="w-full p-2 border border-gray-300 rounded"
           rows="3"
         />
@@ -282,20 +289,20 @@ const handleInputChange = (e)=> {
 <div className="w-3/6 h-full bg-white border rounded-t flex flex-col justify-start items-start">
 <div className='flex'>
  
- <h2 className="text-xl font-bold ml-4 mt-4 mb-6">New Coach</h2>
+ <h2 className="text-xl font-bold ml-4 mt-4 mb-6">{selectedLanguage.new_coach}</h2>
  <div className='ml-72'/>
  </div>
 
 
    
           <div className="bg-white w-full mt-10">
-              <h1 className="text-lg font-bold ml-4 mb-2">General Information</h1>
+              <h1 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.general_infomration}</h1>
 
               <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
 
 <div className="ml-4 grid grid-cols-3 gap-4">
               <div className="">
-                <strong className="block mb-1">Name:</strong>
+                <strong className="block mb-1">{selectedLanguage.table_headers.name}:</strong>
                 <input
           className="rounded-lg"
           type="text"
@@ -306,20 +313,20 @@ const handleInputChange = (e)=> {
               </div>
       
               <div className="">
-                <strong className="block mb-1">Position:</strong>
+                <strong className="block mb-1">{selectedLanguage.position}:</strong>
                 <input type="text" name="position"  onChange={handleInputChange}  className="rounded-lg" />
               </div>
               <div className="">
-                <strong className="">Email:</strong>
+                <strong className="">{selectedLanguage.email}:</strong>
                 <input type="email" name="contact"  onChange={handleInputChange}  className="rounded-lg" />
               </div>
               
               <div className="">
-                <strong className="block mb-1">Blood Type:</strong>
+                <strong className="block mb-1">{selectedLanguage.blood_type}:</strong>
                 <input type="text"  name="BloodType"  onChange={handleInputChange}  className="rounded-lg" />
               </div>
               <div className="">
-          <strong>Date of Birth</strong> 
+          <strong>{selectedLanguage.date_of_birth}</strong> 
           <input
           className="rounded-lg"
           type="text"
@@ -341,16 +348,16 @@ const handleInputChange = (e)=> {
       )}
         </div>
               <div className="">
-                <strong className="">Experience:</strong>
+                <strong className="">{selectedLanguage.experience}:</strong>
                 <input type="text" onChange={handleInputChange} name='experience'  className="rounded-lg" />
               </div>
               <div className="">
-                <strong className="block mb-1">Phone Number:</strong>
+                <strong className="block mb-1">{selectedLanguage.phone_number}:</strong>
                 <input type="tel"  onChange={handleInputChange} name='phoneNumber'  className="rounded-lg" />
               </div>
                             
               <div className="flex flex-col">
-      <strong>Upload Class Image</strong>
+      <strong>{selectedLanguage.upload_class_image}</strong>
       <label htmlFor="imageInput" className="rounded-lg border border-black-900 px-3 py-2  cursor-pointer ">
         {image ? 'Change Image' : 'Upload Image'}
         <input
@@ -387,7 +394,7 @@ const handleInputChange = (e)=> {
               </div>
          
             </div>
-            <h3 className="text-lg font-bold ml-4 mb-2">Bio</h3>
+            <h3 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.bio}</h3>
     <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 w-full"style={{ width: 'calc(100% - 24px)' }}>
           
           <input
@@ -402,7 +409,7 @@ const handleInputChange = (e)=> {
           
         </div>
 
-  <h3 className="text-lg font-bold ml-4 mb-2">Documents</h3>
+  <h3 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.documnets}</h3>
   <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 w-full"style={{ width: 'calc(100% - 24px)' }}>
   {documents.length===0?(
     
@@ -415,7 +422,7 @@ const handleInputChange = (e)=> {
 </svg>
         </div>
 
-        <p className="text-lg text-gray-500 mt-4">Upload Coach's documents</p>
+        <p className="text-lg text-gray-500 mt-4">{selectedLanguage.upload_coach_doc}</p>
         <input
           id="file-upload"
           type="file"
@@ -446,7 +453,7 @@ const handleInputChange = (e)=> {
       onClick={()=>  window.open(cls.pdf, '_blank')}
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 self-end"
         >
-          Open
+          {selectedLanguage.open}
         </button>
       </div>
     </div>
@@ -460,7 +467,7 @@ const handleInputChange = (e)=> {
           onClick={createAccountAndSaveData}
 
         >
-          Add Coach
+          {selectedLanguage.add_coach}
         </button>
           </div>
 
@@ -660,10 +667,10 @@ const handleInputChange = (e)=> {
 <div className="w-3/6 h-full bg-white border rounded-t flex flex-col justify-start items-start">
 <div className='flex'>
  
- <h2 className="text-xl font-bold ml-4 mt-4 mb-6">Coach Details</h2>
+ <h2 className="text-xl font-bold ml-4 mt-4 mb-6">{selectedLanguage.coach_details}</h2>
  <div className='ml-72'/>
  <div className="mt-4" >
-   <strong className='ml-2 mt-4 mb-6'>Coach ID</strong> 
+   <strong className='ml-2 mt-4 mb-6'>{selectedLanguage.coach_id}</strong> 
    <input className="rounded-lg ml-5" type="text" readOnly value={coachDetails.id} />
  </div>
  </div>
@@ -688,7 +695,7 @@ const handleInputChange = (e)=> {
   }`}
   onClick={() => setActiveTab('Performance')}
 >
- Performance
+{selectedLanguage.performance}
 </button>
 
 <button
@@ -699,7 +706,7 @@ const handleInputChange = (e)=> {
   }`}
   onClick={() => setActiveTab('Chat')}
 >
-  Chat
+ {selectedLanguage.chat}
 </button>
 </div>
 
@@ -707,13 +714,13 @@ const handleInputChange = (e)=> {
 
           {activeTab === 'details' && ( 
           <div className="bg-white w-full mt-10">
-              <h1 className="text-lg font-bold ml-4 mb-2">Coach Details</h1>
+              <h1 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.coach_details}</h1>
 
               <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
 
 <div className="ml-4 grid grid-cols-3 gap-4">
               <div className="">
-                <strong className="block mb-1">Name:</strong>
+                <strong className="block mb-1">{selectedLanguage.table_headers.name}:</strong>
                 <input
           className="rounded-lg"
           type="text"
@@ -724,20 +731,20 @@ const handleInputChange = (e)=> {
               </div>
       
               <div className="">
-                <strong className="block mb-1">Position:</strong>
+                <strong className="block mb-1">{selectedLanguage.position}:</strong>
                 <input type="text" name="position"  value={coachDetails.position} onChange={handleInputChange}  className="rounded-lg" />
               </div>
               <div className="">
-                <strong className="">Email:</strong>
+                <strong className="">{selectedLanguage.email}:</strong>
                 <input type="email" name="contact" value={coachDetails.contact} onChange={handleInputChange}  className="rounded-lg" />
               </div>
               
               <div className="">
-                <strong className="block mb-1">Blood Type:</strong>
+                <strong className="block mb-1">{selectedLanguage.blood_type}:</strong>
                 <input type="text"  name="BloodType" value={coachDetails.BloodType} onChange={handleInputChange}  className="rounded-lg" />
               </div>
               <div className="">
-          <strong>Date of Birth</strong> 
+          <strong>{selectedLanguage.date_of_birth}</strong> 
           <input
           className="rounded-lg"
           type="text"
@@ -759,11 +766,11 @@ const handleInputChange = (e)=> {
       )}
         </div>
               <div className="">
-                <strong className="">Experience:</strong>
+                <strong className="">{selectedLanguage.experience}:</strong>
                 <input type="text" value={coachDetails.experience} onChange={handleInputChange} name='experience'  className="rounded-lg" />
               </div>
               <div className="">
-                <strong className="block mb-1">Phone Number:</strong>
+                <strong className="block mb-1">{selectedLanguage.phone_number}:</strong>
                 <input type="tel" value={coachDetails.phoneNumber} onChange={handleInputChange} name='phoneNumber'  className="rounded-lg" />
               </div>
             </div>
@@ -774,7 +781,7 @@ const handleInputChange = (e)=> {
               </div>
          
             </div>
-            <h3 className="text-lg font-bold ml-4 mb-2">Bio</h3>
+            <h3 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.bio}</h3>
     <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 w-full"style={{ width: 'calc(100% - 24px)' }}>
           
           <input
@@ -789,7 +796,7 @@ const handleInputChange = (e)=> {
           
         </div>
             <div className="bg-white w-full">
-              <h1 className="text-lg font-bold ml-4 mb-2">Classes:</h1>
+              <h1 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.classes}:</h1>
 
               <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
 
@@ -802,13 +809,13 @@ const handleInputChange = (e)=> {
           <div className="p-4 flex-grow flex flex-col justify-between">
             <div>
               <h3 className="text-lg font-semibold mb-2">{cls.className}</h3>
-              <p className="text-gray-600 mb-2">Participants: {cls.participants.length}</p>
+              <p className="text-gray-600 mb-2">{selectedLanguage.participants}: {cls.participants.length}</p>
             </div>
             <button
           onClick={()=>router.push("classes")}
               className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 self-end"
             >
-              View Class
+              {selectedLanguage.view_class}
             </button>
           </div>
         </div>
@@ -816,7 +823,7 @@ const handleInputChange = (e)=> {
     </div>
   </div>
   </div>
-  <h3 className="text-lg font-bold ml-4 mb-2">Documents</h3>
+  <h3 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.documnets}</h3>
     <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 w-full"style={{ width: 'calc(100% - 24px)' }}>
           
     {coachDetails.Documents.length === 0 ? (
@@ -861,7 +868,7 @@ const handleInputChange = (e)=> {
             onClick={()=>  window.open(cls.pdf, '_blank')}
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 self-end"
               >
-                Open
+                {selectedLanguage.open}
               </button>
             </div>
           </div>
@@ -876,7 +883,7 @@ const handleInputChange = (e)=> {
       onClick={handleSubmit}
       disabled={isSubmitting}
     >
-      Submit Changes
+     {selectedLanguage.submit_changes}
     </button>
           </div>)}
           {activeTab === 'Performance' && ( 
@@ -888,7 +895,7 @@ const handleInputChange = (e)=> {
           <AttendanceRateChart coachDetails={coachDetails} />
         </div>
       ) : (
-        <p>Loading coach details...</p>
+        <p>{selectedLanguage.loading_coach_changes}</p>
       )}
                 </div>
           )}
@@ -967,11 +974,11 @@ const IndexPage = () => {
   function getStatusText(status) {
     switch (status) {
       case "present":
-        return <span style={{ color: 'green' }}>Present</span>;
+        return <span style={{ color: 'green' }}>{selectedLanguage.present}</span>;
       case "absent":
-        return <span style={{ color: 'red' }}>Absent</span>;
+        return <span style={{ color: 'red' }}>{selectedLanguage.absent}</span>;
       case "on vacation":
-        return <span style={{ color: 'gray', }}>On Vacation</span>;
+        return <span style={{ color: 'gray', }}>{selectedLanguage.on_vacation}</span>;
       default:
         return "";
     }
@@ -1080,31 +1087,31 @@ const [profilePicture, setProfilePicture] = useState(null);
 
   return (
     <div className="container mx-auto  h-full mt-10 ">
-           <h2 className="text-3xl font-bold mb-10 ml-2">Coaches</h2>
+           <h2 className="text-3xl font-bold mb-10 ml-2">{selectedLanguage.coaches}</h2>
 
            <div className="flex p-3 bg-white   mt-5 shadow-3xl items-center flex-col  shadow-3xl">
-  <h2 className="text-xl font-semibold ">Status</h2>
+  <h2 className="text-xl font-semibold ">{selectedLanguage.table_headers.status}</h2>
   
   <div className="flex w-full items-center justify-between mt-10 rounded-lg p-3 ">
   {/* Medium-sized divs */}
   <div className="flex flex-col items-center mr-4 w-full h-full border text-xs font-medium text-gray-500 uppercase tracking-wider rounded-lg p-2">
     <Users2/> 
-    <div className="font-semibold">Total Coaches</div>
+    <div className="font-semibold">{selectedLanguage.total_coaches}</div>
     <div>{coaches.length}</div>
   </div>
   <div className="flex flex-col items-center mr-4 w-full h-full border text-xs font-medium text-gray-500 uppercase tracking-wider rounded-lg p-2">
     <School className="justify-start"/> 
-    <div className="font-semibold justify-start">total Classes</div>
+    <div className="font-semibold justify-start">{selectedLanguage.total_classes}</div>
     <div>{totalClasses}</div> {/* Assuming revenue is defined somewhere */}
   </div>
   <div className="flex flex-col items-center mr-4 w-full h-full border text-xs font-medium text-gray-500 uppercase tracking-wider rounded-lg p-2">
     <UserCheck2/> 
-    <div className="font-semibold">Active coaches</div>
+    <div className="font-semibold">{selectedLanguage.active_coaches}</div>
     <div>{coaches.filter(coach => coach.status === 'active').length}</div> {/* Assuming attendance is defined somewhere */}
   </div>
   <div className="flex flex-col items-center mr-4 w-full h-full border text-xs font-medium text-gray-500 uppercase tracking-wider rounded-lg p-2">
   <Star /> 
-    <div className="font-semibold ">Average Satisfaction rate</div>
+    <div className="font-semibold ">{selectedLanguage.average_satisfaction_rate}</div>
     <div>{5/5}</div> {/* Assuming expense is defined somewhere */}
   </div>
 </div>
@@ -1123,7 +1130,7 @@ const [profilePicture, setProfilePicture] = useState(null);
 
           <input
             type="text"
-            placeholder="Type Coach Name"
+            placeholder={selectedLanguage.type_coach_name}
             className="border border-gray-300 rounded-l p-2 h-8"
             onChange={e => setSearchTerm(e.target.value)}
             style={{ fontSize: "0.8rem" }} // Adjust font size if needed
@@ -1134,7 +1141,7 @@ const [profilePicture, setProfilePicture] = useState(null);
           onClick={toggleDetailsmake}
         >
           <span className="mr-2">+</span>
-          <span>Add New</span>
+          <span>{selectedLanguage.add_new}</span>
         </button>
       </div>
 
@@ -1146,12 +1153,12 @@ const [profilePicture, setProfilePicture] = useState(null);
       {/* Coach list */}
       <div className="flex mb-2 bg-gray-100 h-10 items-center rounded-lg mr-5 ml-5">
         <div className="w-1/4 pr-4 font-semibold"></div>
-        <div className="w-3/4 text-xs font-medium text-gray-500 uppercase tracking-wider">Coach Name</div>
+        <div className="w-3/4 text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.coach_name}</div>
 
-        <div className="w-3/4 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</div>
-        <div className="w-2/4 pr-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</div>
-        <div className="w-2/5 text-xs font-medium text-gray-500 uppercase tracking-wider">Phone Number</div>
-        <div className="w-1/5 text-xs font-medium text-gray-500 uppercase tracking-wider">Action</div>
+        <div className="w-3/4 text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.email}</div>
+        <div className="w-2/4 pr-4 text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.table_headers.status}</div>
+        <div className="w-2/5 text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.phone_number}</div>
+        <div className="w-1/5 text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.attendance_table_headers.actions}</div>
       </div>
        {/* Coach list */}
        {/* Iterate over coaches and render each */}

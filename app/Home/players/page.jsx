@@ -27,6 +27,16 @@ import { formatCreatedAt } from '../classes/dateFormat';
 import { useAuth } from '@/context/AuthContext';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+
+
+import en from '@/app/languages/en.json'
+import ar from '@/app/languages/ar.json'
+import fr from '@/app/languages/fr.json'
+import tr from '@/app/languages/tr.json'
+// choose language
+
+const selectedLanguage = tr;
+
 const getStatusColorClass = (status) => {
   switch (status) {
     case "paid":
@@ -183,11 +193,11 @@ const ChatScreen = ({coachDetails}) => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type your message..."
+          placeholder={selectedLanguage.type_your_message}
           className="w-full p-2 border border-gray-300 rounded"
           rows="3"
         />
-        <button onClick={sendMessage} className="ml-2 px-4 py-2 bg-blue-500 text-white rounded">Send</button>
+        <button onClick={sendMessage} className="ml-2 px-4 py-2 bg-blue-500 text-white rounded">{selectedLanguage.send}</button>
       </div>
     </div>
   </div>
@@ -236,13 +246,13 @@ useEffect(()=>{
     return (          
       
       <div className='p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 w-full relative' style={{ width: 'calc(100% - 24px)' }}>
-          <h3 className="text-lg font-bold ml-4 mb-2">Memberships</h3>
+          <h3 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.membership}</h3>
  
   {!showModal && (<button
   className="absolute top-2 right-2 button-white px-2 py-2 rounded" 
     onClick={() => setShowModal(true)}
   >
-    Add Membership
+    {selectedLanguage.add_membership}
   </button>)
   }
   
@@ -250,29 +260,29 @@ useEffect(()=>{
             <thead className="bg-gray-50">
               <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                  name
+                  {selectedLanguage.table_headers.name}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                type
+                {selectedLanguage.type}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                  quantity
+                 {selectedLanguage.quantity}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                 status
+                 {selectedLanguage.status}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                 Total Amount
+                 {selectedLanguage.total_amount}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                 payment
+                 {selectedLanguage.payment}
                 </th>
                
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                  start Date
+                  {selectedLanguage.start_date}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                  Expiry Date
+                  {selectedLanguage.expiry_date}
                 </th>
             
               </tr>
@@ -298,9 +308,9 @@ useEffect(()=>{
       id='cssassas'
       className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(participant.status)}`}
     >
-      <option value="">Status</option>
-      <option value="paid">Paid</option>
-      <option value="not paud">Not Paid</option>
+      <option value="">{selectedLanguage.table_headers.status}</option>
+      <option value="paid">{selectedLanguage.paid}</option>
+      <option value="not paud">{selectedLanguage.not_paid}</option>
   
     </select></td>
                   <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{participant.quantity*participant.price}</td>
@@ -320,9 +330,9 @@ useEffect(()=>{
       className={`rounded-lg w-full px-3 py-2 border`}
       disabled={!participant.status==="paid"}
     >
-      <option value="">unknown</option>
-      <option value="bank">Bank</option>
-      <option value="cash">Cash</option>
+      <option value="">{selectedLanguage.unknown}</option>
+      <option value="bank">{selectedLanguage.bank}</option>
+      <option value="cash">{selectedLanguage.cash}</option>
   
   
     </select></td>
@@ -357,7 +367,7 @@ useEffect(()=>{
   
   
     >
-            <option value="">Select Membership</option>
+            <option value="">{selectedLanguage.select_membership}</option>
   {memberships.map((participant)=>(
       
   <option value={JSON.stringify(participant)}>{participant.name}</option>
@@ -395,9 +405,9 @@ useEffect(()=>{
       id='cssassas'
       className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(newMembership.status)}`}
     >
-      <option value="">Status</option>
-      <option value="paid">Paid</option>
-      <option value="not paud">Not Paid</option>
+      <option value="">{selectedLanguage.table_headers.status}</option>
+      <option value="paid">{selectedLanguage.paid}</option>
+      <option value="not paud">{selectedLanguage.not_paid}</option>
   
     </select></td>
     <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#737373' }}>{newMembership.price*newMembership.quantity}</td>
@@ -416,9 +426,9 @@ useEffect(()=>{
   
       disabled={newMembership.status!='paid'}
     >
-      <option value="" disabled hidden>Select Payemnt</option>
-      <option value="bank">Bank</option>
-      <option value="cash">Cash</option>
+      <option value="" disabled hidden>{selectedLanguage.select_a_payment}</option>
+      <option value="bank">{selectedLanguage.bank}</option>
+      <option value="cash">{selectedLanguage.cash}</option>
       {/* Add more options as needed */}
     </select></ td>
     <td className="px-3 py-4 whitespace-nowrap">
@@ -430,7 +440,7 @@ useEffect(()=>{
           dateFormat="dd-MM-yyyy" // Specify the date format
           className="rounded-lg w-full px-3 py-2 border-none"
           
-          placeholderText="Date"
+          placeholderText={selectedLanguage.date}
         />
           </td>
           <td className="px-3 py-4 whitespace-nowrap">
@@ -442,7 +452,7 @@ useEffect(()=>{
           dateFormat="dd-MM-yyyy" // Specify the date format
           className="rounded-lg w-full px-3 py-2 border-none"
           
-          placeholderText="Date"
+          placeholderText={selectedLanguage.date}
         />
           </td>
           
@@ -455,7 +465,7 @@ useEffect(()=>{
      onClick={handlesave}
   className="button-blue mr-2"
   >
-  Save
+  {selectedLanguage.save}
   </button>
   <button
   onClick={() => {
@@ -464,7 +474,7 @@ useEffect(()=>{
   }}
   className="button-red"
 >
-  Cancel
+ {selectedLanguage.cancel}
 </button>
   
   </div>
@@ -696,20 +706,20 @@ if(membership.status==="paid"){
 <div className="w-3/6 h-full bg-white border rounded-t flex flex-col justify-start items-start">
 <div className='flex'>
  
- <h2 className="text-xl font-bold ml-4 mt-4 mb-6">New Client</h2>
+ <h2 className="text-xl font-bold ml-4 mt-4 mb-6">{selectedLanguage.new_client}</h2>
  <div className='ml-72'/>
  </div>
 
 
    
           <div className="bg-white w-full mt-10">
-              <h1 className="text-lg font-bold ml-4 mb-2">General Information</h1>
+              <h1 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.general_infomration}</h1>
 
               <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
 
 <div className="ml-4 grid grid-cols-3 gap-4">
               <div className="">
-                <strong className="block mb-1">Name:</strong>
+                <strong className="block mb-1">{selectedLanguage.name}:</strong>
                 <input
           className="rounded-lg"
           type="text"
@@ -721,12 +731,12 @@ if(membership.status==="paid"){
       
        
               <div className="">
-                <strong className="">Email:</strong>
+                <strong className="">{selectedLanguage.email}:</strong>
                 <input type="email" name="Email"  onChange={handleInputChange}  className="rounded-lg" />
               </div>
               
               <div className="">
-          <strong>Date of Birth</strong> 
+          <strong>{selectedLanguage.date_of_birth}</strong> 
           <input
           className="rounded-lg"
           type="text"
@@ -749,7 +759,7 @@ if(membership.status==="paid"){
         </div>
           
               <div className="">
-                <strong className="block mb-1">Phone Number:</strong>
+                <strong className="block mb-1">{selectedLanguage.phone_number}:</strong>
                 <input type="tel"  onChange={handleInputChange} name='phone'  className="rounded-lg" />
               </div>
       
@@ -854,7 +864,7 @@ if(membership.status==="paid"){
 
 <ParticipantsHorizontalScroll memberships={memberships} setCoachDetails={setCoachDetails}/>
 
-  <h3 className="text-lg font-bold ml-4 mb-2">Documents</h3>
+  <h3 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.documnets}</h3>
   <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 w-full"style={{ width: 'calc(100% - 24px)' }}>
   {documents.length===0?(
     
@@ -898,7 +908,7 @@ if(membership.status==="paid"){
       onClick={()=>  window.open(cls.pdf, '_blank')}
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 self-end"
         >
-          Open
+          {selectedLanguage.open}
         </button>
       </div>
     </div>
@@ -912,7 +922,7 @@ if(membership.status==="paid"){
           onClick={createAccountAndSaveData}
 
         >
-          Add Coach
+          {selectedLanguage.add_coach}
         </button>
           </div>
 
@@ -1171,10 +1181,10 @@ await updateDoc(docRef,{
 <div className="w-3/6 h-full bg-white border rounded-t flex flex-col justify-start items-start">
 <div className='flex'>
  
- <h2 className="text-xl font-bold ml-4 mt-4 mb-6">Client Details</h2>
+ <h2 className="text-xl font-bold ml-4 mt-4 mb-6">{selectedLanguage.client_deatails}</h2>
  <div className='ml-72'/>
  <div className="mt-4" >
-   <strong className='ml-2 mt-4 mb-6'>Client ID</strong> 
+   <strong className='ml-2 mt-4 mb-6'>{selectedLanguage.client_id}</strong> 
    <input className="rounded-lg ml-5" type="text" readOnly value={coachDetails.id} />
  </div>
  </div>
@@ -1189,7 +1199,7 @@ await updateDoc(docRef,{
   }`}
   onClick={() => setActiveTab('details')}
 >
-  Details
+  {selectedLanguage.details}
 </button>
 <button
   className={`px-4 py-2 text-xl font-bold ${
@@ -1199,7 +1209,7 @@ await updateDoc(docRef,{
   }`}
   onClick={() => setActiveTab('Performance')}
 >
- Performance
+ {selectedLanguage.performance}
 </button>
 
 <button
@@ -1210,7 +1220,7 @@ await updateDoc(docRef,{
   }`}
   onClick={() => setActiveTab('Chat')}
 >
-  Chat
+  {selectedLanguage.chat}
 </button>
 </div>
 
@@ -1218,13 +1228,13 @@ await updateDoc(docRef,{
 
           {activeTab === 'details' && ( 
           <div className="bg-white w-full mt-10">
-              <h1 className="text-lg font-bold ml-4 mb-2">Client Details</h1>
+              <h1 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.client_deatails}</h1>
 
               <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
 
 <div className="ml-4 grid grid-cols-3 gap-4">
               <div className="">
-                <strong className="block mb-1">Name:</strong>
+                <strong className="block mb-1">{selectedLanguage.table_headers.name}:</strong>
                 <input
           className="rounded-lg"
           type="text"
@@ -1236,13 +1246,13 @@ await updateDoc(docRef,{
       
         
               <div className="">
-                <strong className="">Email:</strong>
+                <strong className="">{selectedLanguage.email}:</strong>
                 <input type="email" name="Email" value={coachDetails.Email} onChange={handleInputChange}  className="rounded-lg" />
               </div>
               
             
               <div className="">
-          <strong>Date of Birth</strong> 
+          <strong>{selectedLanguage.date_of_birth}</strong> 
           <input
           className="rounded-lg"
           type="text"
@@ -1265,7 +1275,7 @@ await updateDoc(docRef,{
         </div>
           
               <div className="">
-                <strong className="block mb-1">Phone Number:</strong>
+                <strong className="block mb-1">{selectedLanguage.phone_number}:</strong>
                 <input type="tel" value={coachDetails.phone} onChange={handleInputChange} name='phone'  className="rounded-lg" />
               </div>
             </div>
@@ -1307,7 +1317,7 @@ await updateDoc(docRef,{
   </div> */}
   <ParticipantsHorizontalScroll memberships={memberships} setCoachDetails={setCoachDetails} traineeMemberships={coachDetails.memberships}/>
 
-  <h3 className="text-lg font-bold ml-4 mb-2">Documents</h3>
+  <h3 className="text-lg font-bold ml-4 mb-2">{selectedLanguage.documents}</h3>
     <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 w-full"style={{ width: 'calc(100% - 24px)' }}>
           
     {coach?.documents?.length === 0 ? (
@@ -1354,7 +1364,7 @@ await updateDoc(docRef,{
             onClick={()=>  window.open(cls.pdf, '_blank')}
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 self-end"
               >
-                Open
+                {selectedLanguage.open}
               </button>
             </div>
           </div>
@@ -1383,7 +1393,7 @@ await updateDoc(docRef,{
       onClick={handleSubmit}
       disabled={isSubmitting}
     >
-      Submit Changes
+      {selectedLanguage.submit_changes}
     </button>
           </div>)}
           {activeTab === 'Performance' && ( 
@@ -1395,7 +1405,7 @@ await updateDoc(docRef,{
           <AttendanceRateChart coachDetails={coachDetails} />
         </div>
       ) : (
-        <p>Loading coach details...</p>
+        <p>{selectedLanguage.loading_coach_changes}</p>
       )}
                 </div>
           )}
@@ -1487,11 +1497,11 @@ const IndexPage = () => {
   function getStatusText(status) {
     switch (status) {
       case "present":
-        return <span style={{ color: 'green' }}>Present</span>;
+        return <span style={{ color: 'green' }}>{selectedLanguage.present}</span>;
       case "absent":
-        return <span style={{ color: 'red' }}>Absent</span>;
+        return <span style={{ color: 'red' }}>{selectedLanguage.absent}</span>;
       case "on vacation":
-        return <span style={{ color: 'gray', }}>On Vacation</span>;
+        return <span style={{ color: 'gray', }}>{selectedLanguage.on_vacation}</span>;
       default:
         return "";
     }
@@ -1547,31 +1557,31 @@ const {memberships}=useAuth()
 
   return (
     <div className="container mx-auto  h-full mt-10 ">
-           <h2 className="text-3xl font-bold mb-10 ml-2">Clients</h2>
+           <h2 className="text-3xl font-bold mb-10 ml-2">{selectedLanguage.clients}</h2>
            <div className="h-full flex flex-col relative bg-white border rounded-lg">
 <div className="flex mb-4 p-3 bg-white  mt-5 items-center flex-col  ">
-  <h2 className="text-xl font-semibold ">Status</h2>
+  <h2 className="text-xl font-semibold ">{selectedLanguage.status}</h2>
   
   <div className="flex w-full items-center justify-between mt-10  p-3 ">
   {/* Medium-sized divs */}
   <div className="flex flex-col items-center mr-4 w-full h-full border text-xs font-medium text-gray-500 uppercase tracking-wider rounded-lg p-2">
     <Users2/> 
-    <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Clients</div>
+    <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.total_clients}</div>
     <div>{coaches.length}</div>
   </div>
   <div className="flex flex-col items-center mr-4 w-full h-full border text-xs font-medium text-gray-500 uppercase tracking-wider rounded-lg p-2">
     <School className="text-xs font-medium text-gray-500 uppercase tracking-wider"/> 
-    <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">total Classes</div>
+    <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.total_classes}</div>
     <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">{totalClasses}</div> {/* Assuming revenue is defined somewhere */}
   </div>
   <div className="flex flex-col items-center mr-4 w-full h-full border text-xs font-medium text-gray-500 uppercase tracking-wider rounded-lg p-2">
     <UserCheck2/> 
-    <div className="font-semibold">Active Clients</div>
+    <div className="font-semibold">{selectedLanguage.active_clients}</div>
     <div>{coaches.filter(coach => coach.status === 'active').length}</div> {/* Assuming attendance is defined somewhere */}
   </div>
   <div className="flex flex-col items-center w-full h-full border text-xs font-medium text-gray-500 uppercase tracking-wider rounded-lg p-2 ">
   <Star /> 
-    <div className="font-semibold ">Average Satisfaction rate</div>
+    <div className="font-semibold ">{selectedLanguage.average_satisfaction_rate}</div>
     <div>{5/5}</div> {/* Assuming expense is defined somewhere */}
   </div>
 </div>
@@ -1590,7 +1600,7 @@ const {memberships}=useAuth()
       
           <input
             type="text"
-            placeholder="Type Coach Name"
+            placeholder={selectedLanguage.type_coach_name}
             className="px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             onChange={e => setSearchTerm(e.target.value)}
             style={{ fontSize: "0.8rem" }} // Adjust font size if needed
@@ -1601,7 +1611,7 @@ const {memberships}=useAuth()
           onClick={toggleDetailsmake}
         >
           <span className="mr-2">+</span>
-          <span>Add New</span>
+          <span>{selectedLanguage.add_new}</span>
         </button>
       </div>
 
@@ -1613,12 +1623,12 @@ const {memberships}=useAuth()
       {/* Coach list */}
       <div className="flex mb-2 bg-gray-100 h-10 items-center rounded-lg mr-5 ml-5">
         <div className="w-1/4 pr-4 font-semibold"></div>
-        <div className="w-3/4 text-xs font-medium text-gray-500 uppercase tracking-wider">Trainee Name</div>
+        <div className="w-3/4 text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.trainee_name}</div>
 
-        <div className="w-3/4 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</div>
-        <div className="w-2/4 pr-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</div>
-        <div className="w-2/5 text-xs font-medium text-gray-500 uppercase tracking-wider">Phone Number</div>
-        <div className="w-1/5 text-xs font-medium text-gray-500 uppercase tracking-wider">Action</div>
+        <div className="w-3/4 text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.email}</div>
+        <div className="w-2/4 pr-4 text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.status}</div>
+        <div className="w-2/5 text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.phone_number}</div>
+        <div className="w-1/5 text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.action}</div>
       </div>
        {/* Coach list */}
        {/* Iterate over coaches and render each */}

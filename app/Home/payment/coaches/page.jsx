@@ -14,12 +14,21 @@ import { Timestamp, addDoc, collection,doc, getDoc, getDocs, increment,  orderBy
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer,BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ReferenceLine, Label,Text } from 'recharts';
 import { getStatusColorClass } from '@/app/Home/tournaments/page';
 import autoTable from 'jspdf-autotable'
+import en from '@/app/languages/en.json'
+import ar from '@/app/languages/ar.json'
+import fr from '@/app/languages/fr.json'
+import tr from '@/app/languages/tr.json'
+// choose language
+
+const selectedLanguage = en;
+
+
 const AttendanceChart = ({ trainersData }) => {
  
 
   return ( 
     <div>
-     <h2 className="text-3xl font-bold mb-10 ml-2">Total Class hours by Trainers</h2>
+     <h2 className="text-3xl font-bold mb-10 ml-2">{selectedLanguage.total_class_hours_by_trainers}</h2>
  
     <ResponsiveContainer width="100%" height={400} >
       <BarChart data={trainersData} >
@@ -721,10 +730,10 @@ let u=updatedCommissionss;
           <div className="w-7/12 h-auto bg-white border rounded-t flex flex-col justify-start items-start overflow-y-auto" style={{ height: '100%' }}>
 
           <div className='flex bg-white h-auto'>
-              <h2 className="text-xl font-bold ml-4 mt-4 mb-6">Coach Payouts</h2>
+              <h2 className="text-xl font-bold ml-4 mt-4 mb-6">{selectedLanguage.coach_payouts}</h2>
               <div className='ml-72 h-full' />
               <div className="mt-4" >
-                <strong className='ml-2 mt-4 mb-6'>Coach ID</strong>
+                <strong className='ml-2 mt-4 mb-6'>{selectedLanguage.coach_id}</strong>
                 <input className="rounded-lg ml-5" type="text" readOnly value={selectedCoach.id} />
               </div>
             </div>
@@ -732,15 +741,15 @@ let u=updatedCommissionss;
             <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
             <div className="ml-4 grid grid-cols-3 gap-4">
                 <div>
-                  <strong>Name</strong> <br />
+                  <strong>{selectedLanguage.coach_id}</strong> <br />
                   <input className="rounded-lg"  value={selectedEmployee.selectedCoach.nameandsurname} readOnly />
                 </div>
                 <div>
-                  <strong>Position</strong> <br />
+                  <strong>{selectedLanguage.position}</strong> <br />
                   <input className="rounded-lg " type="text" readOnly value={selectedEmployee.selectedCoach.position} />
                 </div>
                  <div className='flex flex-col' >
-                 <strong>Salary Type</strong> 
+                 <strong>{selectedLanguage.salary_type}</strong> 
                         <select
                     name='salaryType'
                     value={selectedEmployee.selectedCoach.salaryType}
@@ -750,9 +759,9 @@ let u=updatedCommissionss;
                     }}
                           className="rounded-lg "
                         >
-                                      <option value="">Select salary type</option>
-                          <option value="monthly">Monthly</option>
-                          <option value="hourly">Hourly</option>
+                                      <option value="">{selectedLanguage.select_salary_type}</option>
+                          <option value="monthly">{selectedLanguage.monthly}</option>
+                          <option value="hourly">{selectedLanguage.hourly}</option>
                   
                         </select>
                       </div>
@@ -779,7 +788,7 @@ onChange={(e) => {
             </div>
             <div className='flex flex-row self-end px-4'>
             <div>
-             <strong className='mr-2 mt-4 mb-6'>Start Date : </strong>
+             <strong className='mr-2 mt-4 mb-6'>{selectedLanguage.start_date}: </strong>
                   <DatePicker
         selected={startDate}
         onChange={(date) => setStartDate(date)}
@@ -792,7 +801,7 @@ onChange={(e) => {
       />
             </div>
             <div>
-             <strong className='ml-2 mt-4 mb-6'>End Date :</strong>
+             <strong className='ml-2 mt-4 mb-6'>{selectedLanguage.end_date}:</strong>
       <DatePicker
         selected={endDate}
         onChange={(date) => setEndDate(date)}
@@ -807,31 +816,31 @@ onChange={(e) => {
       </div>
     </div>
     <div colSpan="2" className="px-6 py-6 text-right pr-10 font-bold text-3xl text-black-500 uppercase tracking-wider" style={{  width: '100%', display: 'block' }}>
-          Total Payout: ${salary+(selectedEmployee.others.reduce((acc, employee) => acc +  parseInt(employee.amount,10), 0)) + (selectedEmployee.commissions.reduce((acc, employee) => acc +  parseInt((employee.amount*employee.rate)/100,10), 0))}
+          {selectedLanguage.total_payout}: ${salary+(selectedEmployee.others.reduce((acc, employee) => acc +  parseInt(employee.amount,10), 0)) + (selectedEmployee.commissions.reduce((acc, employee) => acc +  parseInt((employee.amount*employee.rate)/100,10), 0))}
 
         </div>
  
             
             <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
-              <h3 className="text-lg font-bold mb-4">Classes</h3>
+              <h3 className="text-lg font-bold mb-4">{selectedLanguage.classes}</h3>
               <div className="table-container " style={{ overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
                 <table className="w-full min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        class
+                        {selectedLanguage.class}
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        date
+                        {selectedLanguage.date}
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       start
+                       {selectedLanguage.start}
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       end
+                      {selectedLanguage.end}
                       </th>
                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       duration
+                       {selectedLanguage.duration}
                       </th>
                     </tr>
                   </thead>
@@ -847,7 +856,7 @@ onChange={(e) => {
          <td className="px-6 py-4 whitespace-nowrap ">{formatTimeFromFirestoreTimestamp(attendance.date)}</td>
     
          <td className="px-6 py-4 whitespace-nowrap ">{formatTimeFromFirestoreTimestamp(attendance.end)}</td>
-         <td className="px-6 py-4 whitespace-nowrap ">{calculateDurationInMinutes(new Date(attendance.date.toDate()),new Date(attendance.end.toDate()))} Minutes</td>
+         <td className="px-6 py-4 whitespace-nowrap ">{calculateDurationInMinutes(new Date(attendance.date.toDate()),new Date(attendance.end.toDate()))} {selectedLanguage.minutes}</td>
             </tr>
           ))}     
                   </tbody>
@@ -857,27 +866,27 @@ onChange={(e) => {
               </div>
     
         <div colSpan="2" className="px-6 py-3 text-right pr-10 font-medium text-gray-500 uppercase tracking-wider" style={{ borderTopWidth: '2px', width: '100%', display: 'block' }}>
-          Salary: ${salary}
+         {selectedLanguage.salary}: ${salary}
         </div>
            
             </div>
             <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 bg-white" style={{ width: 'calc(100% - 24px)' }}>
-              <h3 className="text-lg font-bold mb-4">Attendance</h3>
+              <h3 className="text-lg font-bold mb-4">{selectedLanguage.attendance}</h3>
               <div className="table-container " style={{overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
                 <table className="w-full min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      date
+                      {selectedLanguage.date}
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Time In
+                        {selectedLanguage.attendance_table_headers.time_in}
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       Time Out
+                      {selectedLanguage.attendance_table_headers.time_out}
                       </th>
                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       duration
+                       {selectedLanguage.duration_}
                       </th>
                     </tr>
                   </thead>
@@ -921,7 +930,7 @@ onChange={(e) => {
     />
 </div>
          </td>
-         <td className="px-6 py-4 whitespace-nowrap ">{(Math.floor(new Date(attendance.endTime.toDate()).getTime()-new Date(attendance.startTime.toDate()).getTime())/(1000*60)).toFixed(2)} Minutes</td>
+         <td className="px-6 py-4 whitespace-nowrap ">{(Math.floor(new Date(attendance.endTime.toDate()).getTime()-new Date(attendance.startTime.toDate()).getTime())/(1000*60)).toFixed(2)}{selectedLanguage.minutes}</td>
             </tr>
           ))}     
                   </tbody>
@@ -937,19 +946,19 @@ onChange={(e) => {
                   <thead className="bg-gray-50">
                     <tr>
                        <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       date
+                       {selectedLanguage.date}
                       </th>
                       <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       amount
+                       {selectedLanguage.amount}
                       </th>
                       <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       payout type
+                       {selectedLanguage.payout_type}
                       </th>
                       <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       Description
+                       {selectedLanguage.description}
                       </th>
                       <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       action
+                       {selectedLanguage.action}
                       </th>
                     </tr>
                   </thead>
@@ -1009,17 +1018,17 @@ onChange={(e) => {
     id='cssassas'
     className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(salary.status)}`}
   >
-    <option value="">payout type</option>
-    <option value="bank">Bank</option>
-    <option value="cash">Cash</option>
+    <option value="">{selectedLanguage.payout_type}</option>
+    <option value="bank">{selectedLanguage.bank}</option>
+    <option value="cash">{selectedLanguage.cash}</option>
 
   </select></td>
 <td className="px-6 py-4 max-w-20 overflow-wrap break-word overflow-hidden ">{salary.description}</td>
 <td className="px-6 py-4 whitespace-nowrap align-center justify-center">
 <div className="flex  justify-center">
-{!salary.removed ?(               <button className="px-3 py-1 button-red   mr-2"  onClick={()=>handleRemove(salary,selectedEmployee.salary,`salary`)}>Remove</button>
+{!salary.removed ?(               <button className="px-3 py-1 button-red   mr-2"  onClick={()=>handleRemove(salary,selectedEmployee.salary,`salary`)}>{selectedLanguage.remove}</button>
 ):
-         (<button className="px-3 py-1  button-red-removed rounded mr-2" disabled={true}>Removed</button>)   }
+         (<button className="px-3 py-1  button-red-removed rounded mr-2" disabled={true}>{selectedLanguage.removed}</button>)   }
      
             </div>
 
@@ -1036,7 +1045,7 @@ onChange={(e) => {
           <td className="px-3 py-4 whitespace-nowrap">
           <div className='flex flex-row self-end px-4'>
           <div>
-           <strong className='mr-2 mt-4 mb-6'>from: </strong>
+           <strong className='mr-2 mt-4 mb-6'>{selectedLanguage.from}: </strong>
                 <DatePicker
       selected={newSalaryDetails.from.toDate ? salary.from.toDate().toLocaleDateString(): newSalaryDetails.from.toLocaleDateString()}
       onChange={(date) => setNewSalaryDetails((prev)=>({
@@ -1083,9 +1092,9 @@ onChange={(e) => {
 
     className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(newSalaryDetails.status)}`}
   >
-    <option value="">payout type</option>
-    <option value="bank">Bank</option>
-    <option value="cash">Cash</option>
+    <option value="">{selectedLanguage.payout_type}</option>
+    <option value="bank">{selectedLanguage.bank}</option>
+    <option value="cash">{selectedLanguage.cash}</option>
 
   </select>
 
@@ -1109,7 +1118,7 @@ onChange={(e) => {
      
               </div>
               <div colSpan="2" className="px-6 py-3 text-right  font-medium text-gray-500 uppercase tracking-wider" style={{ borderTopWidth: '2px', width: '100%', display: 'block' }}>
-          Total Salaries: ${  (selectedEmployee.salary.reduce((acc, employee) => acc +  parseInt(employee.amount,10), 0)).toLocaleString()}
+          {selectedLanguage.total_salaries}: ${  (selectedEmployee.salary.reduce((acc, employee) => acc +  parseInt(employee.amount,10), 0)).toLocaleString()}
         </div>
                       {!showAddRowSalary? (
                         <>
@@ -1117,7 +1126,7 @@ onChange={(e) => {
                           onClick={handleAddRowSalary}
                           className="button-white  mt-5 mr-5"
                         >
-                          Add Salary
+                          {selectedLanguage.add_salary}
                         </button>
                          {selectedEmployee.salary !=orginal.salary && (
                          <>
@@ -1126,14 +1135,14 @@ onChange={(e) => {
                      
                            className="button-blue  mt-5"
                          >
-                          submit Changes
+                          {selectedLanguage.submit_changes}
                          </button>
                          <button
                            onClick={()=> setSelectedEmployee(orginal)}
                      
                            className="bg-gray-500 text-black-500  font-bold mt-5 ml-5 border rounded-lg px-5 py-2"
                          >
-                          Cancel Changes
+                          {selectedLanguage.cancel_changes}
                          </button>
                          </> )}  
                         </>
@@ -1144,38 +1153,38 @@ onChange={(e) => {
                 onClick={handleSaveSalary}
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
               >
-                Save
+                {selectedLanguage.save}
               </button>
               <button
                 onClick={handleCancelAddSalaryRow}
                 className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
               >
-                Cancel
+               {selectedLanguage.cancel}
               </button></>
                       )}
  <button      className="button-excel  ml-5 absolute right-4 top-2" onClick={()=>exportToExcelSalary(selectedCoach.nameandsurname,startDate.toLocaleDateString(),endDate.toLocaleDateString(),'salary')}>Import</button>
 
             </div>
             <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 relative" style={{ width: 'calc(100% - 24px)' }}>
-              <h3 className="text-lg font-bold mb-4">Other Activities</h3>
+              <h3 className="text-lg font-bold mb-4">{selectedLanguage.other_activities}</h3>
               <div className="table-container " style={{ overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
                 <table className="w-full min-w-full divide-y divide-gray-200" id='payouts'>
                   <thead className="bg-gray-50">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        description
+                        {selectedLanguage.description}
                       </th>
                       <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       amount
+                      {selectedLanguage.amount}
                       </th>
                       <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       payout type
+                       {selectedLanguage.payout_type}
                       </th>
                       <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       date
+                       {selectedLanguage.date}
                       </th>
                       <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       action
+                       {selectedLanguage.action}
                       </th>
                     </tr>
                   </thead>
@@ -1205,9 +1214,9 @@ onChange={(e) => {
     
     className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(other.status)}`}
   >
-    <option value="">payout type</option>
-    <option value="bank">Bank</option>
-    <option value="cash">Cash</option>
+    <option value="">{selectedLanguage.payout_type}</option>
+    <option value="bank">{selectedLanguage.bank}</option>
+    <option value="cash">{selectedLanguage.cash}</option>
 
   </select></td>
 {other.date   && (         <td className="px-6 py-4 whitespace-nowrap text-center">{other.date.toDate ? other.date.toDate().toLocaleDateString(): other.date.toLocaleDateString()}</td>)    }
@@ -1215,8 +1224,8 @@ onChange={(e) => {
 <td className="px-6 py-4 whitespace-nowrap align-center justify-center">
 <div className="flex  justify-center">
                   
-         {!other.removed ?(    <button className="px-3 py-1 button-red rounded mr-2"  onClick={()=>handleRemove(other,selectedEmployee.others,`others`)}>Remove</button>):
-         (<button className="px-3 py-1  button-red-removed mr-2"  disabled={true}>Removed</button>)   }
+         {!other.removed ?(    <button className="px-3 py-1 button-red rounded mr-2"  onClick={()=>handleRemove(other,selectedEmployee.others,`others`)}>{selectedLanguage.remove}</button>):
+         (<button className="px-3 py-1  button-red-removed mr-2"  disabled={true}>{selectedLanguage.removed}</button>)   }
      
             </div>
 
@@ -1253,9 +1262,9 @@ onChange={(e) => {
     
     className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(newOtherDetails.payment)}`}
   >
-    <option value="">payout type</option>
-    <option value="bank">Bank</option>
-    <option value="cash">Cash</option>
+    <option value="">{selectedLanguage.payout_type}</option>
+    <option value="bank">{selectedLanguage.bank}</option>
+    <option value="cash">{selectedLanguage.cash}</option>
 
   </select>
 </td>
@@ -1282,7 +1291,7 @@ onChange={(e) => {
      
               </div>
               <div colSpan="2" className="px-6 py-3 text-right  font-medium text-gray-500 uppercase tracking-wider" style={{ borderTopWidth: '2px', width: '100%', display: 'block' }}>
-          Total Amount: ${  (selectedEmployee.others.reduce((acc, employee) => acc +  parseInt(employee.amount,10), 0)).toLocaleString()}
+          {selectedLanguage.total_amount}: ${  (selectedEmployee.others.reduce((acc, employee) => acc +  parseInt(employee.amount,10), 0)).toLocaleString()}
         </div>
                       {!showAddRowOther? (
                         <>
@@ -1290,7 +1299,7 @@ onChange={(e) => {
                           onClick={handleAddRowOther}
                           className="button-white  mt-5 mr-5"
                         >
-                          Add Other
+                          {selectedLanguage.add_other}
                         </button>
                          {selectedEmployee.others !=orginal.others && (
                          <>
@@ -1299,14 +1308,14 @@ onChange={(e) => {
                      
                            className="button-blue  mt-5"
                          >
-                          submit Changes
+                          {selectedLanguage.submit_changes}
                          </button>
                          <button
                            onClick={()=> setSelectedEmployee(orginal)}
                      
                            className="bg-gray-500 text-black-500  font-bold mt-5 ml-5 border rounded-lg px-5 py-2"
                          >
-                          Cancel Changes
+                          {selectedLanguage.cancel_changes}
                          </button>
                          </> )}  
                         </>
@@ -1317,44 +1326,44 @@ onChange={(e) => {
                 onClick={handleSaveOther}
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
               >
-                Save
+                {selectedLanguage.save}
               </button>
               <button
                 onClick={handleCancelAddOtherRow}
                 className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
               >
-                Cancel
+                {selectedLanguage.cancel}
               </button></>
                       )}
-                                                    <button      className="button-excel  ml-5 absolute right-4 top-2" onClick={()=>exportToExcel(selectedCoach.nameandsurname,startDate.toLocaleDateString(),endDate.toLocaleDateString(),'payouts')}>Import</button>
+                                                    <button      className="button-excel  ml-5 absolute right-4 top-2" onClick={()=>exportToExcel(selectedCoach.nameandsurname,startDate.toLocaleDateString(),endDate.toLocaleDateString(),'payouts')}>{selectedLanguage.import}</button>
 
             </div>
             <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 relative" style={{ width: 'calc(100% - 24px)' }}>
-              <h3 className="text-lg font-bold mb-4">Commission</h3>
+              <h3 className="text-lg font-bold mb-4">{selectedLanguage.commission}</h3>
               <div className="table-container " style={{  overflowY: 'auto', maxHeight: '200px', width:'100%'}}>
                 <table className="w-full min-w-full divide-y divide-gray-200" id='commission'>
                   <thead className="bg-gray-50">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        description
+                        {selectedLanguage.description}
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total amount
+                        {selectedLanguage.total_amount}
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       commission rate
+                       {selectedLanguage.commission_rate}
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       commission in Tl
+                       {commission_in_$}
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       payout type
+                       {selectedLanguage.payout_type}
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       date
+                       {selectedLanguage.date}
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                       action
+                       {selectedLanguage.action}
                       </th>
                     </tr>
                   </thead>
@@ -1386,9 +1395,9 @@ onChange={(e) => {
     
     className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(commission.status)}`}
   >
-    <option value="">payout type</option>
-    <option value="bank">Bank</option>
-    <option value="cash">Cash</option>
+    <option value="">{selectedLanguage.payout_type}</option>
+    <option value="bank">{selectedLanguage.bank}</option>
+    <option value="cash">{selectedLanguage.cash}</option>
  
 
   </select></td>
@@ -1397,8 +1406,8 @@ onChange={(e) => {
 <td className="px-6 py-4 whitespace-nowrap align-center justify-center">
 <div className="flex  justify-center">
           
-         {!commission.removed ?(<button className="px-3 py-1 button-red rounded mr-2"  onClick={()=>handleRemove(commission,selectedEmployee.commissions,`commissions`)}>Remove</button>):
-         (<button className="px-3 py-1 button-red-removed rounded mr-2"  disabled={true}>Removed</button>)   }
+         {!commission.removed ?(<button className="px-3 py-1 button-red rounded mr-2"  onClick={()=>handleRemove(commission,selectedEmployee.commissions,`commissions`)}>{selectedLanguage.remove}</button>):
+         (<button className="px-3 py-1 button-red-removed rounded mr-2"  disabled={true}>{selectedLanguage.removed}</button>)   }
      
             </div>
 
@@ -1452,9 +1461,9 @@ onChange={(e) => {
     
     className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(newCommissionDetails.status)}`}
   >
-    <option value="">payout type</option>
-    <option value="cash">Cash</option>
-    <option value="bank">Bank</option>
+    <option value="">{selectedLanguage.payout_type}</option>
+    <option value="cash">{selectedLanguage.cash}</option>
+    <option value="bank">{selectedLanguage.bank}</option>
    
 
   </select>
@@ -1481,7 +1490,7 @@ onChange={(e) => {
  
               </div>
               <div colSpan="2" className="px-6 py-3 text-right pr-10  font-medium text-gray-500 uppercase tracking-wider" style={{ borderTopWidth: '2px', width: '100%', display: 'block' }}>
-          Total Commissions: ${  (selectedEmployee.commissions.reduce((acc, employee) => acc +  parseInt((employee.amount*employee.rate)/100,10), 0)).toLocaleString()}
+         {selectedLanguage.total_commissions}: ${  (selectedEmployee.commissions.reduce((acc, employee) => acc +  parseInt((employee.amount*employee.rate)/100,10), 0)).toLocaleString()}
         </div>
       
             
@@ -1491,7 +1500,7 @@ onChange={(e) => {
                           onClick={handleAddRowCommission}
                           className="button-white  mt-5 mr-5"
                         >
-                          Add Commission
+                         {selectedLanguage.add_commission}
                         </button>
                         {selectedEmployee.commissions !=orginal.commissions && ( 
                         <>
@@ -1500,14 +1509,14 @@ onChange={(e) => {
                            
                            className="button-blue  mt-5"
                          >
-                          submit Changes
+                          {selectedLanguage.submit_changes}
                          </button>
                                      <button
                                      onClick={()=> setSelectedEmployee(orginal)}
                                
                                      className="bg-gray-500 text-black-500  font-bold mt-5 ml-5 border rounded-lg px-5 py-2"
                                    >
-                                    Cancel Changes
+                                    {selectedLanguage.cancel_changes}
                                    </button>
                                    </>)}
                         </>
@@ -1518,17 +1527,17 @@ onChange={(e) => {
                 onClick={handleSaveCommission}
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
               >
-                Save
+                {selectedLanguage.save}
               </button>
               <button
                 onClick={handleCancelAddRow}
                 className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
               >
-                Cancel
+                {selectedLanguage.cancel}
               </button></>
                   
                   )}
-                              <button      className="button-excel  ml-5 absolute right-4 top-2" onClick={()=>exportToExcel(selectedCoach.nameandsurname,startDate.toLocaleDateString(),endDate.toLocaleDateString(),'commission')}>Import</button>
+                              <button      className="button-excel  ml-5 absolute right-4 top-2" onClick={()=>exportToExcel(selectedCoach.nameandsurname,startDate.toLocaleDateString(),endDate.toLocaleDateString(),'commission')}>{selectedLanguage.import}</button>
             </div>
       
 
@@ -1620,7 +1629,7 @@ trainer:{},
   
         <div className="w-2/6 h-full bg-white border rounded-lg flex flex-col justify-start items-start">
           <div className='flex'>
-            <h2 className="text-xl font-bold ml-4 mt-4 mb-6">Add PayOut</h2>
+            <h2 className="text-xl font-bold ml-4 mt-4 mb-6">{selectedLanguage.add_payout}</h2>
             <div className='ml-72'/>
             <div className="mt-4">
           
@@ -1630,7 +1639,7 @@ trainer:{},
           <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
             <div className="ml-4 grid grid-cols-1 gap-4">
             <div className="flex flex-col">
-                <strong>Date</strong>
+                <strong>{selectedLanguage.date}</strong>
   
   
       <DatePicker
@@ -1647,7 +1656,7 @@ trainer:{},
     
               </div>
               <div className="flex flex-col">
-                <strong>Select a Coach</strong>      
+                <strong>{selectedLanguage.select_a_coach}</strong>      
               <select
 
   onChange={(e) => setReservation(prevReservation => ({
@@ -1658,7 +1667,7 @@ trainer:{},
   
   className='rounded-lg flex flex-col w-full'
 >
-        <option value="">Select a Coach</option>
+        <option value="">{selectedLanguage.select_a_coach}</option>
         { trainers.map((user) => (
           <option key={user.id} value={user.id}>
             {user.nameandsurname}
@@ -1667,7 +1676,7 @@ trainer:{},
       </select>  
       </div>
   <div className="flex flex-col">
-              <strong>Payment</strong>
+              <strong>{selectedLanguage.paymnet}</strong>
               <select
       name="payment"
       value={reservation.payment}
@@ -1676,15 +1685,15 @@ trainer:{},
     >
   
       <option value="cash">
-          Cash
+          {selectedLanguage.cash}
         </option>
         <option  value="bank">
-          Bank Transfer
+          {selectedLanguage.bank_transfer}
         </option>
     </select>
     </div>
     <div className="flex flex-col">
-              <strong>Amount</strong>
+              <strong>{selectedLanguage.amount}</strong>
               <input
           className="rounded-lg"
           type="text"
@@ -1695,7 +1704,7 @@ trainer:{},
   
     </div>
     <div className="flex flex-col">
-        <label className="font-semibold mb-2">Payout Type</label>
+        <label className="font-semibold mb-2">{selectedLanguage.payout_type}</label>
         <div  className="flex justify-center">
           <label className="inline-block mr-4">
             <input
@@ -1706,7 +1715,7 @@ trainer:{},
               onChange={(e) =>{ handleBookingTypeChange('extraHours');handleInputChange(e)}}
               className="mr-2"
             />
-            Extra Hour
+            {selectedLanguage.extra_hour}
           </label>
           <label className="inline-block">
             <input
@@ -1717,7 +1726,7 @@ trainer:{},
               onChange={(e) => {handleBookingTypeChange('extraClass');handleInputChange(e)}}
               className="mr-2"
             />
-           Extra  Class
+           {selectedLanguage.extra_class}
           </label>
           <label className="inline-block ml-2">
             <input
@@ -1728,7 +1737,7 @@ trainer:{},
               onChange={(e) => {handleBookingTypeChange('other');handleInputChange(e)}}
               className="mr-2"
             />
-            Other
+            {selectedLanguage.other}
           </label>
         </div>
         
@@ -1736,7 +1745,7 @@ trainer:{},
       {bookingType === 'other' && (
         <>
             <div className="flex flex-col">
-              <strong>Other:</strong>
+              <strong>{selectedLanguage.other}:</strong>
               <input
           className="rounded-lg"
           type="text"
@@ -1749,7 +1758,7 @@ trainer:{},
         </>
       )}
                 <button type="submit" onClick={handleSubmit} className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-4">
-        Submit
+        {selectedLanguage.submit}
       </button>
             </div>
     
@@ -1764,7 +1773,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const StraightAnglePieChart = ({data}) => (
   <div className="bg-white shadow-md rounded-xl p-6 w-72">
-        <h2 className="text-xl font-bold mb-4" style={{ color: '#0E2433' }}>Income Types</h2>
+        <h2 className="text-xl font-bold mb-4" style={{ color: '#0E2433' }}>{selectedLanguage.income_types}</h2>
         <PieChart width={200} height={120} >
         <Pie
           data={data}
@@ -1945,10 +1954,10 @@ const handleEyeClick = (employee) => {
     <div className="container mx-auto h-full mt-10">
 <div className="flex items-center justify-between">
   <div>
-    <h2 className="text-3xl font-bold mb-10 ml-2">PayOuts</h2>
+    <h2 className="text-3xl font-bold mb-10 ml-2">{selectedLanguage.pay_outs}</h2>
   </div>
   <div>
-    <button className="text-blue-500 text-2xl" onClick={addNewMatch}>Add PayOut</button>
+    <button className="text-blue-500 text-2xl" onClick={addNewMatch}>{selectedLanguage.add_payout}</button>
   </div>
 </div>
 
@@ -1970,16 +1979,16 @@ const handleEyeClick = (employee) => {
                 #
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-             Coach
+             {selectedLanguage.coach}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                Salary type
+                {selectedLanguage.salary_type}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                Salary 
+                {selectedLanguage.salary} 
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                Action
+                {selectedLanguage.action}
               </th>
             </tr>
           </thead>

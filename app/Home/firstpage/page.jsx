@@ -16,7 +16,14 @@ import { addDays } from '@fullcalendar/core/internal';
 import { Card } from '../payment/coaches/page';
 import { BadgeDollarSign, Gauge, Hourglass, MoreHorizontalIcon, User2, UserPlus, UserRound } from 'lucide-react';
 import styles from '@/app/Home/firstpage/dashboard.module.css'
-import Rightbar from '@/components/UI/rightside/rightbar';
+import Rightbar from '@/components/UI/rightside/rightbar'
+import en from '@/app/languages/en.json'
+import ar from '@/app/languages/ar.json'
+import fr from '@/app/languages/fr.json'
+import tr from '@/app/languages/tr.json'
+
+// choose language
+const selectedLanguage = tr;
 // Mocked data for cards and chart
 const cards = [
   { id: 1, title: "Active Users", number: 1024, change: 5 },
@@ -38,7 +45,7 @@ const chartData = [
 // Chart Component
 const ChartComponent = () => (
   <div style={{ height: '400px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
-    <h2>Weekly Recap</h2>
+    <h2>{selectedLanguage.weekly_recap}</h2>
     <ResponsiveContainer width="100%" height="80%">
       <LineChart data={chartData}>
         <XAxis dataKey="name" />
@@ -113,12 +120,12 @@ const Transactions = () => {
 
   return (
     <div style={containerStyle}>
-      <h2 style={titleStyle}>Latest Transactions</h2>
+      <h2 style={titleStyle}>{selectedLanguage.latest_transactions}</h2>
       <table style={tableStyle}>
         <thead>
           <tr>
-            <td style={tdStyle}>Name</td>
-            <td style={tdStyle}>Status</td>
+            <td style={tdStyle}>{selectedLanguage.name}</td>
+            <td style={tdStyle}>{selectedLanguage.status}</td>
             <td style={tdStyle}>Date</td>
             <td style={tdStyle}>Amount</td>
           </tr>
@@ -553,13 +560,13 @@ const handleAddRow = () => {
 <div className={styles.wrapper}>
 
 <div className={styles.main}>
-<h2 className="text-3xl font-bold mb-10 ml-2">Dashboard</h2>
+<h2 className="text-3xl font-bold mb-10 ml-2">{selectedLanguage.dashboard}</h2>
   <div className={styles.cards}>
  
-   <Card title={'Played Matches'} data={status.totalMatches} subtitle={`${status.totalMatches} from last month`} icon={<Gauge size={32} color="#0E2433" className="text-gray-600" />} />
-   <Card title={'Revenues'} data={`$ ${status.revenue}`} subtitle={` `} icon={<BadgeDollarSign size={32} color="#0E2433" className="text-gray-600" />} />
-   <Card title={'Hours of court occupation'} data={`${convertMinutesToHours(status.totalReservation)} hours`} subtitle={` `} icon={<Hourglass size={32} color="#0E2433" className="text-gray-600" />} />
-    <Card title={'Total Clients'} data={status.users} subtitle={`${status.users} new ones`} icon={<UserPlus size={32} color="#0E2433" className="text-gray-600" />} /> 
+   <Card title={selectedLanguage.played_matches} data={status.totalMatches} subtitle={`${status.totalMatches} ${selectedLanguage.from_last_month}`} icon={<Gauge size={32} color="#0E2433" className="text-gray-600" />} />
+   <Card title={selectedLanguage.revenues} data={`$ ${status.revenue}`} subtitle={` `} icon={<BadgeDollarSign size={32} color="#0E2433" className="text-gray-600" />} />
+   <Card title={selectedLanguage.hours_of_court_occupation} data={`${convertMinutesToHours(status.totalReservation)} hours`} subtitle={` `} icon={<Hourglass size={32} color="#0E2433" className="text-gray-600" />} />
+    <Card title={selectedLanguage.total_clients} data={status.users} subtitle={`${status.users} ${selectedLanguage.new_ones}`} icon={<UserPlus size={32} color="#0E2433" className="text-gray-600" />} /> 
    {/* <Card title={'Total Coaches'} data={status.coaches} subtitle={` `} icon={<UserRound size={32} color="#0E2433" className="text-gray-600" />} /> */}
 
        
@@ -567,7 +574,7 @@ const handleAddRow = () => {
 
 <div className="  border rounded-lg w-full bg-white p-4 relative mb-4  mt-3 self-center">
              
-<h3 className="text-xl font-bold mb-2 self-start mt-2">Attendance :</h3>
+<h3 className="text-xl font-bold mb-2 self-start mt-2">{selectedLanguage.attendance}:</h3>
     <div className="">
      <DatePicker
         id="date"
@@ -588,10 +595,10 @@ const handleAddRow = () => {
   <table className="table-auto w-full min-w-full divide-y divide-gray-200 mt-5">
         <thead className="bg-gray-50 ">
             <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Time In</th>
-            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Time Out</th>
-            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.attendance_table_headers.name}</th>
+            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.attendance_table_headers.time_in}</th>
+            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.attendance_table_headers.time_out}</th>
+            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedLanguage.attendance_table_headers.actions}</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200 overflow-y-auto">
@@ -650,8 +657,8 @@ const handleAddRow = () => {
         </td>
         <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex justify-center">
-            <button className="px-3 py-1 bg-red-500 text-white rounded mr-2" onClick={() => handleAbsent(index)}>Absent</button>
-            <button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}}onClick={() => handleRemove(trainer)}>Remove</button>
+            <button className="px-3 py-1 bg-red-500 text-white rounded mr-2" onClick={() => handleAbsent(index)}>{selectedLanguage.absent}</button>
+            <button className="px-3 py-1 border text-white  rounded rounded mr-2" style={{backgroundColor:"#335fff"}}onClick={() => handleRemove(trainer)}>{selectedLanguage.remove}</button>
      
             </div>
         </td>
@@ -677,7 +684,7 @@ const handleAddRow = () => {
   }}
   className="rounded-lg w-full py-2 border-none"
 >
-        <option value="">Select a user</option>
+        <option value="">{selectedLanguage.select_a_user}</option>
         { trainers.map((user) => (
           <option key={user.id} value={user.nameandsurname}>
             {user.nameandsurname}
@@ -788,12 +795,12 @@ onChange={(e) => {
   </div>
 )}
       {!showAddRow ? (<div className='absolute top-0 right-2'>
-                <button className="px-4 py-2 button-excel mr-2" onClick={handleDownloadExcel}>Import</button>
+                <button className="px-4 py-2 button-excel mr-2" onClick={handleDownloadExcel}>{selectedLanguage.import}</button>
                         <button
                           onClick={handleAddRow}
                           className=" button-white mt-3"
                         >
-                          Add Player
+                          {selectedLanguage.add_player}
                         </button>
                         </div>
                       ):(
@@ -802,13 +809,13 @@ onChange={(e) => {
                 onClick={handleSavePlayer}
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
               >
-                Save
+                {selectedLanguage.save}
               </button>
               <button
                 onClick={handleCancelAddRow}
                 className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
               >
-                Cancel
+                {selectedLanguage.cancel}
               </button>
               </>
                       )}

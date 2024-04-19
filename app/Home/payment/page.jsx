@@ -14,6 +14,15 @@ import 'jspdf-autotable'
 import * as XLSX from 'xlsx';
 import AutosuggestComponent from '@/components/UI/Autocomplete';
 import { getStatusColorClass } from '../tournaments/page';
+import en from '@/app/languages/en.json'
+import ar from '@/app/languages/ar.json'
+import fr from '@/app/languages/fr.json'
+import tr from '@/app/languages/tr.json'
+// choose language
+
+const selectedLanguage = en;
+
+
 const Card = ({ title, data, subtitle, icon }) => {
   return (
     <div className="bg-white shadow-md rounded-xl p-6 w-72">
@@ -113,7 +122,7 @@ name:'',description:''})
   
         <div className="w-2/6 h-full bg-white border rounded-lg flex flex-col justify-start items-start">
           <div className='flex'>
-            <h2 className="text-xl font-bold ml-4 mt-4 mb-6">Invoices Billing</h2>
+            <h2 className="text-xl font-bold ml-4 mt-4 mb-6">{selectedLanguage.invoices_billing}</h2>
             <div className='ml-72'/>
             <div className="mt-4">
           
@@ -123,7 +132,7 @@ name:'',description:''})
           <div className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8" style={{ width: 'calc(100% - 24px)' }}>
             <div className="ml-4 grid grid-cols-1 gap-4">
             <div className="flex flex-col">
-                <strong>Date</strong>
+                <strong>{selectedLanguage.date}</strong>
   
   
       <DatePicker
@@ -141,12 +150,12 @@ name:'',description:''})
               </div>
           
               <div className="flex flex-col">
-                <strong>Consumer</strong>   
+                <strong>{selectedLanguage.consumer}</strong>   
                 <AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation} name={reservation.name} field={"name"}
          />
       </div>
   <div className="flex flex-col">
-              <strong>Payment</strong>
+              <strong>{selectedLanguage.payment}</strong>
               <select
       name="payment"
       value={reservation.payment}
@@ -155,15 +164,15 @@ name:'',description:''})
     >
   
       <option value="cash">
-          Cash
+          {selectedLanguage.cash}
         </option>
         <option  value="card">
-          Card
+          {selectedLanguage.card}
         </option>
     </select>
     </div>
     <div className="flex flex-col">
-              <strong>Status</strong>
+              <strong>{selectedLanguage.status}</strong>
               <select
       name="status"
       value={reservation.status}
@@ -172,15 +181,15 @@ name:'',description:''})
     >
   
       <option value="paid">
-         Paid
+         {selectedLanguage.paid}
         </option>
         <option  value="not paid">
-         Not paid
+        {selectedLanguage.not_paid}
         </option>
     </select>
     </div>
     <div className="flex flex-col">
-              <strong>Price</strong>
+              <strong>{selectedLanguage.price}</strong>
               <input
           className="rounded-lg"
           type="text"
@@ -191,7 +200,7 @@ name:'',description:''})
   
     </div>
     <div className="flex flex-col">
-        <label className="font-semibold mb-2">Booking Type</label>
+        <label className="font-semibold mb-2">{selectedLanguage.booking_type}</label>
         <div  className="flex justify-center">
           <label className="inline-block mr-4">
             <input
@@ -202,7 +211,7 @@ name:'',description:''})
               onChange={() => handleBookingTypeChange('match')}
               className="mr-2"
             />
-            Court
+          {selectedLanguage.court}
           </label>
           <label className="inline-block">
             <input
@@ -213,7 +222,7 @@ name:'',description:''})
               onChange={() => handleBookingTypeChange('class')}
               className="mr-2"
             />
-            Class
+              {selectedLanguage.class}
           </label>
           <label className="inline-block">
             <input
@@ -224,7 +233,7 @@ name:'',description:''})
               onChange={() => handleBookingTypeChange('other')}
               className="ml-2"
             />
-            Other
+            {selectedLanguage.other}
           </label>
         </div>
         
@@ -232,7 +241,7 @@ name:'',description:''})
       {bookingType === 'other' && (
         <>
             <div className="flex flex-col">
-              <strong>Other:</strong>
+              <strong>{selectedLanguage.other}:</strong>
               <input
           className="rounded-lg"
           type="text"
@@ -245,7 +254,7 @@ name:'',description:''})
         </>
       )}
           <div className="flex flex-col">
-              <strong>Description</strong>
+              <strong>{selectedLanguage.description}</strong>
               <input
           className="rounded-lg"
           type="text"
@@ -256,7 +265,7 @@ name:'',description:''})
   
     </div>
                 <button type="submit" onClick={handleSubmit} className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-4">
-        Submit
+        {selectedLanguage.submit}
       </button>
             </div>
     
@@ -274,7 +283,7 @@ const StraightAnglePieChart = ({data}) => (
 
 
     <div className='flex flex-col w-full self-center justify-center'>
-    <h2 className="text-3xl font-bold mb-10 ml-2">Invoicess Types</h2>
+    <h2 className="text-3xl font-bold mb-10 ml-2">{selectedLanguage.invoices_type}</h2>
     <ResponsiveContainer width="40%" height={400} className='flex flex-col w-full self-center justify-center'>
     <BarChart data={data} >
  
@@ -639,12 +648,12 @@ const exportToExcelSalary = (from,to,tableName) => {
     <div className="container mx-auto h-full mt-10">
 <div className="flex items-center justify-between">
   <div>
-    <h2 className="text-3xl font-bold mb-10 ml-2">Invoicess</h2>
+    <h2 className="text-3xl font-bold mb-10 ml-2">{selectedLanguage.invoicess}</h2>
   </div>
   <div className='flex flex-row'>
   <div className='flex flex-row self-end px-4'>
             <div>
-             <strong className='mr-2 mt-4 mb-6'>from : </strong>
+             <strong className='mr-2 mt-4 mb-6'>{selectedLanguage.invoicess} : </strong>
                   <DatePicker
         selected={startDate}
         onChange={(date) => setStartDate(date)}
@@ -658,7 +667,7 @@ const exportToExcelSalary = (from,to,tableName) => {
             </div>
       
             <div>
-             <strong className='ml-2 mt-4 mb-6'>to :</strong>
+             <strong className='ml-2 mt-4 mb-6'>{selectedLanguage.to} :</strong>
       <DatePicker
         selected={endDate}
         onChange={(date) => setEndDate(date)}
@@ -672,7 +681,7 @@ const exportToExcelSalary = (from,to,tableName) => {
       />
       </div>
     </div>
-    <button className="text-blue-500 text-2xl" onClick={addNewMatch}>Add Invoices</button>
+    <button className="text-blue-500 text-2xl" onClick={addNewMatch}>{selectedLanguage.add_invoices}</button>
   </div>
 </div>
 
@@ -689,7 +698,7 @@ const exportToExcelSalary = (from,to,tableName) => {
     
       <div className="flex overflow-x-auto border bg-white flex-col p-4 rounded-lg relative">
       <StraightAnglePieChart data={status.data}/>
-      <button      className="button-excel  ml-5 absolute right-6 top-4" onClick={()=>exportToExcelSalary(startDate.toLocaleDateString(),endDate.toLocaleDateString(),'receipts')}>Import</button>
+      <button      className="button-excel  ml-5 absolute right-6 top-4" onClick={()=>exportToExcelSalary(startDate.toLocaleDateString(),endDate.toLocaleDateString(),'receipts')}>{selectedLanguage.import}</button>
 
         <table className="w-full divide-y divide-gray-200" id='receipts'>
           <thead className="bg-gray-50">
@@ -698,22 +707,22 @@ const exportToExcelSalary = (from,to,tableName) => {
                 #
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-              Invoices Date
+              {selectedLanguage.invoices_date}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                name
+                {selectedLanguage.name}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                Amout
+                {selectedLanguage.amount}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-               Status
+               {selectedLanguage.status}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-              type
+              {selectedLanguage.type}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                Download Invoices
+                {selectedLanguage.download_invoices}
               </th>
             </tr>
           </thead>
@@ -735,9 +744,9 @@ const exportToExcelSalary = (from,to,tableName) => {
     id='cssassas'
     className={`rounded-lg w-full px-3 py-2 border-none focus:outline-none ${getStatusColorClass(transaction.status)}`}
   >
-    <option value="">Unknown</option>
-    <option value="paid">Paid</option>
-    <option value="not paid">Not paid</option>
+    <option value="">{selectedLanguage.unknown}</option>
+    <option value="paid">{selectedLanguage.paid}</option>
+    <option value="not paid">{selectedLanguage.not_paid}</option>
    
 
   </select></td> 

@@ -10,6 +10,16 @@ import Modal from 'react-modal';
 import Switch from "react-switch";
 
 import { fetchCourtsAndReservations } from '@/context/AuthContext';
+import en from '@/app/languages/en.json'
+import ar from '@/app/languages/ar.json'
+import fr from '@/app/languages/fr.json'
+import tr from '@/app/languages/tr.json'
+// choose language
+
+const selectedLanguage = en;
+
+
+
 export function generateRandom13DigitNumber() {
   const randomNumber = Math.floor(Math.random() * 1e13); // Generate a random 13-digit number
   return randomNumber.toString();
@@ -412,7 +422,7 @@ function generateTimeArrayFromDate() {
       <div className="w-4/12 h-full bg-white border rounded-t flex flex-col justify-start items-start">
 
     <div className='flex'>
-        <h2 className="text-xl font-bold ml-4 mt-4 mb-6">Match Details</h2>
+        <h2 className="text-xl font-bold ml-4 mt-4 mb-6">{selectedLanguage.match_details}</h2>
      
 
     </div>
@@ -420,7 +430,7 @@ function generateTimeArrayFromDate() {
     <div  className="p-6 mt-4 border h-full rounded-lg ml-4 mr-4 mb-8 overflow-y-auto" style={{ width: 'calc(100% - 24px)' }}>
           <div className="ml-4 grid grid-cols-2 gap-4">
           <div className="flex flex-col">
-              <strong>Date</strong>
+              <strong>{selectedLanguage.date}</strong>
 
 
     <DatePicker
@@ -439,7 +449,7 @@ function generateTimeArrayFromDate() {
         
  
             <div className="flex flex-col">
-            <strong>Select start time</strong>
+            <strong>{selectedLanguage.select_a_start_time}</strong>
             <select
   id="startTime"
   name="startTime"
@@ -459,7 +469,7 @@ function generateTimeArrayFromDate() {
   </div>
   
   <div className="flex flex-col">
-            <strong>Duration</strong>
+            <strong>{selectedLanguage.duration}</strong>
             <select
                required 
     name="duration"
@@ -470,20 +480,20 @@ function generateTimeArrayFromDate() {
     }));}}
     className="rounded-lg"
   >
-    <option value="">Select Duration</option>
+    <option value="">{selectedLanguage.select_a_duration}</option>
     <option value={60}>
-        60 Minutes
+        60 {selectedLanguage.minutes}
       </option>
       <option  value={90}>
-        90 Minutes
+        90 {selectedLanguage.minutes}
       </option>
       <option   value={120}>
-        120 Minutes
+        120 {selectedLanguage.minutes}
       </option>
   </select>
   </div>
   <div className="flex flex-col">
-            <strong>Court</strong>
+            <strong>{selectedLanguage.court}</strong>
             <select
     name="courtName"
     value={reservation.courtName}
@@ -499,7 +509,7 @@ function generateTimeArrayFromDate() {
   </select>
   </div>
 <div className="flex flex-col">
-            <strong>Select Coach</strong>
+            <strong>{selectedLanguage.select_a_coach}</strong>
 <AutosuggestComponent trainers={trainers} setReservation={setReservation} reservation={reservation} name={reservation.coachname} field={'coachname'}/>
   </div>
   {reservation.coachname !== "coach" && reservation.coachname !== "" && ( <div className="flex flex-col ">
@@ -528,13 +538,13 @@ setAA(prevReservation => ({
       />)}
   </div>)}
 <div className="flex flex-col">
-            <strong>Select Consumer</strong>
+            <strong>{selectedLanguage.select_a_cosumer}</strong>
 <AutosuggestComponent trainers={trainees} setReservation={setReservation} reservation={reservation} name={reservation.name} field={'name'}/>
   </div>
 
 
 <div className="flex flex-col">
-            <strong>Payment</strong>
+            <strong>{selectedLanguage.payment}</strong>
             <select
     name="payment"
     value={reservation.payment}
@@ -544,15 +554,15 @@ setAA(prevReservation => ({
   >
 
     <option value="cash">
-        Cash
+        {selectedLanguage.cash}
       </option>
       <option  value="card">
-        Card
+        {selectedLanguage.card}
       </option>
   </select>
   </div>
   <div className="flex flex-col">
-            <strong>Discount</strong>
+            <strong>{selectedLanguage.discount}</strong>
             <select
     name="discount"
 
@@ -561,7 +571,7 @@ setAA(prevReservation => ({
    
   >
       <option value="">
-        No discount
+       {selectedLanguage.no_discount}
       </option>
 {discounts.map((discount)=>(
   <option value={JSON.stringify(discount)}>
@@ -572,7 +582,7 @@ setAA(prevReservation => ({
   </select>
   </div> 
   <div className="flex flex-col">
-            <strong>Price</strong>
+            <strong>{selectedLanguage.price}</strong>
             <input
         className="rounded-lg"
         type="text"
@@ -584,7 +594,7 @@ setAA(prevReservation => ({
 
   </div>
   <div className="flex flex-col">
-              <strong>Description</strong>
+              <strong>{selectedLanguage.description}</strong>
               <input
           className="rounded-lg"
           type="text"
@@ -599,7 +609,7 @@ setAA(prevReservation => ({
             
               <div className="flex flex-row justify-between">
 
-              <strong>Reaccuring</strong>
+              <strong>{selectedLanguage.reaccuring}</strong>
               <Switch onChange={()=>{ setReservation(prevReservation => ({
     ...prevReservation,
     reaccuring: !prevReservation.reaccuring,
@@ -622,7 +632,7 @@ setAA(prevReservation => ({
     </div>
 
 
-{reservation.date.seconds &&(  <button onClick={()=>  setShowRefundModal(true)} className="mb-3 px-4 py-2 bg-red-500 text-white rounded-md">Cancel a Match</button>)}
+{reservation.date.seconds &&(  <button onClick={()=>  setShowRefundModal(true)} className="mb-3 px-4 py-2 bg-red-500 text-white rounded-md">{selectedLanguage.cancel_a_match}</button>)}
 <Modal
   isOpen={showRefundModal}
   onRequestClose={() => setShowRefundModal(false)}
@@ -649,32 +659,32 @@ setAA(prevReservation => ({
     },
   }}
 >
-        <h2 className="text-xl font-bold mb-4">Refund Payment</h2>
-        <p className="mb-4">Do you want to refund the payment?</p>
+        <h2 className="text-xl font-bold mb-4">{selectedLanguage.refund_payment}</h2>
+        <p className="mb-4">{selectedLanguage.do_you_want_to_refund_the_payment}</p>
         <div className="flex justify-between mt-4">
           <button
             className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
             onClick={handleConfirmRefund}
           >
-            Yes
+           {selectedLanguage.yes}
           </button>
           <button
             className="px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600"
             onClick={cancelMatch}
           >
-            No
+            {selectedLanguage.no}
           </button>
           <button
             className="px-4 py-2 rounded bg-red-500 text-white hover:bg-blue-600"
             onClick={()=>setShowRefundModal(false)}
           >
-            Cancel Refund
+            {selectedLanguage.canel_refund}
           </button>
         </div>
       </Modal>
           </div>
           <div className="flex flex-col my-5">
-          <strong>Add Participants </strong>
+          <strong>{selectedLanguage.add_participants} </strong>
           
 
 <div class="relative overflow-x-auto my-5">
@@ -682,13 +692,13 @@ setAA(prevReservation => ({
           <thead className="bg-gray-50">
             <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                    Player Name
+                   {selectedLanguage.player_name}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                    Payment method
+                    {selectedLanguage.payemt_method}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"   >
-                    Action
+                    {selectedLanguage.action}
                 </th>
             </tr>
         </thead>
@@ -731,10 +741,10 @@ setAA(prevReservation => ({
   >
 
     <option value="full">
-        Full
+        {selectedLanguage.full}
       </option>
       <option  value="split">
-        Split
+        {selectedLanguage.split}
       </option>
   </select>
                 </td>
@@ -745,7 +755,7 @@ setAA(prevReservation => ({
                 onClick={() => addParticipant(newParticipant)}
 
               >
-                Add Participant
+                {selectedLanguage.add_participants}
               </button>
               </td>
             </tr>
@@ -754,7 +764,7 @@ setAA(prevReservation => ({
 </div>
         
             </div>
-            <button type="submit" onClick={handleSubmit} className="mb-3 px-4 py-2 bg-blue-500 text-white rounded-md">Submit Reservation</button>
+            <button type="submit" onClick={handleSubmit} className="mb-3 px-4 py-2 bg-blue-500 text-white rounded-md">{selectedLanguage.submit_reservation}</button>
         </div>
 
       </div>
@@ -855,10 +865,10 @@ const handleSetReservation = (match) => {
     <>
     <div className="container mx-auto  h-full mt-10 ">
     <div className="flex items-center justify-between mb-5">
-        <h1 className="text-3xl font-bold ">Matches</h1>
+        <h1 className="text-3xl font-bold ">{selectedLanguage.matches}</h1>
         <div className='flex flex-row self-end px-4'>
   <div>
-   <strong className='mr-2 mt-4 mb-6'>from : </strong>
+   <strong className='mr-2 mt-4 mb-6'>{selectedLanguage.from}: </strong>
         <DatePicker
 selected={startDate}
 onChange={(date) => setStartDate(date)}
@@ -872,7 +882,7 @@ dateFormat="dd/MM/yyyy"
   </div>
 
   <div>
-   <strong className='ml-2 mt-4 mb-6'>to :</strong>
+   <strong className='ml-2 mt-4 mb-6'>{selectedLanguage.to} :</strong>
 <DatePicker
 selected={endDate}
 onChange={(date) => setEndDate(date)}
@@ -900,32 +910,32 @@ dateFormat="dd/MM/yyyy"
             className="px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <button onClick={addNewMatch} className=" px-4 button-white rounded-md">Add New Match</button>
+        <button onClick={addNewMatch} className=" px-4 button-white rounded-md">{selectedLanguage.add_new_match}</button>
         </div>
         <div className="overflow-x-auto w-full border">
           <table className="w-full min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Hour
+                  {selectedLanguage.hour}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sport
+                  {selectedLanguage.sport}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Duration
+                  {selectedLanguage.duration}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Players
+                 {selectedLanguage.players}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Court Name
+                  {selectedLanguage.court_name}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
+                  {selectedLanguage.price}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Action
+                  {selectedLanguage.action}
                 </th>
               </tr>
             </thead>

@@ -26,6 +26,12 @@ import { fetchFirestoreData } from './fetchData';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import { useAuth } from '@/context/AuthContext';
 import { MatchDetails } from '../matches/page';
+import en from '@/app/languages/en.json'
+import ar from '@/app/languages/ar.json'
+import fr from '@/app/languages/fr.json'
+import tr from '@/app/languages/tr.json'
+
+const selectedLanguage = en
     // Function to calculate the difference in days based on the given day string
     const dayDiff = (day) => {
       const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -514,11 +520,11 @@ setReservation((prev)=>({...prev,date:startDate,startTime:startTimeString,durati
           }}
         >
          
-          <option value="all">All</option>
-          <option value="class">Class</option>
-          <option value="tournament">Tournament</option>
-          <option value="leagues">Leagues</option>
-          <option value="match">Booking</option>
+          <option value="all">{selectedLanguage.all}</option>
+          <option value="class">{selectedLanguage.classes}</option>
+          <option value="tournament">{selectedLanguage.tournaments}</option>
+          <option value="leagues">{selectedLanguage.leagues}</option>
+          <option value="match">{selectedLanguage.booking}</option>
           
         </select>
         </div>

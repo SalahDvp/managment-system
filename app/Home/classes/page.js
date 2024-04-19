@@ -32,6 +32,16 @@ import { X } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useAuth } from "@/context/AuthContext";
+
+
+import en from '@/app/languages/en.json'
+import ar from '@/app/languages/ar.json'
+import fr from '@/app/languages/fr.json'
+import tr from '@/app/languages/tr.json'
+// choose language
+
+const selectedLanguage = tr;
+
 import { formatTimestampToDate,formatCreatedAt } from "./dateFormat";
 const getStatusColorClass = (status) => {
   switch (status) {
@@ -227,7 +237,7 @@ const ChatScreen = ({ classId, classData }) => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
+            placeholder={selectedLanguage.type_your_message}
             className="w-full p-2 border border-gray-300 rounded"
             rows="3"
           />
@@ -235,7 +245,7 @@ const ChatScreen = ({ classId, classData }) => {
             onClick={sendMessage}
             className="ml-2 px-4 py-2 bg-blue-500 text-white rounded"
           >
-            Send
+            {selectedLanguage.send}
           </button>
         </div>
       </div>
@@ -461,7 +471,7 @@ if(newPlayerDetails.membership){
           style={{ top: "-50px", right: "-10px" }}
           onClick={() => setShowModal(true)}
         >
-          Add Player
+         {selectedLanguage.add_player}
         </button>
       )}
 
@@ -472,67 +482,67 @@ if(newPlayerDetails.membership){
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              name
+              {selectedLanguage.table_headers.name}
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              level
+             {selectedLanguage.level}
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              {"times per week"}
+              {selectedLanguage.times_per_week}
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              {"duration (months)"}
+              {selectedLanguage.durationM}
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              {"lessons left"}
+              {selectedLanguage.lessons_left}
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              {"Payment status"}
+            {selectedLanguage.payment_status}
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              type
+             {selectedLanguage.type}
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              Amount
+              {selectedLanguage.amount}
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              Discount
+            {selectedLanguage.discount}
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              {"Joining date"}
+             {selectedLanguage.joining_date}
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              Status
+              {selectedLanguage.table_headers.status}
             </th>
           </tr>
         </thead>
@@ -873,8 +883,9 @@ const ClassHistory = ({ classes }) => {
                 onClick={() => handleDropdownToggle(cls.id)}
               >
                 {selectedClass === cls.id
-                  ? "Hide Participants"
-                  : "Show Participants"}
+                  ? selectedLanguage.hide_participants  
+                  : selectedLanguage.show_participants
+                }
               </button>
             </div>
           </div>
@@ -883,13 +894,13 @@ const ClassHistory = ({ classes }) => {
               <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr className="bg-blue-500 text-white">
-                    <th className="px-4 py-2">Player</th>
-                    <th className="px-4 py-2">Overall</th>
+                    <th className="px-4 py-2">{selectedLanguage.player}</th>
+                    <th className="px-4 py-2">{selectedLanguage.over_all}</th>
 
-                    <th className="px-4 py-2">Forehand</th>
-                    <th className="px-4 py-2">Backhand</th>
-                    <th className="px-4 py-2">Serve</th>
-                    <th className="px-4 py-2">Notes</th>
+                    <th className="px-4 py-2">{selectedLanguage.forehand}</th>
+                    <th className="px-4 py-2">{selectedLanguage.backhand}</th>
+                    <th className="px-4 py-2">{selectedLanguage.serve}</th>
+                    <th className="px-4 py-2">{selectedLanguage.notes}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1354,7 +1365,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
             className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-20 ml-10"
             onClick={toggleDetails}
           >
-            View Details
+           {selectedLanguage.view_details}
           </button>
         </div>
       </div>
@@ -1385,12 +1396,12 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
           <div className="w-10/12 h-full bg-white border rounded-t flex flex-col justify-start items-start">
             <div className="flex">
               <h2 className="text-xl font-semibold text-gray-600 ml-4 mt-4 mb-6">
-                Class Details
+                {selectedLanguage.class_details}
               </h2>
               <div className="ml-72" />
               <div className="mt-4">
                 <strong className="ml-2 mt-4 mb-6 font-semibold text-gray-600">
-                  Class ID
+                {selectedLanguage.class_id}
                 </strong>
                 <input
                   className="rounded-lg ml-5"
@@ -1410,7 +1421,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                   }`}
                   onClick={() => setActiveTab("details")}
                 >
-                  Details
+                  {selectedLanguage.details}
                 </button>
                 <button
                   className={`px-4 py-2 font-semibold rounded-lg focus:outline-none ${
@@ -1420,7 +1431,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                   }`}
                   onClick={() => setActiveTab("attendance")}
                 >
-                  Up Coming Classes
+                 {selectedLanguage.up_coming_classes}
                 </button>
                 <button
                   className={`px-4 py-2 font-semibold  rounded-lg focus:outline-none ${
@@ -1430,7 +1441,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                   }`}
                   onClick={() => setActiveTab("classHistory")}
                 >
-                  Class History
+                   {selectedLanguage.class_history}
                 </button>
                 <button
                   className={`px-4 py-2 font-semibold rounded-lg focus:outline-none ${
@@ -1440,14 +1451,14 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                   }`}
                   onClick={() => setActiveTab("Chat")}
                 >
-                  Chat
+                   {selectedLanguage.chat}
                 </button>
               </div>
             </div>
             {activeTab === "details" && (
               <div className="bg-white w-full">
                 <h1 className="text-lg font-semibold  ml-4 mb-2">
-                  General Information
+                {selectedLanguage.general_infomration}
                 </h1>
 
                 <div
@@ -1457,7 +1468,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                   <div className="ml-4 grid grid-cols-3 gap-4">
                     <div className="flex flex-col">
                       <strong className="text-gray-600 font-semibold">
-                        Name
+                      {selectedLanguage.attendance_table_headers.name}
                       </strong>
                       <input
                         className="rounded-lg "
@@ -1469,7 +1480,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                     </div>
                     <div className="flex flex-col">
                       <strong className="text-gray-600 font-semibold">
-                        Type
+                      {selectedLanguage.type}
                       </strong>
 
                       <select
@@ -1485,7 +1496,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                     </div>
                     <div className="flex flex-col rounded-lg">
                       <strong className="text-gray-600 font-semibold">
-                        Duration(weeks)
+                      {selectedLanguage.duration}
                       </strong>
                       <div className="flex flex-row">
                         <input
@@ -1502,7 +1513,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                     <div>
                       <div className="flex flex-col">
                         <strong className="text-gray-600 font-semibold">
-                          Trainer
+                        {selectedLanguage.trainer}
                         </strong>
                         <select
                           className="rounded-lg"
@@ -1524,7 +1535,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
 
                     <div className="flex flex-col">
                       <strong className="text-gray-600 font-semibold">
-                        Features
+                      {selectedLanguage.features}
                       </strong>
 
                       <input
@@ -1542,7 +1553,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                     </div>
                     <div className="flex flex-col">
                       <strong className="text-gray-600 font-semibold">
-                        Registration deadline
+                      {selectedLanguage.registration_deadline}
                       </strong>
 
 <div          className="rounded-lg rounded-xl px-3 mt-2 w-90 ">
@@ -1571,7 +1582,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                     {classDetails.classTime.map((cls, index) => (
                       <div key={index} className="flex flex-col">
                         <strong className="text-gray-600 font-semibold">
-                          {index + 1} time a week Price(Monthly)
+                          {index + 1} {selectedLanguage.one_time_a_week_Price}
                         </strong>
                         <input
                           className="rounded-lg "
@@ -1587,7 +1598,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                   </div>
                 </div>
                 <h3 className="text-lg font-semibold  ml-4 mb-2">
-                  Description
+                 {selectedLanguage.description}
                 </h3>
                 <div
                   className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 w-full"
@@ -1602,7 +1613,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                     onChange={handleInputChange} // Convert string back to array on change
                   />
                 </div>
-                <h3 className="text-lg font-semibold  ml-4 mb-2">Time</h3>
+                <h3 className="text-lg font-semibold  ml-4 mb-2">{selectedLanguage.time}</h3>
                 <div
                   className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 relative"
                   style={{ width: "calc(100% - 24px)" }}
@@ -1623,7 +1634,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                         <div className="flex flex-row">
                           <div className="mr-4">
                             <strong className="text-gray-600 font-semibold">
-                              Day
+                             {selectedLanguage.day}
                             </strong>{" "}
                             <br />
                             <select
@@ -1644,7 +1655,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                           </div>
                           <div className="mr-2">
                             <strong className="text-gray-600 font-semibold">
-                              Start Time
+                             {selectedLanguage.start_time}
                             </strong>{" "}
                             <br />
                             <input
@@ -1663,7 +1674,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                           </div>
                           <div className="mr-2">
                             <strong className="text-gray-600 font-semibold">
-                              End Time
+                            {selectedLanguage.end_time}
                             </strong>{" "}
                             <br />
                             <input
@@ -1682,7 +1693,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                           </div>
                           <div className="flex flex-col">
                             <strong className="text-gray-600 font-semibold">
-                              Court
+                            {selectedLanguage.court}
                             </strong>
                             <select
                               className="rounded-lg"
@@ -1713,7 +1724,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                   </div>
                 </div>
                 <h3 className="text-lg font-semibold  ml-4 mb-2">
-                  Restrictions
+                {selectedLanguage.restrictions}
                 </h3>
                 <div
                   className="p-6 mt-4  border rounded-lg ml-4 mr-4 mb-8"
@@ -1722,7 +1733,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <strong className="text-gray-600 font-semibold">
-                        Min. Players
+                       {selectedLanguage.min_players}
                       </strong>{" "}
                       <br />
                       <input
@@ -1736,7 +1747,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                     </div>
                     <div>
                       <strong className="text-gray-600 font-semibold">
-                        Max. Players
+                      {selectedLanguage.max_players}
                       </strong>{" "}
                       <br />
                       <input
@@ -1751,7 +1762,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
 
                     <div>
                       <strong className="text-gray-600 font-semibold">
-                        Level
+                      {selectedLanguage.level}
                       </strong>{" "}
                       <br />
                       <select
@@ -1771,7 +1782,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                     </div>
                     <div>
                       <strong className="text-gray-600 font-semibold">
-                        Average Age
+                       {selectedLanguage.average_age}
                       </strong>{" "}
                       <br />
                       <input
@@ -1791,7 +1802,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                 >
                   <div>
                     <h3 className="text-lg font-semibold  ml-4 mb-2">
-                      Participants
+                    {selectedLanguage.participants}
                     </h3>
                     <ParticipantsHorizontalScroll
                       classDetails={classDetails}
@@ -1808,7 +1819,7 @@ const Item = ({ item, onNavigate, i, setI, trainers, trainees }) => {
                     onClick={handleSubmit}
                     disabled={isSubmitting}
                   >
-                    Submit
+                     {selectedLanguage.submit}
                   </button>
                 </div>
               </div>
@@ -2147,7 +2158,7 @@ const NewItem = ({ trainers, trainees, setI, i }) => {
 
             <div className="flex">
               <h2 className="text-xl font-semibold  ml-4 mt-4 mb-6">
-                Class Details
+              {selectedLanguage.class_details}
               </h2>
               <div className="ml-72" />
             </div>
@@ -2563,7 +2574,7 @@ const Dashboard = () => {
 
   return (
     <div className="container mx-auto">
-      <h1 className="text-3xl font-semibold  my-4 text-center">Class List</h1>
+      <h1 className="text-3xl font-semibold  my-4 text-center">{selectedLanguage.class_List}</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
         {classes.map((item, index) => (
           <Item

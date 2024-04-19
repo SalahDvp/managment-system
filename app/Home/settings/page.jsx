@@ -8,6 +8,15 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { MultiSelect } from "react-multi-select-component";
 import { useAuth} from '@/context/AuthContext';
+
+import en from '@/app/languages/en.json'
+import ar from '@/app/languages/ar.json'
+import fr from '@/app/languages/fr.json'
+import tr from '@/app/languages/tr.json'
+// choose language
+
+const selectedLanguage =en;
+
 const TennisAmenitiesList = ({amenities,setAmenities}) => {
     
       const handleToggleAmenity = (amenity) => {
@@ -80,7 +89,7 @@ const LaneSchedule = ({schedule,setSchedule}) => {
             </div>
             </div>
             <div className="flex flex-col align-starts mr-10" style={{width:'200px'}}>
-            <span className="font-medium text-gray-500 uppercase">from</span>
+            <span className="font-medium text-gray-500 uppercase">{selectedLanguage.from}</span>
            
                       
             <select
@@ -94,7 +103,7 @@ const LaneSchedule = ({schedule,setSchedule}) => {
  
           </div>
           <div className="flex flex-col align-starts" style={{width:'200px'}}>
-            <span className="font-medium text-gray-500 uppercase">to</span>
+            <span className="font-medium text-gray-500 uppercase">{selectedLanguage.to}</span>
            
                       
             <select
@@ -198,7 +207,7 @@ const LaneSchedule = ({schedule,setSchedule}) => {
     
           <div className="w-5/12 h-full bg-white border rounded-lg flex flex-col justify-start items-start">
             <div className='flex'>
-              <h2 className="text-xl font-bold ml-4 mt-4 mb-6">New Discount</h2>
+              <h2 className="text-xl font-bold ml-4 mt-4 mb-6">{selectedLanguage.new_discount}</h2>
               
               <div className='ml-72'/>
               <div className="mt-4">
@@ -207,11 +216,11 @@ const LaneSchedule = ({schedule,setSchedule}) => {
             </div>
             {/* Form inputs */}
             <form onSubmit={handleSubmit} className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 overflow-y-auto" style={{ width: 'calc(100% - 24px)' }}>
-            <h2 className="text-xl font-bold ml-4 mt-4 mb-2">General Information</h2>
-              <p class="font ml-4 text-slate-600 mb-6">Configure How Discount will be shown to your players</p> 
+            <h2 className="text-xl font-bold ml-4 mt-4 mb-2">{selectedLanguage.general_infomration}</h2>
+              <p class="font ml-4 text-slate-600 mb-6">{selectedLanguage.configure_how_discount_will_be_shown_to_your_players}</p> 
               <div className="ml-4 grid grid-cols-1 gap-4">
               <div className="flex flex-col">
-                <strong>Name</strong>
+                <strong>{selectedLanguage.name}</strong>
                 <input
             className="rounded-lg"
             type="text"
@@ -222,16 +231,16 @@ const LaneSchedule = ({schedule,setSchedule}) => {
     
       </div>
       <div className="flex flex-col">
-                <strong>Description</strong>
-                <p class="font  text-slate-600 mb-2 mt-1">Club Discount Description</p> 
+                <strong>{selectedLanguage.description}</strong>
+                <p class="font  text-slate-600 mb-2 mt-1">{selectedLanguage.club_discountd_description}</p> 
 
                 <textarea  name='description'  onChange={handleInputChange} class="w-full rounded-md border py-2 px-2 bg-gray-50 outline-none ring-blue-600 focus:ring-1 bg-white" id="description" rows="4" value={reservation.description}></textarea>
 
     
       </div>
       </div>
-      <h2 className="text-xl font-bold ml-4 mt-8 mb-2">Discount Privileges</h2>
-              <p class="font ml-4 text-slate-600 mb-6">Configure Discount benefits</p> 
+      <h2 className="text-xl font-bold ml-4 mt-8 mb-2">{selectedLanguage.discount_privileges}</h2>
+              <p class="font ml-4 text-slate-600 mb-6">{selectedLanguage.configure_discount_benefits}</p> 
               <div className="flex flex-col justify-center ">
               <div className="self-center ">
         <input
@@ -243,7 +252,7 @@ const LaneSchedule = ({schedule,setSchedule}) => {
           onChange={() => setDiscountType('classes')}
           
         />
-                <label htmlFor="tournaments">Classes</label>
+                <label htmlFor="tournaments">{selectedLanguage.classes}</label>
 
         <input
           type="radio"
@@ -253,7 +262,7 @@ const LaneSchedule = ({schedule,setSchedule}) => {
           checked={discountType === 'tournaments'}
           onChange={() => setDiscountType('tournaments')}
         />
-        <label htmlFor="tournaments">Tournaments</label>
+        <label htmlFor="tournaments">{selectedLanguage.tournaments}</label>
 
         <input
           type="radio"
@@ -263,7 +272,7 @@ const LaneSchedule = ({schedule,setSchedule}) => {
           checked={discountType === 'courts'}
           onChange={() => setDiscountType('courts')}
         />
-        <label htmlFor="courts">Courts</label>
+        <label htmlFor="courts">{selectedLanguage.courts}</label>
       </div>
 
       <div>
@@ -276,7 +285,7 @@ const LaneSchedule = ({schedule,setSchedule}) => {
         />
       </div>
       <div className="flex flex-col">
-                <strong>discount rate</strong>
+                <strong>{selectedLanguage.discount_rate}</strong>
                 <input
 className="rounded-lg"
 type="number"
@@ -286,12 +295,12 @@ onChange={handleInputChange}
 />
       </div>
     </div>
-<h2 className="text-xl font-bold ml-4 mt-8 mb-2">Club Discount price</h2>
-              <p class="font ml-4 text-slate-600 mb-6">this is the price that will be charged to your club Memebers</p> 
+<h2 className="text-xl font-bold ml-4 mt-8 mb-2">{selectedLanguage.club_discount_price}</h2>
+              <p class="font ml-4 text-slate-600 mb-6">{selectedLanguage.this_is_the_price_that_will_be_charged_to_your_club_memebers}</p> 
       <div className="ml-4 grid grid-cols-2 gap-4 mt-6">
 
       <div className="flex flex-col">
-              <label htmlFor="startDate" className="font-semibold">Start Date</label>
+              <label htmlFor="startDate" className="font-semibold">{selectedLanguage.start_date}</label>
        
                   <DatePicker
         selected={reservation.startDate}
@@ -309,7 +318,7 @@ onChange={handleInputChange}
       />
             </div>
             <div className="flex flex-col w-full">
-              <label htmlFor="endDate" className="font-semibold">End Date</label>
+              <label htmlFor="endDate" className="font-semibold">{selectedLanguage.end_date}</label>
               <DatePicker
         selected={reservation.endDate}
         onChange={(date)=>setReservation(prevReservation => ({
@@ -328,7 +337,7 @@ onChange={handleInputChange}
             </div>
        
             <div className="flex flex-col">
-                <strong>Price</strong>
+                <strong>{selectedLanguage.price}</strong>
                 <input
 className="rounded-lg"
 type="number"
@@ -339,7 +348,7 @@ onChange={handleInputChange}
       </div>
    
   <button type="submit"  className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-4">
-          Create discount
+          {selectedLanguage.create_discount}
         </button>
               </div>
       
@@ -401,7 +410,7 @@ onChange={handleInputChange}
     
           <div className="w-5/12 h-full bg-white border rounded-lg flex flex-col justify-start items-start">
             <div className='flex'>
-              <h2 className="text-xl font-bold ml-4 mt-4 mb-6">New Membership</h2>
+              <h2 className="text-xl font-bold ml-4 mt-4 mb-6">{selectedLanguage.new_membership}</h2>
               
               <div className='ml-72'/>
               <div className="mt-4">
@@ -410,11 +419,11 @@ onChange={handleInputChange}
             </div>
             {/* Form inputs */}
             <form onSubmit={handleSubmit} className="p-6 mt-4 border rounded-lg ml-4 mr-4 mb-8 overflow-y-auto" style={{ width: 'calc(100% - 24px)' }}>
-            <h2 className="text-xl font-bold ml-4 mt-4 mb-2">General Information</h2>
-              <p class="font ml-4 text-slate-600 mb-6">Configure How mebership will be shown to your players</p> 
+            <h2 className="text-xl font-bold ml-4 mt-4 mb-2">{selectedLanguage.general_infomration}</h2>
+              <p class="font ml-4 text-slate-600 mb-6">{selectedLanguage.configure_how_mebership_will_be_shown_to_your_players}</p> 
               <div className="ml-4 grid grid-cols-1 gap-4">
               <div className="flex flex-col">
-                <strong>Name</strong>
+                <strong>{selectedLanguage.name}</strong>
                 <input
             className="rounded-lg"
             type="text"
@@ -425,15 +434,15 @@ onChange={handleInputChange}
     
       </div>
       <div className="flex flex-col">
-                <strong>Description</strong>
-                <p class="font  text-slate-600 mb-2 mt-1">Club membership Description</p> 
+                <strong>{selectedLanguage.description}</strong>
+                <p class="font  text-slate-600 mb-2 mt-1">{selectedLanguage.club_membership_description}</p> 
 
                 <textarea  name='description'  onChange={handleInputChange} class="w-full rounded-md border py-2 px-2 bg-gray-50 outline-none ring-blue-600 focus:ring-1 bg-white" id="description" rows="4" value={reservation.description}></textarea>
 
     
       </div>
       </div>
-      <h2 className="text-xl font-bold ml-4 mt-8 mb-2">Membership Privileges</h2>
+      <h2 className="text-xl font-bold ml-4 mt-8 mb-2">{selectedLanguage.membership_rivileges}</h2>
               <p class="font ml-4 text-slate-600 mb-6">Configure membership benefits</p> 
       <div className="ml-4 grid grid-cols-2 gap-4 mt-6">
     <div className="flex flex-col">
